@@ -10,6 +10,10 @@
 - Use 16 px mobile password/filename inputs to avoid iOS focus zoom.
 - Allow long filenames to wrap to two lines on small screens and preserve full names in title/alt metadata.
 - Add explicit password description relationships.
+- Fix hidden selected-file summaries appearing before a file is loaded.
+- Compact selected-file drop zones while preserving Drag & Drop and Change actions.
+- Add show / hide controls to all password fields.
+- Rename the local-processing badge to `完全ローカル処理` / `Fully local processing`.
 - Reset Extract to a clean empty state before validating a replacement file and scroll completed result summaries into view.
 - Keep binary format, Worker algorithm, crypto, GZIP, adaptive placement, and generated-PNG verification unchanged.
 
