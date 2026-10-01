@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0 - 2026-10-01
+
+- Add optional password protection with PBKDF2-HMAC-SHA-256 and AES-256-GCM.
+- Use 600,000 PBKDF2 iterations, random 16-byte salt, random 12-byte IV, and a 128-bit GCM tag.
+- Encrypt filename, MIME, SHA-256, and payload bytes together inside the stored inner body.
+- Authenticate the complete BKFI outer header as AES-GCM additional data.
+- Include GCM tag overhead in capacity checks before embedding.
+- Detect encrypted images before extraction and request a password only when required.
+- Keep v0.2.0/v0.3.0 unencrypted images readable.
+- Keep runtime dependencies at zero and preserve the template privacy/CSP contract.
+
 ## 0.3.0 - 2026-10-01
 
 - Add browser-native GZIP compression for the complete BKFC container.
