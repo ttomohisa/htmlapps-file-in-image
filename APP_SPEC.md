@@ -5,172 +5,271 @@
 - **Name:** File in Image
 - **Japanese name:** 画像にファイルを埋め込む
 - **Slug:** `file-in-image`
-- **Current version:** v0.8.0
+- **Current version:** v0.9.0
 - **Repository:** `ttomohisa/htmlapps-file-in-image`
 - **Purpose:** Hide one arbitrary file inside image pixels and recover the original bytes later without uploading either file.
 - **Release artifacts:** `dist/index.html`, `dist/index.self-extract.html`, and the generated repository-root `file-in-image.html`.
 
-## 2. Scope of v0.8.0
+## 2. Release-candidate scope
 
-v0.8.0 is a UI / mobile / accessibility polish release. It does **not** change the BKFI/BKFC binary format, cryptography, compression, Worker algorithm, or generated-PNG verification rules.
+v0.9.0 is the release candidate for the stable v1 line.
 
-The release focuses on:
+No new user-facing feature scope is added here. The release focuses on:
 
-- smartphone tap targets;
-- 360 px layout robustness;
-- safe-area handling;
-- long filenames;
-- accessible tabs;
-- accessible file selection;
-- processing-state announcements;
-- result focus and keyboard flow;
-- password field descriptions;
-- help dialog behavior on small screens.
+- freezing the compatibility-format candidate;
+- preserving version 0 decode compatibility;
+- rejecting malformed or unsupported stable headers more strictly;
+- automated format regression in CI;
+- manual cross-browser / device regression before v1.0.
 
-## 3. Format compatibility
+If a blocker is found after this release that requires changing binary semantics, the format version must be bumped instead of silently reinterpreting version 1.
 
-Unchanged from v0.7.0:
+## 3. Compatibility-format versioning
 
-- `formatVersion=0`
-- legacy `embeddingMode=0`
-- current `embeddingMode=1`
-- GZIP behavior unchanged
-- PBKDF2-HMAC-SHA-256 / AES-256-GCM behavior unchanged
-- adaptive 8×8 placement unchanged
-- generated-PNG recovery verification unchanged
-- v0.2.0–v0.7.0 images remain readable
+### New output
 
-The stable v1 format is still not frozen.
+v0.9.0 writes:
 
-## 4. Touch targets
+- BKFI outer format version: **1**
+- BKFC inner container version: **1**
+- embedding mode: **1** (adaptive)
+- outer header length: 80 bytes
+- inner fixed header length: 48 bytes
 
-Primary interactive controls should provide approximately 44 px minimum touch height where practical.
+### Backward compatibility
 
-This includes:
+Decoder support remains:
 
-- primary and secondary buttons;
-- language switch;
-- help / dialog-close icon buttons;
-- mode tabs;
-- password-protection checkbox label area;
-- file-selection buttons.
+- BKFI version 0 + embedding mode 0
+- BKFI version 0 + embedding mode 1
+- BKFI version 1 + embedding mode 1
+- BKFC version 0
+- BKFC version 1
 
-No fixed bottom UI is introduced in v0.8.0, avoiding content overlap on small screens.
+Stable BKFI version 1 with embedding mode 0 is invalid.
 
-## 5. Mobile layout
+Versions greater than 1 are rejected as unsupported.
 
-At smartphone widths:
+## 4. BKFI outer header — stable candidate
 
-- no horizontal page scrolling;
-- mode tabs use the full available width;
-- password and filename inputs use at least 16 px font size to avoid iOS focus zoom;
-- long file names may wrap to two lines instead of becoming unreadable one-line ellipses;
-- result/file copy areas retain `min-width: 0`;
-- page/footer spacing includes safe-area insets;
-- the help dialog remains inside the visible `100dvh` area including safe-area margins.
+All multi-byte integers are big-endian.
 
-## 6. File-selection semantics
+| Offset | Size | Field |
+| ---: | ---: | --- |
+| 0 | 4 | ASCII `BKFI` |
+| 4 | 1 | format version |
+| 5 | 1 | embedding mode |
+| 6 | 1 | flags |
+| 7 | 1 | KDF ID |
+| 8 | 2 | header length |
+| 10 | 2 | reserved |
+| 12 | 4 | stored body length |
+| 16 | 4 | PBKDF2 iterations |
+| 20 | 16 | KDF salt |
+| 36 | 12 | AES-GCM IV |
+| 48 | 16 | placement salt |
+| 64 | 16 | reserved |
 
-The v0.7.0 structure used a drop zone with `role="button"` while also containing a nested Change button.
+Stable version 1 rules:
 
-v0.8.0 removes that nested-interactive-control pattern.
+- format version = `1`
+- embedding mode = `1`
+- header length = `80`
+- offset 10..11 = zero
+- offsets 64..79 = zero
+- unknown flag bits are rejected
+- if unencrypted, KDF ID / iterations / salt / IV must be zero
+- if encrypted, KDF ID = PBKDF2-HMAC-SHA-256 and iterations must remain within parser bounds
+- placement salt remains 16 bytes
+- complete BKFI header remains AES-GCM AAD when encrypted
 
-- the drop region remains a Drag & Drop target;
-- empty state contains an explicit native button that opens the file picker;
-- pointer users may still click an empty drop region;
-- after a file is selected, only the explicit Change button opens the picker;
-- the outer drop region is no longer exposed as a synthetic button.
+Flags:
 
-## 7. Tabs
+- bit 0: AES-GCM encrypted body
+- bit 1: GZIP-compressed body
 
-The Embed / Extract control follows tab semantics:
+KDF IDs:
 
-- `role="tablist"`;
-- localized accessible label;
-- `role="tab"`;
-- roving `tabindex`;
-- `aria-selected`;
-- `aria-controls`;
-- Left / Right Arrow moves between the two tabs;
-- Home selects Embed;
-- End selects Extract.
+- 0: none
+- 1: PBKDF2-HMAC-SHA-256
 
-Changing mode while an operation is active preserves the existing stale-result/cancellation behavior.
+## 5. BKFC inner container — stable candidate
 
-## 8. Processing accessibility
+| Offset | Size | Field |
+| ---: | ---: | --- |
+| 0 | 4 | ASCII `BKFC` |
+| 4 | 1 | container version |
+| 5 | 1 | reserved |
+| 6 | 2 | fixed header length |
+| 8 | 2 | filename UTF-8 byte length |
+| 10 | 2 | MIME UTF-8 byte length |
+| 12 | 4 | original file size |
+| 16 | 32 | SHA-256 of original bytes |
+| 48 | variable | filename, MIME, original bytes |
 
-During Embed / Extract:
+Stable version 1 rules:
 
-- the active panel sets `aria-busy="true"`;
-- status text uses `role="status"`, `aria-live="polite"`, and `aria-atomic="true"`;
-- progress elements have localized accessible labels;
-- progress updates set `aria-valuetext` with stage + percentage;
-- completed/cleared progress removes stale `aria-valuetext`;
-- error boxes remain atomic alerts.
+- version = `1`
+- reserved byte = zero
+- fixed header length = `48`
+- payload must remain within the 32 MiB application limit
+- exact total length must match the encoded metadata + file length
+- filename and MIME must decode as valid UTF-8
 
-Progress percentages remain informative and are not duration estimates.
+Version 0 remains readable for compatibility.
 
-## 9. Result focus
+## 6. Frozen adaptive placement semantics
 
-After successful Embed/self-verification or Extract:
+Stable version 1 continues the v0.5.0 adaptive algorithm unchanged.
 
-- reveal the result card;
-- focus the result card itself using `tabindex="-1"`;
-- allow screen-reader and keyboard users to encounter the summary before deciding whether to save.
+- 8×8 blocks
+- only fully opaque pixels are body-eligible
+- first 214 fully opaque pixels remain reserved for the BKFI header
+- RGB least-significant bits are masked before detail analysis
+- luminance: `(77R + 150G + 29B) >> 8`
+- integer Sobel score
+- deterministic average-score comparison
+- lower block index breaks exact score ties
+- candidate capacity grows to approximately 2× body bits when possible
+- deterministic xoshiro128** ordering
+- maximum 192 per-block RGB slot entries
+- one LSB per RGB channel
+- alpha is never modified
 
-This replaces moving focus directly to the Save button.
+The placement-domain string remains exactly:
 
-## 10. Long filenames
+```text
+BKFI-placement-v0.5
+```
 
-File name display must remain usable for long Japanese/English names.
+The historical name is retained because changing it would change placement compatibility.
 
-- full names are preserved in `title` attributes;
-- carrier/extract thumbnail alt text uses the selected filename;
-- smartphone display may wrap names to two lines;
-- metadata retains `overflow-wrap:anywhere`;
-- recovered original filename retains full value for the editable Save As field.
+## 7. Compression and encryption
 
-## 11. Password accessibility
+Processing order remains:
 
-Password fields keep existing visible labels and gain explicit description relationships.
+```text
+BKFC
+→ GZIP only when smaller
+→ AES-256-GCM when password protection is enabled
+→ adaptive placement
+→ PNG
+→ mandatory generated-PNG recovery verification
+```
 
-Embed password and confirmation reference:
+New encrypted output remains:
 
-- the password-protection explanation;
-- the live password validation status.
+- PBKDF2-HMAC-SHA-256
+- 600,000 iterations
+- random 16-byte salt
+- AES-256-GCM
+- random 12-byte IV
+- 128-bit GCM tag
+- full BKFI header as AAD
 
-Extract password references the protected-image explanation.
+Passwords remain exact UTF-8 input and are not trimmed, normalized, logged, or persisted.
 
-Password persistence/privacy behavior is unchanged.
+## 8. Generated-PNG verification
 
-## 12. Privacy and runtime rules
+Save remains blocked until the actual Canvas-generated PNG Blob is:
 
-Unchanged:
+1. decoded again;
+2. parsed for BKFI;
+3. re-extracted through the normal Worker;
+4. decrypted/authenticated when needed;
+5. decompressed when needed;
+6. parsed as BKFC;
+7. checked against SHA-256, filename, MIME, and source byte length.
 
-- files/passwords stay in browser memory;
+This behavior is unchanged from v0.7.0.
+
+## 9. Runtime architecture
+
+Unchanged from v0.8.0:
+
+- adaptive analysis/embed/extract in an embedded Blob Worker
+- legacy mode 0 extraction in the same Worker
+- cancellable Worker lifecycle
+- generation-token stale-result protection
+- transferred pixel buffers
+- no full-image RGB-slot list
+- no runtime third-party dependency
+- `connect-src 'none'`
+- `worker-src 'self' blob:`
+
+## 10. v0.9.0 automated regression
+
+`scripts/check-format-regression.mjs` is part of `scripts/check-repository.ps1`.
+
+The regression verifies:
+
+- new BKFI output writes version 1;
+- new BKFC output writes version 1;
+- BKFI/BKFC version 0 remains readable;
+- unsupported future versions are rejected;
+- stable version 1 + mode 0 is rejected;
+- unknown flags are rejected;
+- reserved stable fields are rejected when non-zero;
+- unexpected unencrypted KDF material is rejected;
+- PBKDF2 lower-bound validation remains enforced;
+- adaptive mode 1 Worker round-trip restores body bytes exactly;
+- legacy mode 0 Worker extraction remains readable.
+
+CI explicitly sets up Node.js 24 before running repository checks.
+
+## 11. Manual release-candidate regression
+
+Automated CI does not replace real browser/device testing.
+
+Before v1.0, manually verify at minimum:
+
+- Chrome desktop
+- Edge desktop
+- Firefox desktop
+- Safari desktop
+- Android Chrome
+- iOS Safari
+
+Also verify:
+
+- Japanese / English
+- direct `file://` use
+- standalone readable HTML
+- self-extract HTML
+- unencrypted output
+- GZIP-compressible and incompressible payloads
+- password-protected output
+- wrong password
+- v0 legacy image recovery
+- cancellation / stale-result behavior
+- long filenames
+- mobile file picker/drop-zone compact state
+- password show/hide controls
+- generated-PNG self-verification
+- no runtime network request
+- modified/recompressed image failure states
+
+Detailed manual checklist is stored in `docs/RELEASE_CANDIDATE_CHECKLIST.ja.md` and `docs/RELEASE_CANDIDATE_CHECKLIST.md`.
+
+## 12. Privacy
+
+- files, images, passwords, generated PNGs, and recovered bytes remain local;
+- no user-data upload;
 - no runtime CDN/API/analytics/telemetry;
-- no file/password persistence in localStorage / IndexedDB;
-- `connect-src 'none'`;
-- Blob Worker allowed through `worker-src 'self' blob:`;
-- runtime dependency count remains zero.
+- file/password bytes are not persisted in browser storage;
+- language preference may be stored locally;
+- runtime network access remains blocked by CSP.
 
-## 13. v0.8.0 acceptance criteria
+## 13. v0.9.0 acceptance criteria
 
-- no nested button inside an element exposed as `role="button"`;
-- three explicit empty-state file-picker buttons exist;
-- Embed / Extract tabs support click and Arrow/Home/End keyboard navigation;
-- inactive tab has `tabindex="-1"`;
-- operation panels expose `aria-busy`;
-- status/progress has localized accessible text;
-- primary touch targets are approximately 44 px high;
-- mobile text/password inputs do not trigger iOS small-font zoom;
-- long filenames do not create horizontal scrolling at 360 px;
-- help dialog respects viewport/safe-area bounds;
-- result card receives focus on successful completion;
-- existing Worker, crypto, compression, adaptive placement, and self-verification behavior remains unchanged;
-- standalone / self-extract checks remain green.
+- new output uses BKFI/BKFC version 1;
+- version 0 decode compatibility remains;
+- stable version 1 semantics are not changed after RC except for blocker fixes;
+- automated format regression is mandatory in repository checks;
+- standalone and self-extract verification remain green;
+- app UI remains v0.8 UX plus the PR #9 file-picker/password fixes;
+- manual browser/device checklist exists and is completed before v1.0.
 
-## 14. Roadmap
+## 14. Next milestone
 
-- **v0.9.0:** release candidate, cross-browser/device regression, format freeze candidate.
-- **v1.0.0:** stable release; only RC fixes and release artifacts.
+- **v1.0.0:** complete RC manual regression, fix blockers only, refresh README/screenshots/version/release artifacts, then release.
