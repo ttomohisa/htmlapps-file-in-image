@@ -407,7 +407,6 @@
       const ADAPTIVE_BLOCK_SIZE = 8;
       const ADAPTIVE_SLOT_BUFFER_SIZE = ADAPTIVE_BLOCK_SIZE * ADAPTIVE_BLOCK_SIZE * 3;
       const PLACEMENT_SALT_BYTES = 16;
-      const PLACEMENT_DOMAIN = encoder.encode('BKFI-placement-v0.5');
       const FLAG_ENCRYPTED = 0x01;
       const FLAG_GZIP = 0x02;
       const KDF_NONE = 0;
@@ -420,6 +419,7 @@
       const AES_GCM_TAG_BYTES = 16;
       const MAX_BODY_BYTES = MAX_PAYLOAD_BYTES + INNER_FIXED_BYTES + 131070 + AES_GCM_TAG_BYTES;
       const encoder = new TextEncoder();
+      const PLACEMENT_DOMAIN = encoder.encode('BKFI-placement-v0.5');
       const decoder = new TextDecoder('utf-8', { fatal: true });
       const $ = selector => document.querySelector(selector);
 
@@ -677,7 +677,7 @@
         const {width,height}=imageData, data=imageData.data, pixelCount=width*height;
         const luma=new Uint8Array(pixelCount);
         for (let pixel=0,offset=0;pixel<pixelCount;pixel+=1,offset+=4) {
-          luma[pixel]=(77*(data[offset]&0xFE)+150*(data[offset+1]&0xFE)+29*(data[offset+2]&0xFE))>>8;
+          luma[pixel]=data[offset+3]===255 ? (77*(data[offset]&0xFE)+150*(data[offset+1]&0xFE)+29*(data[offset+2]&0xFE))>>8 : 0;
         }
         const headerLastPixel=findHeaderLastPixelIndex(imageData);
         const blocksX=Math.ceil(width/ADAPTIVE_BLOCK_SIZE), blocksY=Math.ceil(height/ADAPTIVE_BLOCK_SIZE), blockCount=blocksX*blocksY;
