@@ -130,7 +130,7 @@
     .action-buttons { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex: 0 0 auto; }
     .action-row .button.primary { min-width: 180px; }
     .cancel-button { min-width: 94px; }
-    .result-card { min-width: 0; margin-top: 16px; padding: 16px; border: 1px solid color-mix(in srgb,var(--accent) 30%,var(--line)); border-radius: 14px; background: color-mix(in srgb,var(--accent-soft) 55%,#fff); }
+    .result-card { min-width: 0; margin-top: 16px; padding: 16px; scroll-margin-top: calc(var(--header-height) + 18px + env(safe-area-inset-top)); border: 1px solid color-mix(in srgb,var(--accent) 30%,var(--line)); border-radius: 14px; background: color-mix(in srgb,var(--accent-soft) 55%,#fff); }
     .result-card[hidden] { display: none; }
     .result-head { display: flex; align-items: flex-start; gap: 10px; }
     .result-icon { display: grid; place-items: center; width: 30px; height: 30px; flex: 0 0 auto; border-radius: 50%; color: #fff; background: var(--accent); }
@@ -1129,7 +1129,7 @@
           $('#savePngButton').disabled=false;
           $('#embedResult').hidden=false;
           clearOperationProgress('embed');
-          $('#embedResult').focus({preventScroll:true});
+          $('#embedResult').focus();
         }
         catch (error) {
           if (isCurrent(token) && error?.message!=='CANCELLED' && error?.message!=='STALE') {
@@ -1144,7 +1144,7 @@
       }
 
       async function selectExtractImage(file) {
-        const token=nextGeneration(); setOperationBusy('extract',false); clearOperationProgress('extract'); setError('#extractError'); state.extractImage=null; state.recovered=null; $('#extractDropZone').classList.remove('has-file'); $('#extractResult').hidden=true; $('#extractButton').disabled=true; $('#extractPasswordBox').hidden=true; $('#extractPassword').value='';
+        const token=nextGeneration(); setOperationBusy('extract',false); clearOperationProgress('extract'); setError('#extractError'); state.extractImage=null; state.recovered=null; $('#extractDropZone').classList.remove('has-file'); $('#extractEmpty').hidden=false; $('#extractSummary').hidden=true; $('#extractResult').hidden=true; $('#extractButton').disabled=true; $('#extractPasswordBox').hidden=true; $('#extractPassword').value='';
         try {
           if (!file || file.type!=='image/png') throw new Error('IMAGE_TYPE');
           $('#extractStatus').textContent=t('readingImage');
@@ -1188,7 +1188,7 @@
           const parsed=parseInner(body); setOperationProgress('extract','verifying',94);
           const actualHash=await sha256(parsed.fileBytes); if (!isCurrent(token)) return;
           if (!bytesEqual(actualHash,parsed.expectedHash)) throw new Error('HASH_MISMATCH');
-          state.recovered=parsed; $('#recoveredOriginalName').textContent=parsed.filename; $('#recoveredOriginalName').title=parsed.filename; $('#recoveredSize').textContent=formatBytes(parsed.fileBytes.length); $('#recoveredFilename').value=sanitizeFullFilename(parsed.filename,'recovered-file.bin'); $('#hashResult').textContent=outer.encrypted?'AES-GCM + SHA-256 ✓':'SHA-256 ✓'; setOperationProgress('extract','verifying',100); $('#extractResult').hidden=false; $('#extractResult').focus({preventScroll:true}); clearOperationProgress('extract');
+          state.recovered=parsed; $('#recoveredOriginalName').textContent=parsed.filename; $('#recoveredOriginalName').title=parsed.filename; $('#recoveredSize').textContent=formatBytes(parsed.fileBytes.length); $('#recoveredFilename').value=sanitizeFullFilename(parsed.filename,'recovered-file.bin'); $('#hashResult').textContent=outer.encrypted?'AES-GCM + SHA-256 ✓':'SHA-256 ✓'; setOperationProgress('extract','verifying',100); $('#extractResult').hidden=false; $('#extractResult').focus(); clearOperationProgress('extract');
         }
         catch (error) {
           if (isCurrent(token) && error?.message!=='CANCELLED' && error?.message!=='STALE') {
