@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.0 - 2026-10-01
+
+- Add adaptive `embeddingMode=1` for all new output while retaining legacy mode 0 decoding.
+- Rank 8×8 blocks with deterministic Sobel detail scores computed from LSB-masked RGB luminance.
+- Select high-detail candidate blocks until approximately twice the required body capacity is available.
+- Add random per-image placement salt and deterministic xoshiro128** block/slot shuffling.
+- Use the second 256 bits of PBKDF2-derived material when deriving encrypted placement order.
+- Avoid a full-image RGB-slot array by shuffling at most 192 slots per block.
+- Keep v0.2.0–v0.4.0 sequential development images readable.
+- Keep runtime dependencies at zero and preserve the template privacy/CSP contract.
+
 ## 0.4.0 - 2026-10-01
 
 - Add optional password protection with PBKDF2-HMAC-SHA-256 and AES-256-GCM.
