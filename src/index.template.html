@@ -735,8 +735,8 @@
         }
         return count;
       }
-      function processAdaptiveBody(imageData,body,seedBytes,write) {
-        const bodyBits=body.byteLength*8, analysis=analyzeAdaptiveBlocks(imageData), selected=selectAdaptiveCandidates(analysis,bodyBits);
+      function processAdaptiveBody(imageData,body,seedBytes,write,preparedAnalysis=null) {
+        const bodyBits=body.byteLength*8, analysis=preparedAnalysis||analyzeAdaptiveBlocks(imageData), selected=selectAdaptiveCandidates(analysis,bodyBits);
         const nextRandom=createXoshiro128ss(seedBytes); shuffleTypedPrefix(selected.blocks,selected.blocks.length,nextRandom);
         const slots=new Uint32Array(ADAPTIVE_SLOT_BUFFER_SIZE);
         let bitIndex=0,remainingBits=bodyBits,remainingSlots=selected.capacity;
@@ -765,9 +765,10 @@
         if (headerBit!==HEADER_BITS) throw new Error('CAPACITY');
       }
       function embedAdaptive(imageData,header,body,seedBytes) {
+        const analysis=analyzeAdaptiveBlocks(imageData);
         const copy=new ImageData(new Uint8ClampedArray(imageData.data),imageData.width,imageData.height);
         embedHeaderOnly(copy,header);
-        processAdaptiveBody(copy,body,seedBytes,true);
+        processAdaptiveBody(copy,body,seedBytes,true,analysis);
         return copy;
       }
       function extractAdaptive(imageData,outer,seedBytes) {
