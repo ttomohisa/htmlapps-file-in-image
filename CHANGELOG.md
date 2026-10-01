@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.9.0 - 2026-10-02
+
+- Promote new BKFI output to compatibility-format version 1.
+- Promote new BKFC output to container version 1.
+- Keep BKFI/BKFC version 0 decoding for v0.2.0-v0.8.0 compatibility.
+- Require adaptive embedding mode 1 for stable BKFI version 1.
+- Reject unknown future format versions instead of interpreting them as current data.
+- Validate stable reserved fields and unexpected unencrypted KDF material.
+- Keep the v0.5 adaptive placement semantics and placement domain unchanged.
+- Add Node-based format regression covering version 0/1 parse behavior, reserved fields, adaptive round-trip, and legacy mode 0 decode.
+- Run format regression from the standard repository check and pin Node.js 24 in validation CI.
+- Add manual cross-browser/device RC checklists for the v1.0 release gate.
+
 ## 0.8.0 - 2026-10-01
 
 - Remove nested interactive semantics from Drag & Drop areas and add explicit empty-state file-picker buttons.
