@@ -4,7 +4,7 @@
 
 File in Image hides one arbitrary file inside image pixels and recovers the original file from the generated PNG. Processing stays in the browser.
 
-> **Current development release:** v0.6.0. The BKFI/BKFC format is still under development; the stable v1 compatibility format has not been frozen.
+> **Current development release:** v0.7.0. The BKFI/BKFC format is still under development; the stable v1 compatibility format has not been frozen.
 
 ## Features
 
@@ -12,54 +12,55 @@ File in Image hides one arbitrary file inside image pixels and recovers the orig
 - One arbitrary payload file, up to 32 MiB
 - GZIP when the complete inner container becomes smaller
 - Optional PBKDF2-HMAC-SHA-256 + AES-256-GCM password protection
-- 8×8 adaptive high-detail placement with deterministic LSB-independent Sobel ranking
-- v0.2.0–v0.4.0 legacy sequential decode compatibility
-- v0.5.0 adaptive format compatibility
-- CPU-heavy adaptive analysis / embed / extract in an embedded Blob Web Worker
-- Visible processing progress and Cancel controls
-- Generation-token stale-result protection when input changes
+- 8×8 adaptive high-detail placement
+- Cancellable Blob Worker processing
+- Progress display and stale-result protection
+- **Mandatory generated-PNG recovery verification before Save**
 - SHA-256 verification of recovered source bytes
+- v0.2.0–v0.6.0 development-format decode compatibility
 - Japanese / English UI
 - No runtime CDN, API, analytics, telemetry, or file upload
 - Direct `file://` use and single-HTML distribution
 
-## Worker processing
+## Generated-PNG verification
 
-v0.6.0 keeps the v0.5.0 file format unchanged. Adaptive image analysis, body embedding, adaptive extraction, and legacy sequential body extraction run in a Worker created from source embedded in the single HTML file.
+v0.7.0 does not enable Save immediately after Canvas produces a PNG.
 
-The app creates one pixel-buffer copy for a Worker task and transfers its ArrayBuffer. This avoids structured-clone duplication of the large image buffer. During embedding, the Worker mutates that transferred pixel buffer in place instead of allocating another full-size output image.
+The generated PNG Blob is decoded again through the normal image path. The app reads its BKFI header, re-extracts the body with the normal Worker, and runs the real recovery path.
 
-Adaptive placement still uses a reusable maximum-192-entry RGB slot buffer per 8×8 block rather than a full-image slot list.
+For password-protected output, PBKDF2 is run again from the password and decoded header, then AES-256-GCM authenticates/decrypts the recovered body. GZIP is expanded when required and BKFC is parsed.
 
-Canvas decode and PNG encoding remain on the main thread.
+The recovered file must match the original source SHA-256, filename, MIME, and byte length. Only after all checks succeed does the Save button become available.
 
-## Progress and cancellation
+This verifies the actual PNG produced by Canvas rather than only checking the pre-encode ImageData.
 
-Embed and Extract display the current processing stage and a progress bar. A Cancel button is visible while an operation is active.
+## Save safety
 
-When cancellation occurs during Worker processing, the Worker is terminated and its result is discarded. Browser-native asynchronous work such as PBKDF2 or PNG encoding may not be synchronously abortable; cancellation invalidates the operation generation so any later result is ignored.
+Save is guarded by both the disabled button state and an internal `encodedVerified` flag. A failed or cancelled verification never leaves a saveable generated Blob in application state.
 
-Selecting a different carrier, payload, or encoded image also invalidates older work. Stale operations cannot replace newer UI state or results.
+Changing password protection settings or password text invalidates any in-flight/previous output.
+
+## Memory behavior
+
+The PNG must be decoded again to verify it. That verification ImageData is disposable, so its pixel ArrayBuffer is transferred directly to the extraction Worker instead of first making another full-size Worker copy.
+
+The originally selected carrier remains intact for retry.
 
 ## Compatibility
 
-v0.6.0 writes the same adaptive development format as v0.5.0:
+v0.7.0 does not change the v0.5.0/v0.6.0 binary layout or adaptive placement algorithm.
 
 - `formatVersion=0`
 - new output `embeddingMode=1`
 - legacy `embeddingMode=0` remains readable
 
-No binary-layout or adaptive-placement change is intended in this release.
-
 ## Important note
 
-Adaptive placement does not make the PNG tolerant of image modification. Resizing, cropping, filters, JPEG/lossy WebP conversion, screenshots, or social/messaging recompression can destroy the embedded data. Keep the generated PNG unchanged.
-
-v0.6.0 does not yet include automatic generated-PNG self-verification.
+Automatic recovery verification confirms that the PNG produced by the app can be recovered at generation time. It does not make the PNG resistant to later editing. Resizing, cropping, filters, JPEG/lossy WebP conversion, screenshots, or social/messaging recompression can still destroy the embedded data.
 
 ## Privacy
 
-Selected images, files, passwords, Worker buffers, and recovered data remain local. The app keeps `connect-src 'none'` and introduces no third-party runtime dependency.
+Selected images, files, passwords, generated PNGs, and verification buffers stay local. The app keeps `connect-src 'none'` and introduces no third-party runtime dependency.
 
 ## Development
 
