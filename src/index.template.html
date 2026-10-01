@@ -116,7 +116,7 @@
     .result-icon svg { width: 17px; height: 17px; }
     .result-head h3 { margin: 1px 0 2px; font-size: 15px; }
     .result-head p { margin: 0; color: var(--muted); font-size: 12px; }
-    .result-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 13px; }
+    .result-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; margin-top: 13px; }
     .result-grid .metric { background: rgba(255,255,255,.72); }
     .export-row { display: flex; align-items: end; gap: 10px; margin-top: 13px; }
     .export-field { display: grid; gap: 5px; min-width: min(100%,360px); flex: 1 1 300px; }
@@ -190,7 +190,7 @@
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"><img id="appBrandIcon" src="__APP_ICON_DATA_URI__" alt=""></div>
         <div class="brand-copy">
-          <p class="brand-name"><span id="brandName">File in Image</span><span class="version-badge" id="versionBadge">v0.2.0</span></p>
+          <p class="brand-name"><span id="brandName">File in Image</span><span class="version-badge" id="versionBadge">v0.3.0</span></p>
           <p class="brand-meta" data-i18n="brandMeta">画像にファイルを埋めて、あとから取り出す</p>
         </div>
       </div>
@@ -262,6 +262,11 @@
               <button class="button subtle" id="replacePayloadButton" type="button" data-i18n="replace">変更</button>
             </div>
           </div>
+          <div class="capacity-box" id="payloadMetrics" hidden>
+            <div class="metric"><span data-i18n="payloadOriginalSize">元ファイル</span><strong id="payloadOriginalSize">—</strong></div>
+            <div class="metric"><span data-i18n="storedBodySize">埋め込みデータ</span><strong id="payloadStoredSize">—</strong></div>
+            <div class="metric"><span data-i18n="compression">圧縮</span><strong id="payloadCompression">—</strong></div>
+          </div>
           <div class="fit-status neutral" id="fitStatus" data-i18n="fitWaiting">画像とファイルを選ぶと容量を確認できます。</div>
         </section>
       </div>
@@ -274,7 +279,7 @@
 
       <section class="result-card" id="embedResult" aria-live="polite" hidden>
         <div class="result-head"><span class="result-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 12 4 4 8-9"/></svg></span><div><h3 data-i18n="embedDone">ファイルを埋め込みました</h3><p data-i18n="embedDoneBody">生成したPNGは編集・変換せず、そのまま保存してください。</p></div></div>
-        <div class="result-grid"><div class="metric"><span data-i18n="outputSize">出力サイズ</span><strong id="encodedBlobSize">—</strong></div><div class="metric"><span data-i18n="payloadSize">ファイルサイズ</span><strong id="encodedPayloadSize">—</strong></div><div class="metric"><span data-i18n="integrity">復元時の確認</span><strong>SHA-256</strong></div></div>
+        <div class="result-grid"><div class="metric"><span data-i18n="outputSize">出力サイズ</span><strong id="encodedBlobSize">—</strong></div><div class="metric"><span data-i18n="payloadSize">ファイルサイズ</span><strong id="encodedPayloadSize">—</strong></div><div class="metric"><span data-i18n="storedBodySize">埋め込みデータ</span><strong id="encodedStoredSize">—</strong></div><div class="metric"><span data-i18n="integrity">復元時の確認</span><strong>SHA-256</strong></div></div>
         <div class="warning-box" data-i18n="outputWarning">リサイズ、トリミング、JPEG変換、画像編集、SNS等での再圧縮を行うと、ファイルを取り出せなくなる場合があります。</div>
         <div class="export-row"><label class="export-field" for="outputFilename"><span class="export-label" data-i18n="outputFilename">出力ファイル名</span><span class="filename-control"><input class="filename-input" id="outputFilename" type="text" maxlength="120" autocomplete="off" spellcheck="false"><span class="filename-extension" aria-hidden="true">.png</span></span></label><button class="button primary" id="savePngButton" type="button" data-i18n="savePng">PNGを保存</button></div>
       </section>
@@ -312,7 +317,7 @@
       <h3 data-i18n="helpEmbedTitle">埋め込む</h3><ol><li data-i18n="helpEmbed1">PNG / JPEG / WebP画像を選びます。</li><li data-i18n="helpEmbed2">画像に入れたい1ファイルを選び、容量に収まることを確認します。</li><li data-i18n="helpEmbed3">「画像に埋め込む」を実行してPNGを保存します。</li></ol>
       <h3 data-i18n="helpExtractTitle">取り出す</h3><ol><li data-i18n="helpExtract1">「取り出す」へ切り替え、このツールで作ったPNGを選びます。</li><li data-i18n="helpExtract2">「ファイルを取り出す」を実行します。</li><li data-i18n="helpExtract3">SHA-256が一致したファイルだけ保存できます。</li></ol>
       <h3 data-i18n="helpPrivacyTitle">プライバシー</h3><p data-i18n="helpPrivacyBody">画像とファイルはブラウザー内で処理され、このアプリから外部へ送信されません。ファイル内容は端末内ストレージにも保存しません。</p>
-      <h3 data-i18n="helpNotesTitle">注意事項</h3><ul><li data-i18n="helpNoteImage">生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。</li><li data-i18n="helpNoteEncryption">v0.2.0では暗号化していません。画像からデータを抽出できる人は、埋め込んだファイルを読むことができます。</li><li data-i18n="helpNoteFormat">v0.2.0の埋め込み形式は開発途中です。v1の正式互換形式はまだ固定していません。</li></ul>
+      <h3 data-i18n="helpNotesTitle">注意事項</h3><ul><li data-i18n="helpNoteImage">生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。</li><li data-i18n="helpNoteCompression">GZIPで小さくなる場合だけ圧縮し、収まるかどうかは実際の圧縮後サイズで判定します。</li><li data-i18n="helpNoteEncryption">v0.3.0では暗号化していません。画像からデータを抽出できる人は、埋め込んだファイルを読むことができます。</li><li data-i18n="helpNoteFormat">v0.3.0の埋め込み形式は開発途中です。v1の正式互換形式はまだ固定していません。</li></ul>
       <p class="dialog-note" data-i18n="helpOffline">実行時の外部通信を使わず、単一HTMLとしてローカルからも利用できる構成です。</p>
       <!-- APP:HELP:END -->
     </div>
@@ -366,6 +371,7 @@
       const HEADER_PIXELS = Math.ceil(HEADER_BITS / 3);
       const DEV_FORMAT_VERSION = 0;
       const DEV_EMBEDDING_MODE = 0;
+      const FLAG_GZIP = 0x02;
       const MAX_BODY_BYTES = MAX_PAYLOAD_BYTES + INNER_FIXED_BYTES + 131070;
       const encoder = new TextEncoder();
       const decoder = new TextDecoder('utf-8', { fatal: true });
@@ -374,17 +380,17 @@
       const translations = {
         ja: {
           brandMeta: '画像にファイルを埋めて、あとから取り出す', helpTitle: '使い方と注意事項', close: '閉じる', introTitle: '画像にファイルを埋め込む', lead: '任意の1ファイルを画像の画素へ埋め込み、生成したPNGから元のファイルを取り出せます。', localBadge: 'ファイルを送信しません', embedTab: '埋め込む', extractTab: '取り出す',
-          embedTitle: '画像の中にファイルを入れる', embedBody: '画像とファイルを選ぶと、埋め込める容量を確認できます。', carrierTitle: '画像を選択', carrierBody: 'PNG / JPEG / WebP。出力はPNGになります。', dropImage: '画像をここにドロップ', orChoose: 'またはクリックして選択', chooseCarrier: '画像を選択', replace: '変更', dimensions: '画像サイズ', opaquePixels: '使用できる画素', capacity: '埋め込み容量', payloadTitle: '埋め込むファイルを選択', payloadBody: '形式は問いません。1ファイル、最大32 MiBです。', dropFile: 'ファイルをここにドロップ', choosePayload: '埋め込むファイルを選択', fitWaiting: '画像とファイルを選ぶと容量を確認できます。', fitOk: 'このファイルを埋め込めます。', fitBad: 'この画像にはファイルが収まりません。より大きな画像か小さなファイルを選んでください。', embedAction: '画像に埋め込む', packing: 'ファイルを準備しています…', embedding: '画像に埋め込んでいます…', makingPng: 'PNGを作成しています…', embedDone: 'ファイルを埋め込みました', embedDoneBody: '生成したPNGは編集・変換せず、そのまま保存してください。', outputSize: '出力サイズ', payloadSize: 'ファイルサイズ', integrity: '復元時の確認', outputWarning: 'リサイズ、トリミング、JPEG変換、画像編集、SNS等での再圧縮を行うと、ファイルを取り出せなくなる場合があります。', outputFilename: '出力ファイル名', savePng: 'PNGを保存', pngSaved: 'PNGを保存しました',
-          extractTitle: '画像からファイルを取り出す', extractBody: 'このツールで生成したPNGを選択します。', dropEncoded: '埋め込み済みPNGをここにドロップ', chooseEncoded: '埋め込み済みPNGを選択', extractAction: 'ファイルを取り出す', readingImage: '画像を読み込んでいます…', extracting: 'ファイルを取り出しています…', verifying: 'ファイルを確認しています…', extractDone: 'ファイルを確認しました', extractDoneBody: '埋め込み時のSHA-256と一致しました。', originalName: '元のファイル名', saveAs: '保存ファイル名', saveFile: 'ファイルを保存', fileSaved: 'ファイルを保存しました',
-          helpEmbedTitle: '埋め込む', helpEmbed1: 'PNG / JPEG / WebP画像を選びます。', helpEmbed2: '画像に入れたい1ファイルを選び、容量に収まることを確認します。', helpEmbed3: '「画像に埋め込む」を実行してPNGを保存します。', helpExtractTitle: '取り出す', helpExtract1: '「取り出す」へ切り替え、このツールで作ったPNGを選びます。', helpExtract2: '「ファイルを取り出す」を実行します。', helpExtract3: 'SHA-256が一致したファイルだけ保存できます。', helpPrivacyTitle: 'プライバシー', helpPrivacyBody: '画像とファイルはブラウザー内で処理され、このアプリから外部へ送信されません。ファイル内容は端末内ストレージにも保存しません。', helpNotesTitle: '注意事項', helpNoteImage: '生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。', helpNoteEncryption: 'v0.2.0では暗号化していません。画像からデータを抽出できる人は、埋め込んだファイルを読むことができます。', helpNoteFormat: 'v0.2.0の埋め込み形式は開発途中です。v1の正式互換形式はまだ固定していません。', helpOffline: '実行時の外部通信を使わず、単一HTMLとしてローカルからも利用できる構成です。',
-          buildInfo: 'ビルド情報', appVersion: 'アプリバージョン', builtAt: '生成日時', dependencies: '内包依存数', footer: 'ブラウザー内で処理', errorImageType: 'PNG、JPEG、WebP画像を選択してください。', errorImageTooLarge: 'この画像はこのバージョンで扱えるサイズを超えています。', errorImageRead: '画像を読み込めませんでした。対応形式か、ファイルが破損していないか確認してください。', errorPayloadTooLarge: '埋め込むファイルは32 MiB以下にしてください。', errorPayloadRead: 'ファイルを読み込めませんでした。', errorCapacity: 'この画像にはファイルが収まりません。', errorNoOpaque: 'この画像は完全に不透明な画素が少ないため使用できません。', errorNotBkfi: 'この画像には、このバージョンのFile in Imageで埋め込まれたデータを確認できませんでした。', errorUnsupportedDev: 'この画像は別の埋め込み形式で作られているため、このバージョンでは開けません。', errorCorrupt: '埋め込みデータが壊れているか、画像が変更されています。', errorHash: 'ファイルを正常に復元できませんでした。画像が変更されている可能性があります。', errorMemory: '画像を処理するためのメモリを確保できませんでした。より小さな画像を試してください。', errorCrypto: 'このブラウザーではSHA-256を利用できません。', errorGeneric: '処理できませんでした。別のファイルで試してください。'
+          embedTitle: '画像の中にファイルを入れる', embedBody: '画像とファイルを選ぶと、埋め込める容量を確認できます。', carrierTitle: '画像を選択', carrierBody: 'PNG / JPEG / WebP。出力はPNGになります。', dropImage: '画像をここにドロップ', orChoose: 'またはクリックして選択', chooseCarrier: '画像を選択', replace: '変更', dimensions: '画像サイズ', opaquePixels: '使用できる画素', capacity: '埋め込み容量', payloadTitle: '埋め込むファイルを選択', payloadBody: '形式は問いません。1ファイル、最大32 MiBです。', dropFile: 'ファイルをここにドロップ', choosePayload: '埋め込むファイルを選択', fitWaiting: '画像とファイルを選ぶと容量を確認できます。', fitOk: 'このファイルを埋め込めます。', fitBad: 'この画像にはファイルが収まりません。より大きな画像か小さなファイルを選んでください。', payloadOriginalSize: '元ファイル', storedBodySize: '埋め込みデータ', compression: '圧縮', gzipUsed: 'GZIPを使用', gzipSkipped: '圧縮なし', gzipUnavailable: '圧縮なし（API非対応）', embedAction: '画像に埋め込む', packing: 'ファイルを準備しています…', compressingPayload: 'ファイルを圧縮しています…', embedding: '画像に埋め込んでいます…', makingPng: 'PNGを作成しています…', embedDone: 'ファイルを埋め込みました', embedDoneBody: '生成したPNGは編集・変換せず、そのまま保存してください。', outputSize: '出力サイズ', payloadSize: 'ファイルサイズ', integrity: '復元時の確認', outputWarning: 'リサイズ、トリミング、JPEG変換、画像編集、SNS等での再圧縮を行うと、ファイルを取り出せなくなる場合があります。', outputFilename: '出力ファイル名', savePng: 'PNGを保存', pngSaved: 'PNGを保存しました',
+          extractTitle: '画像からファイルを取り出す', extractBody: 'このツールで生成したPNGを選択します。', dropEncoded: '埋め込み済みPNGをここにドロップ', chooseEncoded: '埋め込み済みPNGを選択', extractAction: 'ファイルを取り出す', readingImage: '画像を読み込んでいます…', extracting: 'ファイルを取り出しています…', decompressing: '圧縮データを展開しています…', verifying: 'ファイルを確認しています…', extractDone: 'ファイルを確認しました', extractDoneBody: '埋め込み時のSHA-256と一致しました。', originalName: '元のファイル名', saveAs: '保存ファイル名', saveFile: 'ファイルを保存', fileSaved: 'ファイルを保存しました',
+          helpEmbedTitle: '埋め込む', helpEmbed1: 'PNG / JPEG / WebP画像を選びます。', helpEmbed2: '画像に入れたい1ファイルを選び、容量に収まることを確認します。', helpEmbed3: '「画像に埋め込む」を実行してPNGを保存します。', helpExtractTitle: '取り出す', helpExtract1: '「取り出す」へ切り替え、このツールで作ったPNGを選びます。', helpExtract2: '「ファイルを取り出す」を実行します。', helpExtract3: 'SHA-256が一致したファイルだけ保存できます。', helpPrivacyTitle: 'プライバシー', helpPrivacyBody: '画像とファイルはブラウザー内で処理され、このアプリから外部へ送信されません。ファイル内容は端末内ストレージにも保存しません。', helpNotesTitle: '注意事項', helpNoteImage: '生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。', helpNoteCompression: 'GZIPで小さくなる場合だけ圧縮し、収まるかどうかは実際の圧縮後サイズで判定します。', helpNoteEncryption: 'v0.3.0では暗号化していません。画像からデータを抽出できる人は、埋め込んだファイルを読むことができます。', helpNoteFormat: 'v0.3.0の埋め込み形式は開発途中です。v1の正式互換形式はまだ固定していません。', helpOffline: '実行時の外部通信を使わず、単一HTMLとしてローカルからも利用できる構成です。',
+          buildInfo: 'ビルド情報', appVersion: 'アプリバージョン', builtAt: '生成日時', dependencies: '内包依存数', footer: 'ブラウザー内で処理', errorImageType: 'PNG、JPEG、WebP画像を選択してください。', errorImageTooLarge: 'この画像はこのバージョンで扱えるサイズを超えています。', errorImageRead: '画像を読み込めませんでした。対応形式か、ファイルが破損していないか確認してください。', errorPayloadTooLarge: '埋め込むファイルは32 MiB以下にしてください。', errorPayloadRead: 'ファイルを読み込めませんでした。', errorCapacity: 'この画像にはファイルが収まりません。', errorNoOpaque: 'この画像は完全に不透明な画素が少ないため使用できません。', errorNotBkfi: 'この画像には、このバージョンのFile in Imageで埋め込まれたデータを確認できませんでした。', errorUnsupportedDev: 'この画像は別の埋め込み形式で作られているため、このバージョンでは開けません。', errorCorrupt: '埋め込みデータが壊れているか、画像が変更されています。', errorHash: 'ファイルを正常に復元できませんでした。画像が変更されている可能性があります。', errorMemory: '画像を処理するためのメモリを確保できませんでした。より小さな画像を試してください。', errorCrypto: 'このブラウザーではSHA-256を利用できません。', errorCompression: 'この画像のGZIPデータを展開できません。このブラウザーがDecompressionStreamに対応しているか、画像が変更されていないか確認してください。', errorGeneric: '処理できませんでした。別のファイルで試してください。'
         },
         en: {
           brandMeta: 'Hide and recover a file inside an image', helpTitle: 'How to use & notes', close: 'Close', introTitle: 'File in Image', lead: 'Hide one arbitrary file in image pixels and recover the original file from the generated PNG.', localBadge: 'Files stay on device', embedTab: 'Embed', extractTab: 'Extract',
-          embedTitle: 'Put a file inside an image', embedBody: 'Choose an image and a file to check whether the file fits.', carrierTitle: 'Choose an image', carrierBody: 'PNG / JPEG / WebP. Output is PNG.', dropImage: 'Drop an image here', orChoose: 'or click to choose', chooseCarrier: 'Choose carrier image', replace: 'Change', dimensions: 'Dimensions', opaquePixels: 'Usable pixels', capacity: 'Embedding capacity', payloadTitle: 'Choose the file to embed', payloadBody: 'Any file type. One file, up to 32 MiB.', dropFile: 'Drop a file here', choosePayload: 'Choose payload file', fitWaiting: 'Choose an image and a file to check capacity.', fitOk: 'This file fits in the image.', fitBad: 'This file does not fit. Choose a larger image or a smaller file.', embedAction: 'Embed in image', packing: 'Preparing file…', embedding: 'Embedding file…', makingPng: 'Creating PNG…', embedDone: 'File embedded', embedDoneBody: 'Keep the generated PNG unchanged when you save or share it.', outputSize: 'Output size', payloadSize: 'File size', integrity: 'Recovery check', outputWarning: 'Resizing, cropping, JPEG conversion, image editing, or recompression by social/messaging services can make the embedded file unrecoverable.', outputFilename: 'Output filename', savePng: 'Save PNG', pngSaved: 'PNG saved',
-          extractTitle: 'Recover a file from an image', extractBody: 'Choose a PNG generated by this tool.', dropEncoded: 'Drop an encoded PNG here', chooseEncoded: 'Choose encoded PNG', extractAction: 'Extract file', readingImage: 'Reading image…', extracting: 'Extracting file…', verifying: 'Verifying file…', extractDone: 'File verified', extractDoneBody: 'The recovered bytes match the embedded SHA-256 digest.', originalName: 'Original filename', saveAs: 'Save filename', saveFile: 'Save file', fileSaved: 'File saved',
-          helpEmbedTitle: 'Embed', helpEmbed1: 'Choose a PNG, JPEG, or WebP image.', helpEmbed2: 'Choose one file and confirm that it fits the available capacity.', helpEmbed3: 'Run Embed in image and save the PNG.', helpExtractTitle: 'Extract', helpExtract1: 'Switch to Extract and choose a PNG created by this tool.', helpExtract2: 'Run Extract file.', helpExtract3: 'Only a file whose SHA-256 matches can be saved.', helpPrivacyTitle: 'Privacy', helpPrivacyBody: 'Images and files are processed in the browser and are not sent outside by this app. File contents are not saved to browser storage.', helpNotesTitle: 'Notes', helpNoteImage: 'Resizing, cropping, editing, JPEG conversion, or recompressing the generated PNG can destroy the embedded data.', helpNoteEncryption: 'v0.2.0 does not encrypt the payload. Anyone able to extract the data can read the embedded file.', helpNoteFormat: 'The v0.2.0 embedding format is a development format. The stable v1 compatibility format has not been frozen yet.', helpOffline: 'The app uses no runtime network connection and is designed to work as one local HTML file.',
-          buildInfo: 'Build information', appVersion: 'App version', builtAt: 'Built at', dependencies: 'Embedded dependencies', footer: 'Processed in your browser', errorImageType: 'Choose a PNG, JPEG, or WebP image.', errorImageTooLarge: 'This image exceeds the size supported by this version.', errorImageRead: 'The image could not be read. Check its format or whether the file is damaged.', errorPayloadTooLarge: 'Choose a payload file no larger than 32 MiB.', errorPayloadRead: 'The file could not be read.', errorCapacity: 'The file does not fit in this image.', errorNoOpaque: 'This image does not contain enough fully opaque pixels.', errorNotBkfi: 'No data created by this version of File in Image was found in the image.', errorUnsupportedDev: 'This image uses another embedding format and cannot be opened by this version.', errorCorrupt: 'The embedded data is damaged or the image has been modified.', errorHash: 'The file could not be recovered correctly. The image may have been modified.', errorMemory: 'Not enough memory is available to process this image. Try a smaller image.', errorCrypto: 'SHA-256 is not available in this browser.', errorGeneric: 'The operation could not be completed. Try another file.'
+          embedTitle: 'Put a file inside an image', embedBody: 'Choose an image and a file to check whether the file fits.', carrierTitle: 'Choose an image', carrierBody: 'PNG / JPEG / WebP. Output is PNG.', dropImage: 'Drop an image here', orChoose: 'or click to choose', chooseCarrier: 'Choose carrier image', replace: 'Change', dimensions: 'Dimensions', opaquePixels: 'Usable pixels', capacity: 'Embedding capacity', payloadTitle: 'Choose the file to embed', payloadBody: 'Any file type. One file, up to 32 MiB.', dropFile: 'Drop a file here', choosePayload: 'Choose payload file', fitWaiting: 'Choose an image and a file to check capacity.', fitOk: 'This file fits in the image.', fitBad: 'This file does not fit. Choose a larger image or a smaller file.', payloadOriginalSize: 'Original file', storedBodySize: 'Embedded data', compression: 'Compression', gzipUsed: 'GZIP used', gzipSkipped: 'Not compressed', gzipUnavailable: 'Not compressed (API unavailable)', embedAction: 'Embed in image', packing: 'Preparing file…', compressingPayload: 'Compressing file…', embedding: 'Embedding file…', makingPng: 'Creating PNG…', embedDone: 'File embedded', embedDoneBody: 'Keep the generated PNG unchanged when you save or share it.', outputSize: 'Output size', payloadSize: 'File size', integrity: 'Recovery check', outputWarning: 'Resizing, cropping, JPEG conversion, image editing, or recompression by social/messaging services can make the embedded file unrecoverable.', outputFilename: 'Output filename', savePng: 'Save PNG', pngSaved: 'PNG saved',
+          extractTitle: 'Recover a file from an image', extractBody: 'Choose a PNG generated by this tool.', dropEncoded: 'Drop an encoded PNG here', chooseEncoded: 'Choose encoded PNG', extractAction: 'Extract file', readingImage: 'Reading image…', extracting: 'Extracting file…', decompressing: 'Decompressing embedded data…', verifying: 'Verifying file…', extractDone: 'File verified', extractDoneBody: 'The recovered bytes match the embedded SHA-256 digest.', originalName: 'Original filename', saveAs: 'Save filename', saveFile: 'Save file', fileSaved: 'File saved',
+          helpEmbedTitle: 'Embed', helpEmbed1: 'Choose a PNG, JPEG, or WebP image.', helpEmbed2: 'Choose one file and confirm that it fits the available capacity.', helpEmbed3: 'Run Embed in image and save the PNG.', helpExtractTitle: 'Extract', helpExtract1: 'Switch to Extract and choose a PNG created by this tool.', helpExtract2: 'Run Extract file.', helpExtract3: 'Only a file whose SHA-256 matches can be saved.', helpPrivacyTitle: 'Privacy', helpPrivacyBody: 'Images and files are processed in the browser and are not sent outside by this app. File contents are not saved to browser storage.', helpNotesTitle: 'Notes', helpNoteImage: 'Resizing, cropping, editing, JPEG conversion, or recompressing the generated PNG can destroy the embedded data.', helpNoteCompression: 'GZIP is used only when it makes the data smaller, and fit is checked against the exact stored size.', helpNoteEncryption: 'v0.3.0 does not encrypt the payload. Anyone able to extract the data can read the embedded file.', helpNoteFormat: 'The v0.3.0 embedding format is a development format. The stable v1 compatibility format has not been frozen yet.', helpOffline: 'The app uses no runtime network connection and is designed to work as one local HTML file.',
+          buildInfo: 'Build information', appVersion: 'App version', builtAt: 'Built at', dependencies: 'Embedded dependencies', footer: 'Processed in your browser', errorImageType: 'Choose a PNG, JPEG, or WebP image.', errorImageTooLarge: 'This image exceeds the size supported by this version.', errorImageRead: 'The image could not be read. Check its format or whether the file is damaged.', errorPayloadTooLarge: 'Choose a payload file no larger than 32 MiB.', errorPayloadRead: 'The file could not be read.', errorCapacity: 'The file does not fit in this image.', errorNoOpaque: 'This image does not contain enough fully opaque pixels.', errorNotBkfi: 'No data created by this version of File in Image was found in the image.', errorUnsupportedDev: 'This image uses another embedding format and cannot be opened by this version.', errorCorrupt: 'The embedded data is damaged or the image has been modified.', errorHash: 'The file could not be recovered correctly. The image may have been modified.', errorMemory: 'Not enough memory is available to process this image. Try a smaller image.', errorCrypto: 'SHA-256 is not available in this browser.', errorCompression: 'The GZIP payload could not be decompressed. Check browser DecompressionStream support or whether the image was modified.', errorGeneric: 'The operation could not be completed. Try another file.'
         }
       };
 
@@ -427,6 +433,47 @@
       function bytesEqual(a,b) { if (a.length!==b.length) return false; let diff=0; for (let i=0;i<a.length;i+=1) diff|=a[i]^b[i]; return diff===0; }
       async function sha256(bytes) { if (!crypto?.subtle?.digest) throw new Error('CRYPTO_UNAVAILABLE'); return new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)); }
 
+      async function gzipBytes(bytes) {
+        if (typeof CompressionStream !== 'function') return null;
+        const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'));
+        return new Uint8Array(await new Response(stream).arrayBuffer());
+      }
+
+      async function gunzipBytesLimited(bytes, maxBytes = MAX_BODY_BYTES) {
+        if (typeof DecompressionStream !== 'function') throw new Error('COMPRESSION_UNAVAILABLE');
+        let reader;
+        try {
+          reader = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')).getReader();
+          const chunks = [];
+          let total = 0;
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            total += value.byteLength;
+            if (total > maxBytes) {
+              try { await reader.cancel(); } catch { }
+              throw new Error('DECOMPRESS_TOO_LARGE');
+            }
+            chunks.push(value);
+          }
+          const out = new Uint8Array(total);
+          let offset = 0;
+          for (const chunk of chunks) { out.set(chunk, offset); offset += chunk.byteLength; }
+          return out;
+        } catch (error) {
+          if (error?.message === 'COMPRESSION_UNAVAILABLE' || error?.message === 'DECOMPRESS_TOO_LARGE') throw error;
+          throw new Error('DECOMPRESS_FAILED');
+        } finally {
+          try { reader?.releaseLock(); } catch { }
+        }
+      }
+
+      async function prepareStoredBody(inner) {
+        const gzip = await gzipBytes(inner);
+        if (gzip && gzip.byteLength < inner.byteLength) return { body: gzip, compressed: true, compressionAvailable: true };
+        return { body: inner, compressed: false, compressionAvailable: gzip !== null };
+      }
+
       async function decodeImage(file) {
         if (!supportedImage(file) && file.type) throw new Error('IMAGE_TYPE');
         const url=URL.createObjectURL(file); const img=new Image(); img.decoding='async'; img.src=url;
@@ -443,8 +490,6 @@
 
       function countOpaque(imageData) { const data=imageData.data; let count=0; for (let i=3;i<data.length;i+=4) if (data[i]===255) count+=1; return count; }
       function bodyCapacityBytes(opaqueCount) { return Math.max(0,Math.floor((opaqueCount-HEADER_PIXELS)*3/8)); }
-      function packedLengthFor(file) { return INNER_FIXED_BYTES + encoder.encode(file.name||'file.bin').length + encoder.encode(mimeOrDefault(file)).length + file.size; }
-
       async function packInner(file,bytes) {
         const nameBytes=encoder.encode(file.name||'file.bin'); const mimeBytes=encoder.encode(mimeOrDefault(file));
         if (nameBytes.length>65535 || mimeBytes.length>65535 || bytes.length>MAX_PAYLOAD_BYTES) throw new Error('PAYLOAD_TOO_LARGE');
@@ -462,8 +507,8 @@
         const fileBytes=body.slice(offset,offset+fileLen); return { filename: filename||'recovered-file.bin', mime: mime||'application/octet-stream', expectedHash, fileBytes };
       }
 
-      function buildOuter(bodyLength) { const out=new Uint8Array(OUTER_HEADER_BYTES); const view=new DataView(out.buffer); writeAscii(out,0,'BKFI'); view.setUint8(4,DEV_FORMAT_VERSION); view.setUint8(5,DEV_EMBEDDING_MODE); view.setUint8(6,0); view.setUint8(7,0); view.setUint16(8,OUTER_HEADER_BYTES,false); view.setUint16(10,0,false); view.setUint32(12,bodyLength,false); return out; }
-      function parseOuter(bytes) { if (bytes.length!==OUTER_HEADER_BYTES || readAscii(bytes,0,4)!=='BKFI') throw new Error('NOT_BKFI'); const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength); const version=view.getUint8(4); const mode=view.getUint8(5); const flags=view.getUint8(6); const kdf=view.getUint8(7); const headerLen=view.getUint16(8,false); const bodyLength=view.getUint32(12,false); if (version!==DEV_FORMAT_VERSION || mode!==DEV_EMBEDDING_MODE) throw new Error('UNSUPPORTED_DEV'); if (flags!==0 || kdf!==0 || headerLen!==OUTER_HEADER_BYTES || bodyLength<INNER_FIXED_BYTES || bodyLength>MAX_BODY_BYTES) throw new Error('CORRUPT'); return { bodyLength }; }
+      function buildOuter(bodyLength, compressed = false) { const out=new Uint8Array(OUTER_HEADER_BYTES); const view=new DataView(out.buffer); writeAscii(out,0,'BKFI'); view.setUint8(4,DEV_FORMAT_VERSION); view.setUint8(5,DEV_EMBEDDING_MODE); view.setUint8(6,compressed ? FLAG_GZIP : 0); view.setUint8(7,0); view.setUint16(8,OUTER_HEADER_BYTES,false); view.setUint16(10,0,false); view.setUint32(12,bodyLength,false); return out; }
+      function parseOuter(bytes) { if (bytes.length!==OUTER_HEADER_BYTES || readAscii(bytes,0,4)!=='BKFI') throw new Error('NOT_BKFI'); const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength); const version=view.getUint8(4); const mode=view.getUint8(5); const flags=view.getUint8(6); const kdf=view.getUint8(7); const headerLen=view.getUint16(8,false); const bodyLength=view.getUint32(12,false); if (version!==DEV_FORMAT_VERSION || mode!==DEV_EMBEDDING_MODE) throw new Error('UNSUPPORTED_DEV'); if ((flags & ~FLAG_GZIP)!==0 || kdf!==0 || headerLen!==OUTER_HEADER_BYTES || bodyLength<1 || bodyLength>MAX_BODY_BYTES) throw new Error('CORRUPT'); return { bodyLength, compressed: Boolean(flags & FLAG_GZIP) }; }
       function getBit(bytes,bitIndex) { return (bytes[bitIndex>>3]>>(7-(bitIndex&7)))&1; }
       function setBit(bytes,bitIndex,bit) { if (bit) bytes[bitIndex>>3] |= 1<<(7-(bitIndex&7)); }
 
@@ -487,21 +532,21 @@
         if (headerBit!==HEADER_BITS) throw new Error('NOT_BKFI'); const parsed=parseOuter(header); const capacity=bodyCapacityBytes(countOpaque(imageData)); if (parsed.bodyLength>capacity) throw new Error('CORRUPT');
         const body=new Uint8Array(parsed.bodyLength); const bodyBits=parsed.bodyLength*8; let bodyBit=0; opaqueIndex=0;
         for (let px=0;px<data.length && bodyBit<bodyBits;px+=4) { if (data[px+3]!==255) continue; if (opaqueIndex>=HEADER_PIXELS) { for (let channel=0;channel<3 && bodyBit<bodyBits;channel+=1) setBit(body,bodyBit++,data[px+channel]&1); } opaqueIndex+=1; }
-        if (bodyBit!==bodyBits) throw new Error('CORRUPT'); return body;
+        if (bodyBit!==bodyBits) throw new Error('CORRUPT'); return { body, compressed: parsed.compressed };
       }
 
       async function imageDataToPng(imageData) { const canvas=document.createElement('canvas'); canvas.width=imageData.width; canvas.height=imageData.height; const ctx=canvas.getContext('2d'); if (!ctx) throw new Error('MEMORY'); ctx.putImageData(imageData,0,0); return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('MEMORY')),'image/png')); }
       function downloadBlob(blob,filename) { const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); }
 
-      function friendlyError(error) { const code=error?.message||''; const map={ IMAGE_TYPE:'errorImageType', IMAGE_TOO_LARGE:'errorImageTooLarge', IMAGE_READ:'errorImageRead', PAYLOAD_TOO_LARGE:'errorPayloadTooLarge', PAYLOAD_READ:'errorPayloadRead', CAPACITY:'errorCapacity', NO_OPAQUE:'errorNoOpaque', NOT_BKFI:'errorNotBkfi', UNSUPPORTED_DEV:'errorUnsupportedDev', CORRUPT:'errorCorrupt', HASH_MISMATCH:'errorHash', MEMORY:'errorMemory', CRYPTO_UNAVAILABLE:'errorCrypto' }; return t(map[code]||'errorGeneric'); }
+      function friendlyError(error) { const code=error?.message||''; const map={ IMAGE_TYPE:'errorImageType', IMAGE_TOO_LARGE:'errorImageTooLarge', IMAGE_READ:'errorImageRead', PAYLOAD_TOO_LARGE:'errorPayloadTooLarge', PAYLOAD_READ:'errorPayloadRead', CAPACITY:'errorCapacity', NO_OPAQUE:'errorNoOpaque', NOT_BKFI:'errorNotBkfi', UNSUPPORTED_DEV:'errorUnsupportedDev', CORRUPT:'errorCorrupt', HASH_MISMATCH:'errorHash', MEMORY:'errorMemory', CRYPTO_UNAVAILABLE:'errorCrypto', COMPRESSION_UNAVAILABLE:'errorCompression', DECOMPRESS_FAILED:'errorCompression', DECOMPRESS_TOO_LARGE:'errorCompression' }; return t(map[code]||'errorGeneric'); }
 
       function refreshCarrierUi() {
         const c=state.carrier; $('#carrierEmpty').hidden=Boolean(c); $('#carrierSummary').hidden=!c; $('#carrierMetrics').hidden=!c;
         if (c) { $('#carrierName').textContent=c.file.name; $('#carrierMeta').textContent=`${formatBytes(c.file.size)} · ${c.file.type||'image'}`; $('#carrierDimensions').textContent=`${formatNumber(c.width)} × ${formatNumber(c.height)}`; $('#opaquePixelCount').textContent=formatNumber(c.opaqueCount); $('#carrierCapacity').textContent=formatBytes(c.capacity); }
         refreshFit();
       }
-      function refreshPayloadUi() { const p=state.payload; $('#payloadEmpty').hidden=Boolean(p); $('#payloadSummary').hidden=!p; if (p) { $('#payloadName').textContent=p.file.name; $('#payloadMeta').textContent=`${formatBytes(p.file.size)} · ${p.file.type||'application/octet-stream'}`; } refreshFit(); }
-      function refreshFit() { const box=$('#fitStatus'); const c=state.carrier,p=state.payload; box.className='fit-status neutral'; if (!c||!p) { box.textContent=t('fitWaiting'); $('#embedButton').disabled=true; return; } const needed=packedLengthFor(p.file); if (needed<=c.capacity) { box.className='fit-status ok'; box.textContent=`${t('fitOk')} ${formatBytes(needed)} / ${formatBytes(c.capacity)}`; $('#embedButton').disabled=false; } else { box.className='fit-status bad'; box.textContent=`${t('fitBad')} ${formatBytes(needed)} / ${formatBytes(c.capacity)}`; $('#embedButton').disabled=true; } }
+      function refreshPayloadUi() { const p=state.payload; $('#payloadEmpty').hidden=Boolean(p); $('#payloadSummary').hidden=!p; $('#payloadMetrics').hidden=!p; if (p) { $('#payloadName').textContent=p.file.name; $('#payloadMeta').textContent=`${formatBytes(p.file.size)} · ${p.file.type||'application/octet-stream'}`; $('#payloadOriginalSize').textContent=formatBytes(p.file.size); $('#payloadStoredSize').textContent=formatBytes(p.body.byteLength); $('#payloadCompression').textContent=p.compressed ? t('gzipUsed') : (p.compressionAvailable ? t('gzipSkipped') : t('gzipUnavailable')); } refreshFit(); }
+      function refreshFit() { const box=$('#fitStatus'); const c=state.carrier,p=state.payload; box.className='fit-status neutral'; if (!c||!p) { box.textContent=t('fitWaiting'); $('#embedButton').disabled=true; return; } const needed=p.body.byteLength; if (needed<=c.capacity) { box.className='fit-status ok'; box.textContent=`${t('fitOk')} ${formatBytes(needed)} / ${formatBytes(c.capacity)}`; $('#embedButton').disabled=false; } else { box.className='fit-status bad'; box.textContent=`${t('fitBad')} ${formatBytes(needed)} / ${formatBytes(c.capacity)}`; $('#embedButton').disabled=true; } }
 
       async function selectCarrier(file) {
         const token=nextGeneration(); setError('#embedError'); state.carrier=null; state.encodedBlob=null; $('#embedResult').hidden=true; refreshCarrierUi();
@@ -511,13 +556,27 @@
 
       async function selectPayload(file) {
         const token=nextGeneration(); setError('#embedError'); state.payload=null; state.encodedBlob=null; $('#embedResult').hidden=true; refreshPayloadUi();
-        try { if (!file) return; if (file.size>MAX_PAYLOAD_BYTES) throw new Error('PAYLOAD_TOO_LARGE'); const bytes=new Uint8Array(await file.arrayBuffer()); if (!isCurrent(token)) return; state.payload={file,bytes}; refreshPayloadUi(); }
-        catch (error) { if (isCurrent(token)) { setError('#embedError',friendlyError(error)); refreshPayloadUi(); } }
+        try {
+          if (!file) return;
+          if (file.size>MAX_PAYLOAD_BYTES) throw new Error('PAYLOAD_TOO_LARGE');
+          $('#embedStatus').textContent=t('packing');
+          const bytes=new Uint8Array(await file.arrayBuffer());
+          if (!isCurrent(token)) return;
+          const inner=await packInner(file,bytes);
+          if (!isCurrent(token)) return;
+          $('#embedStatus').textContent=t('compressingPayload');
+          const prepared=await prepareStoredBody(inner);
+          if (!isCurrent(token)) return;
+          state.payload={file,bytes,inner,body:prepared.body,compressed:prepared.compressed,compressionAvailable:prepared.compressionAvailable};
+          $('#embedStatus').textContent='';
+          refreshPayloadUi();
+        }
+        catch (error) { if (isCurrent(token)) { $('#embedStatus').textContent=''; setError('#embedError',friendlyError(error)); refreshPayloadUi(); } }
       }
 
       async function runEmbed() {
         if (!state.carrier||!state.payload) return; const token=generation; setError('#embedError'); $('#embedButton').disabled=true; $('#embedResult').hidden=true;
-        try { $('#embedStatus').textContent=t('packing'); const body=await packInner(state.payload.file,state.payload.bytes); if (!isCurrent(token)) return; if (body.length>state.carrier.capacity) throw new Error('CAPACITY'); const header=buildOuter(body.length); $('#embedStatus').textContent=t('embedding'); await new Promise(resolve=>setTimeout(resolve,0)); const modified=embedSequential(state.carrier.imageData,header,body); if (!isCurrent(token)) return; $('#embedStatus').textContent=t('makingPng'); const blob=await imageDataToPng(modified); if (!isCurrent(token)) return; state.encodedBlob=blob; $('#encodedBlobSize').textContent=formatBytes(blob.size); $('#encodedPayloadSize').textContent=formatBytes(state.payload.file.size); $('#embedResult').hidden=false; $('#embedStatus').textContent=''; $('#savePngButton').focus({preventScroll:true}); }
+        try { const body=state.payload.body; if (body.length>state.carrier.capacity) throw new Error('CAPACITY'); const header=buildOuter(body.length,state.payload.compressed); $('#embedStatus').textContent=t('embedding'); await new Promise(resolve=>setTimeout(resolve,0)); const modified=embedSequential(state.carrier.imageData,header,body); if (!isCurrent(token)) return; $('#embedStatus').textContent=t('makingPng'); const blob=await imageDataToPng(modified); if (!isCurrent(token)) return; state.encodedBlob=blob; $('#encodedBlobSize').textContent=formatBytes(blob.size); $('#encodedPayloadSize').textContent=formatBytes(state.payload.file.size); $('#encodedStoredSize').textContent=`${formatBytes(body.byteLength)}${state.payload.compressed ? ' · GZIP' : ''}`; $('#embedResult').hidden=false; $('#embedStatus').textContent=''; $('#savePngButton').focus({preventScroll:true}); }
         catch (error) { if (isCurrent(token)) { $('#embedStatus').textContent=''; setError('#embedError',friendlyError(error)); } }
         finally { refreshFit(); }
       }
@@ -530,7 +589,7 @@
 
       async function runExtract() {
         if (!state.extractImage) return; const token=generation; setError('#extractError'); $('#extractButton').disabled=true; $('#extractResult').hidden=true;
-        try { $('#extractStatus').textContent=t('extracting'); await new Promise(resolve=>setTimeout(resolve,0)); const body=extractSequential(state.extractImage.imageData); if (!isCurrent(token)) return; const parsed=parseInner(body); $('#extractStatus').textContent=t('verifying'); const actualHash=await sha256(parsed.fileBytes); if (!isCurrent(token)) return; if (!bytesEqual(actualHash,parsed.expectedHash)) throw new Error('HASH_MISMATCH'); state.recovered=parsed; $('#recoveredOriginalName').textContent=parsed.filename; $('#recoveredSize').textContent=formatBytes(parsed.fileBytes.length); $('#recoveredFilename').value=sanitizeFullFilename(parsed.filename,'recovered-file.bin'); $('#extractResult').hidden=false; $('#extractStatus').textContent=''; $('#saveRecoveredButton').focus({preventScroll:true}); }
+        try { $('#extractStatus').textContent=t('extracting'); await new Promise(resolve=>setTimeout(resolve,0)); const extracted=extractSequential(state.extractImage.imageData); if (!isCurrent(token)) return; let body=extracted.body; if (extracted.compressed) { $('#extractStatus').textContent=t('decompressing'); body=await gunzipBytesLimited(body); if (!isCurrent(token)) return; } const parsed=parseInner(body); $('#extractStatus').textContent=t('verifying'); const actualHash=await sha256(parsed.fileBytes); if (!isCurrent(token)) return; if (!bytesEqual(actualHash,parsed.expectedHash)) throw new Error('HASH_MISMATCH'); state.recovered=parsed; $('#recoveredOriginalName').textContent=parsed.filename; $('#recoveredSize').textContent=formatBytes(parsed.fileBytes.length); $('#recoveredFilename').value=sanitizeFullFilename(parsed.filename,'recovered-file.bin'); $('#extractResult').hidden=false; $('#extractStatus').textContent=''; $('#saveRecoveredButton').focus({preventScroll:true}); }
         catch (error) { if (isCurrent(token)) { $('#extractStatus').textContent=''; setError('#extractError',friendlyError(error)); } }
         finally { $('#extractButton').disabled=!state.extractImage; }
       }

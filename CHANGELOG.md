@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 - 2026-10-01
+
+- Add browser-native GZIP compression for the complete BKFC container.
+- Use the compressed body only when it is smaller than the uncompressed container.
+- Show exact stored-body size and compression state before embedding.
+- Add a BKFI GZIP flag while keeping v0.2.0 flags=0 images readable.
+- Decompress GZIP bodies with a bounded streaming reader before BKFC parsing.
+- Keep runtime dependencies at zero and preserve the template privacy/CSP contract.
+
 ## 0.2.0
 
 - Add working image-to-file round trip with sequential 1-bit RGB LSB embedding.
