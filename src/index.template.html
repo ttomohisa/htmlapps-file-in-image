@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#f5f5f2">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: blob:; media-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
-  <title>Single HTML App Starter</title>
+  <title>File in Image</title>
   <link rel="icon" href="__APP_ICON_DATA_URI__">
   <style>
     :root {
@@ -23,376 +23,144 @@
       --accent-hover: #0e503f;
       --accent-soft: #e1f0ea;
       --danger: #b3261e;
+      --danger-soft: #fce9e7;
+      --warning: #8a5a00;
+      --warning-soft: #fff3d7;
       --focus: #4d8bc7;
-      --shadow-sm: 0 1px 2px rgba(25, 28, 24, .08), 0 1px 6px rgba(25, 28, 24, .04);
-      --shadow-md: 0 12px 34px rgba(25, 28, 24, .10);
+      --shadow-sm: 0 1px 2px rgba(25,28,24,.08),0 1px 6px rgba(25,28,24,.04);
+      --shadow-md: 0 12px 34px rgba(25,28,24,.10);
       --radius: 12px;
       --header-height: 66px;
     }
     * { box-sizing: border-box; }
     html { min-height: 100%; background: var(--bg); scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", "Yu Gothic UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
-      font-size: 15px;
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-    }
-    button, textarea, input { font: inherit; }
+    body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP","Yu Gothic UI","Hiragino Kaku Gothic ProN",Meiryo,sans-serif; font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    button,input { font: inherit; }
     button { color: inherit; }
-    button:focus-visible, textarea:focus-visible, input:focus-visible, summary:focus-visible {
-      outline: 3px solid color-mix(in srgb, var(--focus) 55%, transparent);
-      outline-offset: 2px;
-    }
-    .app-header {
-      position: sticky;
-      z-index: 30;
-      top: 0;
-      min-height: var(--header-height);
-      border-bottom: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
-      background: color-mix(in srgb, var(--bg) 92%, transparent);
-      backdrop-filter: blur(16px) saturate(1.2);
-    }
-    .header-inner {
-      width: min(1180px, 100%);
-      min-height: var(--header-height);
-      margin: 0 auto;
-      padding: 10px clamp(14px, 2.8vw, 30px);
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
+    button:focus-visible,input:focus-visible,summary:focus-visible,[tabindex]:focus-visible { outline: 3px solid color-mix(in srgb,var(--focus) 55%,transparent); outline-offset: 2px; }
+    .app-header { position: sticky; z-index: 30; top: 0; min-height: var(--header-height); border-bottom: 1px solid color-mix(in srgb,var(--line) 82%,transparent); background: color-mix(in srgb,var(--bg) 92%,transparent); backdrop-filter: blur(16px) saturate(1.2); }
+    .header-inner { width: min(1120px,100%); min-height: var(--header-height); margin: 0 auto; padding: 10px clamp(14px,2.8vw,30px); display: flex; align-items: center; gap: 14px; }
     .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-    .brand-mark {
-      display: block;
-      width: 38px;
-      height: 38px;
-      flex: 0 0 auto;
-      border-radius: 11px;
-      overflow: hidden;
-      box-shadow: var(--shadow-sm);
-    }
+    .brand-mark { display: block; width: 38px; height: 38px; flex: 0 0 auto; border-radius: 11px; overflow: hidden; box-shadow: var(--shadow-sm); }
     .brand-mark img { width: 100%; height: 100%; display: block; }
     .brand-copy { min-width: 0; }
-    .brand-name {
-      margin: 0;
-      font-size: 17px;
-      line-height: 1.2;
-      letter-spacing: .01em;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .version-badge {
-      display: inline-flex;
-      align-items: center;
-      margin-left: 7px;
-      padding: 1px 6px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      color: var(--muted);
-      background: var(--surface-muted);
-      font-size: 10px;
-      font-weight: 650;
-      vertical-align: 2px;
-    }
-    .brand-meta {
-      margin: 2px 0 0;
-      color: var(--muted);
-      font-size: 12px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    .brand-name { margin: 0; font-size: 17px; line-height: 1.2; letter-spacing: .01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .version-badge { display: inline-flex; align-items: center; margin-left: 7px; padding: 1px 6px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: var(--surface-muted); font-size: 10px; font-weight: 650; vertical-align: 2px; }
+    .brand-meta { margin: 2px 0 0; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .header-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-    .button {
-      border: 1px solid var(--line);
-      background: var(--surface);
-      border-radius: 10px;
-      cursor: pointer;
-      transition: border-color .16s ease, background .16s ease, transform .16s ease;
-    }
-    .button:hover { border-color: var(--line-strong); background: var(--surface-hover); }
-    .button:active { transform: translateY(1px); }
-    .language-button {
-      min-width: 0;
-      padding: 5px 1px;
-      border: 0;
-      background: transparent;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 750;
-      letter-spacing: .02em;
-      cursor: pointer;
-      transition: color .16s ease, opacity .16s ease;
-    }
+    .language-button { min-width: 0; padding: 5px 1px; border: 0; background: transparent; color: var(--muted); font-size: 12px; font-weight: 750; cursor: pointer; }
     .language-button:hover { color: var(--text); }
-    .language-button:active { opacity: .65; }
-    .icon-button {
-      display: inline-grid;
-      place-items: center;
-      width: 38px;
-      height: 38px;
-      padding: 0;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: var(--surface);
-      cursor: pointer;
-      transition: border-color .16s ease, background .16s ease, transform .16s ease;
-    }
+    .icon-button { display: inline-grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; }
     .icon-button:hover { border-color: var(--line-strong); background: var(--surface-hover); }
-    .icon-button:active { transform: translateY(1px); }
-    .icon-button svg { width: 18px; height: 18px; display: block; }
-    .header-icon-button {
-      width: auto;
-      height: auto;
-      padding: 5px 1px;
-      border: 0;
-      border-radius: 0;
-      background: transparent;
-      color: var(--muted);
-      transition: color .16s ease, opacity .16s ease;
-    }
-    .header-icon-button:hover { border-color: transparent; background: transparent; color: var(--text); }
-    .header-icon-button:active { transform: none; opacity: .65; }
+    .header-icon-button { width: auto; height: auto; padding: 5px 1px; border: 0; border-radius: 0; background: transparent; color: var(--muted); }
+    .header-icon-button:hover { background: transparent; color: var(--text); }
     .header-icon-button svg { width: 20px; height: 20px; }
-    .main {
-      width: min(1180px, 100%);
-      margin: 0 auto;
-      padding: 22px clamp(14px, 2.8vw, 30px) 54px;
-    }
-    .page-intro {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 20px;
-      padding: 0 2px 18px;
-    }
-    .page-intro h2 {
-      margin: 0;
-      font-size: clamp(21px, 3vw, 26px);
-      line-height: 1.3;
-      letter-spacing: -.025em;
-    }
+    .main { width: min(1120px,100%); margin: 0 auto; padding: 22px clamp(14px,2.8vw,30px) 54px; }
+    .page-intro { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 0 2px 18px; }
+    .page-intro h1 { margin: 0; font-size: clamp(21px,3vw,27px); line-height: 1.3; letter-spacing: -.025em; }
     .page-intro p { margin: 5px 0 0; max-width: 760px; color: var(--muted); font-size: 13px; }
-    .local-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      flex: 0 0 auto;
-      margin-top: 3px;
-      padding: 7px 10px;
-      border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line));
-      border-radius: 999px;
-      color: var(--accent);
-      background: var(--accent-soft);
-      font-size: 12px;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-    .local-badge svg { width: 15px; height: 15px; display: block; }
-    .workspace {
-      margin: 0 0 28px;
-      padding: 20px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--surface);
-      box-shadow: var(--shadow-sm);
-    }
-    .workspace-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 15px; }
-    .workspace h2, .section-title { margin: 0; letter-spacing: -.02em; }
-    .workspace h2 { font-size: 19px; }
+    .local-badge { display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto; margin-top: 3px; padding: 7px 10px; border: 1px solid color-mix(in srgb,var(--accent) 24%,var(--line)); border-radius: 999px; color: var(--accent); background: var(--accent-soft); font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .local-badge svg { width: 15px; height: 15px; }
+    .mode-tabs { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); width: min(420px,100%); gap: 4px; margin: 0 0 16px; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-muted); }
+    .mode-tab { min-height: 42px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-weight: 760; cursor: pointer; }
+    .mode-tab[aria-selected="true"] { background: var(--surface); color: var(--accent); box-shadow: var(--shadow-sm); }
+    .workspace { padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-sm); }
+    .workflow-panel[hidden] { display: none !important; }
+    .workspace-head { display: flex; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+    .workspace-head h2 { margin: 0; font-size: 19px; letter-spacing: -.02em; }
     .workspace-head p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
-    .stats { display: flex; flex-wrap: wrap; gap: 7px; }
-    .stat { min-width: 70px; padding: 7px 10px; border-radius: 10px; background: var(--surface-muted); text-align: center; }
-    .stat-value { display: block; font-size: 15px; font-weight: 780; line-height: 1.2; }
-    .stat-label { color: var(--muted); font-size: 10px; }
-    textarea {
-      width: 100%;
-      min-height: 260px;
-      resize: vertical;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 16px;
-      background: #fbfbf9;
-      color: var(--text);
-      line-height: 1.7;
-    }
-    textarea:hover { border-color: var(--line-strong); }
-    .toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 12px; }
-    .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .button { min-height: 40px; padding: 8px 14px; font-weight: 700; }
-    .button.primary { border-color: var(--accent); color: white; background: var(--accent); }
-    .button.primary:hover { border-color: var(--accent-hover); background: var(--accent-hover); }
-    .button.danger { color: var(--danger); }
-    .save-status { align-self: center; color: var(--muted); font-size: 12px; }
-    .export-row { display: flex; align-items: end; gap: 10px; margin-top: 12px; }
-    .export-field { display: grid; gap: 5px; min-width: min(100%, 320px); }
+    .step-list { display: grid; gap: 14px; }
+    .step-card { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
+    .step-head { display: flex; align-items: flex-start; gap: 11px; padding: 15px 16px 10px; }
+    .step-number { display: grid; place-items: center; width: 26px; height: 26px; flex: 0 0 auto; border-radius: 50%; color: var(--accent); background: var(--accent-soft); font-size: 12px; font-weight: 800; }
+    .step-head h3 { margin: 1px 0 2px; font-size: 15px; }
+    .step-head p { margin: 0; color: var(--muted); font-size: 12px; }
+    .drop-zone { margin: 0 16px 16px; min-height: 112px; padding: 18px; border: 1.5px dashed var(--line-strong); border-radius: 12px; display: grid; place-items: center; text-align: center; background: #fbfbf9; transition: border-color .16s ease,background .16s ease; }
+    .drop-zone.is-dragover { border-color: var(--accent); background: var(--accent-soft); }
+    .drop-zone.has-file { place-items: stretch; text-align: left; }
+    .drop-empty { display: grid; justify-items: center; gap: 8px; }
+    .drop-empty svg { width: 28px; height: 28px; color: var(--accent); }
+    .drop-empty strong { font-size: 14px; }
+    .drop-empty span { color: var(--muted); font-size: 12px; }
+    .file-picker { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .button { min-height: 40px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); font-weight: 700; cursor: pointer; transition: border-color .16s ease,background .16s ease,transform .16s ease; }
+    .button:hover:not(:disabled) { border-color: var(--line-strong); background: var(--surface-hover); }
+    .button:active:not(:disabled) { transform: translateY(1px); }
+    .button.primary { border-color: var(--accent); color: #fff; background: var(--accent); }
+    .button.primary:hover:not(:disabled) { border-color: var(--accent-hover); background: var(--accent-hover); }
+    .button:disabled { opacity: .48; cursor: not-allowed; }
+    .button.subtle { min-height: 34px; padding: 6px 10px; font-size: 12px; }
+    .file-summary { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 12px; }
+    .file-summary-main { min-width: 0; display: flex; align-items: center; gap: 12px; }
+    .thumb { width: 72px; height: 54px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 9px; object-fit: cover; background: var(--surface-muted); }
+    .file-icon { display: grid; place-items: center; width: 46px; height: 46px; flex: 0 0 auto; border-radius: 10px; color: var(--accent); background: var(--accent-soft); }
+    .file-icon svg { width: 23px; height: 23px; }
+    .file-copy { min-width: 0; }
+    .file-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 760; }
+    .file-meta { margin-top: 3px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+    .capacity-box { margin: 0 16px 16px; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+    .metric { min-width: 0; padding: 10px 11px; border-radius: 10px; background: var(--surface-muted); }
+    .metric span { display: block; color: var(--muted); font-size: 10px; }
+    .metric strong { display: block; margin-top: 2px; font-size: 14px; overflow-wrap: anywhere; }
+    .fit-status { margin: 0 16px 16px; padding: 10px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; }
+    .fit-status.ok { color: var(--accent); background: var(--accent-soft); }
+    .fit-status.bad { color: var(--danger); background: var(--danger-soft); }
+    .fit-status.neutral { color: var(--muted); background: var(--surface-muted); }
+    .action-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; }
+    .action-row .button.primary { min-width: 180px; }
+    .processing-status { min-width: 0; color: var(--muted); font-size: 12px; }
+    .result-card { margin-top: 16px; padding: 16px; border: 1px solid color-mix(in srgb,var(--accent) 30%,var(--line)); border-radius: 14px; background: color-mix(in srgb,var(--accent-soft) 55%,#fff); }
+    .result-card[hidden] { display: none; }
+    .result-head { display: flex; align-items: flex-start; gap: 10px; }
+    .result-icon { display: grid; place-items: center; width: 30px; height: 30px; flex: 0 0 auto; border-radius: 50%; color: #fff; background: var(--accent); }
+    .result-icon svg { width: 17px; height: 17px; }
+    .result-head h3 { margin: 1px 0 2px; font-size: 15px; }
+    .result-head p { margin: 0; color: var(--muted); font-size: 12px; }
+    .result-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 13px; }
+    .result-grid .metric { background: rgba(255,255,255,.72); }
+    .export-row { display: flex; align-items: end; gap: 10px; margin-top: 13px; }
+    .export-field { display: grid; gap: 5px; min-width: min(100%,360px); flex: 1 1 300px; }
     .export-label { color: var(--muted); font-size: 11px; font-weight: 700; }
-    .filename-control { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
-    .filename-control:focus-within { border-color: var(--focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 20%, transparent); }
+    .filename-control { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+    .filename-control:focus-within { border-color: var(--focus); box-shadow: 0 0 0 3px color-mix(in srgb,var(--focus) 20%,transparent); }
     .filename-input { width: 100%; min-width: 0; min-height: 40px; padding: 8px 10px; border: 0; outline: 0; background: transparent; color: var(--text); }
     .filename-extension { padding: 0 10px; color: var(--muted); font-size: 12px; user-select: none; }
-    .section { padding: 26px 0; }
-    .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; margin-bottom: 15px; }
-    .section-title { font-size: 20px; }
-    .section-head p { margin: 0; color: var(--muted); font-size: 13px; }
-    .card-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-    .card { min-height: 150px; padding: 17px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-sm); }
-    .card-number { color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: .08em; }
-    .card h3 { margin: 17px 0 6px; font-size: 15px; }
-    .card p { margin: 0; color: var(--muted); font-size: 12px; }
+    .warning-box { margin-top: 14px; padding: 11px 12px; border: 1px solid #e5c681; border-radius: 10px; color: var(--warning); background: var(--warning-soft); font-size: 12px; }
+    .error-box { margin-top: 14px; padding: 11px 12px; border: 1px solid color-mix(in srgb,var(--danger) 35%,var(--line)); border-radius: 10px; color: var(--danger); background: var(--danger-soft); font-size: 12px; }
+    .error-box[hidden] { display: none; }
+    .info-section { margin-top: 24px; }
     details { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; box-shadow: var(--shadow-sm); }
     summary { cursor: pointer; padding: 14px 16px; font-weight: 720; }
-    .build-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 16px 16px; }
+    .build-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; padding: 0 16px 16px; }
     .build-item { padding: 11px; border-radius: 10px; background: var(--surface-muted); }
     .build-item span { display: block; color: var(--muted); font-size: 10px; }
     .build-item strong { display: block; overflow-wrap: anywhere; font-size: 12px; }
-    footer { width: min(1180px, 100%); margin: 0 auto; padding: 0 clamp(14px, 2.8vw, 30px) 34px; color: var(--muted); font-size: 12px; }
-    /* Reusable toast / Undo component. Canonical source: components/toast.html */
-    .app-toast {
-      position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 60;
-      display: flex; align-items: center; gap: 12px; max-width: min(420px, calc(100vw - 36px));
-      padding: 10px 12px 10px 14px; border: 1px solid var(--line); border-radius: 12px;
-      background: var(--surface); color: var(--text); box-shadow: var(--shadow-md); opacity: 0;
-      transform: translateY(12px); pointer-events: none; transition: opacity .18s ease, transform .18s ease;
-    }
+    footer { width: min(1120px,100%); margin: 0 auto; padding: 0 clamp(14px,2.8vw,30px) 34px; color: var(--muted); font-size: 12px; }
+    .app-toast { position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 60; display: flex; align-items: center; gap: 12px; max-width: min(420px,calc(100vw - 36px)); padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-md); opacity: 0; transform: translateY(12px); pointer-events: none; transition: opacity .18s ease,transform .18s ease; }
     .app-toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
-    .app-toast[data-tone="success"] { border-color: color-mix(in srgb, var(--accent) 34%, var(--line)); }
-    .app-toast[data-tone="warning"] { border-color: #c58a24; }
-    .app-toast-message { min-width: 0; flex: 1 1 auto; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
-    .app-toast-action { flex: 0 0 auto; min-height: 34px; padding: 5px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--accent); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
-    .app-toast-action:hover { background: var(--surface-hover); }
-    .app-toast-action[hidden] { display: none; }
-    dialog {
-      width: min(640px, calc(100% - 28px));
-      max-height: min(760px, calc(100dvh - 28px));
-      padding: 0;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--surface);
-      color: var(--text);
-      box-shadow: var(--shadow-md);
-    }
-    dialog::backdrop { background: rgba(15, 17, 14, .52); backdrop-filter: blur(4px); }
-    #helpDialog[open] {
-      display: flex;
-      flex-direction: column;
-      max-height: calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-    }
-    .dialog-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex: 0 0 auto;
-      gap: 12px;
-      padding: 16px 18px;
-      border-bottom: 1px solid var(--line);
-    }
+    .app-toast[data-tone="success"] { border-color: color-mix(in srgb,var(--accent) 34%,var(--line)); }
+    dialog { width: min(640px,calc(100% - 28px)); max-height: min(760px,calc(100dvh - 28px)); padding: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--text); box-shadow: var(--shadow-md); }
+    dialog::backdrop { background: rgba(15,17,14,.52); backdrop-filter: blur(4px); }
+    #helpDialog[open] { display: flex; flex-direction: column; max-height: calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+    .dialog-header { display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--line); }
     .dialog-header h2 { margin: 0; font-size: 17px; }
-    .dialog-body {
-      min-height: 0;
-      flex: 1 1 auto;
-      padding: 20px 20px calc(28px + env(safe-area-inset-bottom));
-      overflow: auto;
-      overscroll-behavior: contain;
-      -webkit-overflow-scrolling: touch;
-    }
-    .dialog-body h3 {
-      margin: 25px 0 8px;
-      padding-top: 19px;
-      border-top: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
-      font-size: 14px;
-    }
+    .dialog-body { min-height: 0; flex: 1 1 auto; padding: 20px 20px calc(28px + env(safe-area-inset-bottom)); overflow: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+    .dialog-body h3 { margin: 25px 0 8px; padding-top: 19px; border-top: 1px solid color-mix(in srgb,var(--line) 78%,transparent); font-size: 14px; }
     .dialog-body h3:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
-    .dialog-body p, .dialog-body li { color: var(--muted); font-size: 13px; line-height: 1.7; }
+    .dialog-body p,.dialog-body li { color: var(--muted); font-size: 13px; line-height: 1.7; }
     .dialog-body p { margin: 8px 0 0; }
-    .dialog-body ul, .dialog-body ol { margin: 8px 0 0; padding-left: 22px; }
+    .dialog-body ul,.dialog-body ol { margin: 8px 0 0; padding-left: 22px; }
     .dialog-body li + li { margin-top: 7px; }
-    .dialog-note {
-      margin-top: 12px;
-      padding: 11px 12px;
-      border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
-      border-radius: 10px;
-      background: var(--accent-soft);
-      color: var(--text) !important;
-    }
-
-    /* Reusable confirmation component. Canonical source: components/confirm-dialog.html */
-    .app-confirm-dialog { width: min(420px, calc(100% - 24px)); max-width: 100%; }
-    .app-confirm-dialog::backdrop { background: rgba(15, 17, 14, .48); backdrop-filter: blur(3px); }
-    .app-confirm-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 15px 18px 13px;
-      border-bottom: 1px solid var(--line);
-    }
-    .app-confirm-title { margin: 0; font-size: 17px; letter-spacing: -.01em; }
-    .app-confirm-close {
-      display: grid;
-      place-items: center;
-      width: 36px;
-      height: 36px;
-      padding: 0;
-      border: 0;
-      border-radius: 10px;
-      background: transparent;
-      color: var(--text);
-      cursor: pointer;
-    }
-    .app-confirm-close:hover { background: var(--surface-hover); }
-    .app-confirm-close svg { width: 19px; height: 19px; }
-    .app-confirm-body { padding: 18px; }
-    .app-confirm-message {
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.7;
-      overflow-wrap: anywhere;
-    }
-    .app-confirm-actions {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 18px;
-    }
-    .app-confirm-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 44px;
-      padding: 8px 12px;
-      border: 1px solid var(--line);
-      border-radius: 11px;
-      background: var(--surface);
-      color: var(--text);
-      font: inherit;
-      font-size: 12px;
-      font-weight: 760;
-      cursor: pointer;
-    }
-    .app-confirm-button:hover { border-color: var(--line-strong); background: var(--surface-hover); }
-    .app-confirm-button.primary { border-color: var(--accent); background: var(--accent); color: #fff; }
-    .app-confirm-button.primary:hover { border-color: var(--accent-hover); background: var(--accent-hover); }
-    .app-confirm-button.danger { border-color: var(--danger); background: var(--danger); color: #fff; }
-    .app-confirm-button:focus-visible, .app-confirm-close:focus-visible {
-      outline: 3px solid color-mix(in srgb, var(--focus) 55%, transparent);
-      outline-offset: 2px;
-    }
-
-    code { padding: 1px 5px; border-radius: 5px; background: var(--surface-muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .92em; }
+    .dialog-note { margin-top: 12px; padding: 11px 12px; border: 1px solid color-mix(in srgb,var(--accent) 22%,var(--line)); border-radius: 10px; background: var(--accent-soft); color: var(--text)!important; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-    @media (max-width: 820px) {
+    @media (max-width: 760px) {
       .page-intro { align-items: stretch; flex-direction: column; gap: 10px; }
       .local-badge { align-self: flex-start; }
-      .workspace-head, .section-head { align-items: stretch; flex-direction: column; }
-      .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .workspace-head { flex-direction: column; }
+      .capacity-box,.result-grid { grid-template-columns: 1fr; }
+      .action-row,.export-row { align-items: stretch; flex-direction: column; }
+      .action-row .button.primary,.export-row .button { width: 100%; }
+      .export-field { width: 100%; min-width: 0; }
       .build-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 520px) {
@@ -402,55 +170,28 @@
       .brand-name { font-size: 15px; }
       .brand-meta { display: none; }
       .header-actions { gap: 11px; }
-      .language-button { padding-block: 6px; }
-      .header-icon-button { padding-block: 6px; }
       .main { padding-top: 18px; }
-      .page-intro { padding-bottom: 14px; }
       .workspace { padding: 14px; border-radius: 14px; }
-      .stats { width: 100%; }
-      .stat { flex: 1 1 0; min-width: 0; }
-      .card-grid { grid-template-columns: 1fr; }
-      .toolbar, .button-row { width: 100%; }
-      .button-row .button { flex: 1 1 auto; }
-      .export-row, .export-field { width: 100%; }
+      .step-head { padding-inline: 13px; }
+      .drop-zone,.capacity-box,.fit-status { margin-inline: 13px; }
+      .file-summary { grid-template-columns: 1fr; }
+      .file-summary > .button { width: 100%; }
+      .thumb { width: 64px; height: 48px; }
       .app-toast { left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); max-width: none; }
-      textarea { min-height: 235px; }
-      #helpDialog {
-        width: calc(100% - 20px);
-        max-height: calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-      }
-      #helpDialog .dialog-body {
-        padding: 18px 18px calc(24px + env(safe-area-inset-bottom));
-      }
-      .app-confirm-dialog {
-        width: 100%;
-        max-width: none;
-        margin: auto 0 0;
-        border-width: 1px 0 0;
-        border-radius: 22px 22px 0 0;
-      }
-      .app-confirm-dialog::backdrop { background: rgba(0, 0, 0, .42); backdrop-filter: blur(2px); }
-      .app-confirm-header { padding: 14px 18px 12px; }
-      .app-confirm-body { padding: 12px 18px calc(env(safe-area-inset-bottom) + 18px); }
-      .app-confirm-message { font-size: 14px; line-height: 1.75; }
-      .app-confirm-actions { grid-template-columns: 1fr; gap: 10px; margin-top: 16px; }
-      .app-confirm-button { min-height: 48px; font-size: 14px; }
+      #helpDialog { width: calc(100% - 20px); max-height: calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+      #helpDialog .dialog-body { padding: 18px 18px calc(24px + env(safe-area-inset-bottom)); }
     }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
-    }
+    @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto!important; transition-duration: .01ms!important; animation-duration: .01ms!important; } }
   </style>
 </head>
 <body>
   <header class="app-header">
     <div class="header-inner">
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true">
-          <img id="appBrandIcon" src="__APP_ICON_DATA_URI__" alt="">
-        </div>
+        <div class="brand-mark" aria-hidden="true"><img id="appBrandIcon" src="__APP_ICON_DATA_URI__" alt=""></div>
         <div class="brand-copy">
-          <p class="brand-name"><span id="brandName">Single HTML App Starter</span><span class="version-badge" id="versionBadge">v1.1.0</span></p>
-          <p class="brand-meta" data-i18n="brandMeta">Single file · Local-first · GitHub Pages</p>
+          <p class="brand-name"><span id="brandName">File in Image</span><span class="version-badge" id="versionBadge">v0.2.0</span></p>
+          <p class="brand-meta" data-i18n="brandMeta">画像にファイルを埋めて、あとから取り出す</p>
         </div>
       </div>
       <div class="header-actions">
@@ -465,128 +206,114 @@
   <main class="main">
     <section class="page-intro" aria-labelledby="heroTitle">
       <div>
-        <h2 id="heroTitle" data-i18n="introTitle">単一HTMLアプリのスターター</h2>
-        <p data-i18n="lead">PDF Organizerと同じ、固定依存・完全内包・実行時通信なしの構成から、新しいブラウザーアプリを作れます。</p>
+        <h1 id="heroTitle" data-i18n="introTitle">画像にファイルを埋め込む</h1>
+        <p data-i18n="lead">任意の1ファイルを画像の画素へ埋め込み、生成したPNGから元のファイルを取り出せます。</p>
       </div>
       <div class="local-badge">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.8 8 7 10 4.2-2 7-5.4 7-10V6z"/><path d="m9 12 2 2 4-5"/></svg>
-        <span data-i18n="localBadge">実行時通信なし</span>
+        <span data-i18n="localBadge">ファイルを送信しません</span>
       </div>
     </section>
 
-    <!-- APP:BEGIN Replace this demo workspace with the real application. -->
-    <section class="shell workspace" aria-labelledby="workspaceTitle">
+    <!-- APP:BEGIN -->
+    <div class="mode-tabs" role="tablist" aria-label="Mode">
+      <button class="mode-tab" id="embedTab" type="button" role="tab" aria-selected="true" aria-controls="embedPanel" data-i18n="embedTab">埋め込む</button>
+      <button class="mode-tab" id="extractTab" type="button" role="tab" aria-selected="false" aria-controls="extractPanel" data-i18n="extractTab">取り出す</button>
+    </div>
+
+    <section class="workspace workflow-panel" id="embedPanel" role="tabpanel" aria-labelledby="embedTab">
       <div class="workspace-head">
         <div>
-          <h2 id="workspaceTitle" data-i18n="workspaceTitle">Starter workspace</h2>
-          <p data-i18n="workspaceBody">Text stays in this browser. It is never sent by this app.</p>
-        </div>
-        <div class="stats" aria-live="polite">
-          <div class="stat"><span class="stat-value" id="characterCount">0</span><span class="stat-label" data-i18n="characters">Characters</span></div>
-          <div class="stat"><span class="stat-value" id="wordCount">0</span><span class="stat-label" data-i18n="words">Words</span></div>
-          <div class="stat"><span class="stat-value" id="lineCount">0</span><span class="stat-label" data-i18n="lines">Lines</span></div>
+          <h2 data-i18n="embedTitle">画像の中にファイルを入れる</h2>
+          <p data-i18n="embedBody">画像とファイルを選ぶと、埋め込める容量を確認できます。</p>
         </div>
       </div>
-      <label class="sr-only" for="editor" data-i18n="editorLabel">Text editor</label>
-      <textarea id="editor" spellcheck="true"></textarea>
-      <div class="export-row">
-        <label class="export-field" for="outputFilename">
-          <span class="export-label" data-i18n="outputFilename">出力ファイル名</span>
-          <span class="filename-control">
-            <input class="filename-input" id="outputFilename" type="text" maxlength="120" autocomplete="off" spellcheck="false" aria-describedby="outputFilenameHint">
-            <span class="filename-extension" aria-hidden="true">.txt</span>
-          </span>
-          <span class="sr-only" id="outputFilenameHint" data-i18n="outputFilenameHint">拡張子は自動で .txt が付きます</span>
-        </label>
+      <div class="step-list">
+        <section class="step-card">
+          <div class="step-head"><span class="step-number">1</span><div><h3 data-i18n="carrierTitle">画像を選択</h3><p data-i18n="carrierBody">PNG / JPEG / WebP。出力はPNGになります。</p></div></div>
+          <div class="drop-zone" id="carrierDropZone" tabindex="0" role="button" data-i18n-aria-label="chooseCarrier">
+            <input class="file-picker" id="carrierInput" type="file" accept="image/png,image/jpeg,image/webp">
+            <div class="drop-empty" id="carrierEmpty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m5 17 5-5 4 4 2-2 3 3"/></svg>
+              <strong data-i18n="dropImage">画像をここにドロップ</strong><span data-i18n="orChoose">またはクリックして選択</span>
+            </div>
+            <div class="file-summary" id="carrierSummary" hidden>
+              <div class="file-summary-main"><img class="thumb" id="carrierThumb" alt=""><div class="file-copy"><span class="file-name" id="carrierName"></span><div class="file-meta" id="carrierMeta"></div></div></div>
+              <button class="button subtle" id="replaceCarrierButton" type="button" data-i18n="replace">変更</button>
+            </div>
+          </div>
+          <div class="capacity-box" id="carrierMetrics" hidden>
+            <div class="metric"><span data-i18n="dimensions">画像サイズ</span><strong id="carrierDimensions">—</strong></div>
+            <div class="metric"><span data-i18n="opaquePixels">使用できる画素</span><strong id="opaquePixelCount">—</strong></div>
+            <div class="metric"><span data-i18n="capacity">埋め込み容量</span><strong id="carrierCapacity">—</strong></div>
+          </div>
+        </section>
+
+        <section class="step-card">
+          <div class="step-head"><span class="step-number">2</span><div><h3 data-i18n="payloadTitle">埋め込むファイルを選択</h3><p data-i18n="payloadBody">形式は問いません。1ファイル、最大32 MiBです。</p></div></div>
+          <div class="drop-zone" id="payloadDropZone" tabindex="0" role="button" data-i18n-aria-label="choosePayload">
+            <input class="file-picker" id="payloadInput" type="file">
+            <div class="drop-empty" id="payloadEmpty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5"/><path d="M9 13h6M9 17h4"/></svg>
+              <strong data-i18n="dropFile">ファイルをここにドロップ</strong><span data-i18n="orChoose">またはクリックして選択</span>
+            </div>
+            <div class="file-summary" id="payloadSummary" hidden>
+              <div class="file-summary-main"><div class="file-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5"/></svg></div><div class="file-copy"><span class="file-name" id="payloadName"></span><div class="file-meta" id="payloadMeta"></div></div></div>
+              <button class="button subtle" id="replacePayloadButton" type="button" data-i18n="replace">変更</button>
+            </div>
+          </div>
+          <div class="fit-status neutral" id="fitStatus" data-i18n="fitWaiting">画像とファイルを選ぶと容量を確認できます。</div>
+        </section>
       </div>
-      <div class="toolbar">
-        <div class="button-row">
-          <button class="button primary" id="copyButton" type="button" data-i18n="copy">Copy</button>
-          <button class="button" id="downloadButton" type="button" data-i18n="download">Download text</button>
-          <button class="button" id="sampleButton" type="button" data-i18n="sample">Restore sample</button>
-        </div>
-        <div class="button-row">
-          <button class="button danger" id="clearButton" type="button" data-i18n="clear">Clear</button>
-        </div>
-        <span class="save-status" id="saveStatus" data-i18n="savedLocally">Saved locally</span>
+
+      <div class="error-box" id="embedError" role="alert" hidden></div>
+      <div class="action-row">
+        <span class="processing-status" id="embedStatus" aria-live="polite"></span>
+        <button class="button primary" id="embedButton" type="button" disabled data-i18n="embedAction">画像に埋め込む</button>
       </div>
+
+      <section class="result-card" id="embedResult" aria-live="polite" hidden>
+        <div class="result-head"><span class="result-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 12 4 4 8-9"/></svg></span><div><h3 data-i18n="embedDone">ファイルを埋め込みました</h3><p data-i18n="embedDoneBody">生成したPNGは編集・変換せず、そのまま保存してください。</p></div></div>
+        <div class="result-grid"><div class="metric"><span data-i18n="outputSize">出力サイズ</span><strong id="encodedBlobSize">—</strong></div><div class="metric"><span data-i18n="payloadSize">ファイルサイズ</span><strong id="encodedPayloadSize">—</strong></div><div class="metric"><span data-i18n="integrity">復元時の確認</span><strong>SHA-256</strong></div></div>
+        <div class="warning-box" data-i18n="outputWarning">リサイズ、トリミング、JPEG変換、画像編集、SNS等での再圧縮を行うと、ファイルを取り出せなくなる場合があります。</div>
+        <div class="export-row"><label class="export-field" for="outputFilename"><span class="export-label" data-i18n="outputFilename">出力ファイル名</span><span class="filename-control"><input class="filename-input" id="outputFilename" type="text" maxlength="120" autocomplete="off" spellcheck="false"><span class="filename-extension" aria-hidden="true">.png</span></span></label><button class="button primary" id="savePngButton" type="button" data-i18n="savePng">PNGを保存</button></div>
+      </section>
+    </section>
+
+    <section class="workspace workflow-panel" id="extractPanel" role="tabpanel" aria-labelledby="extractTab" hidden>
+      <div class="workspace-head"><div><h2 data-i18n="extractTitle">画像からファイルを取り出す</h2><p data-i18n="extractBody">このツールで生成したPNGを選択します。</p></div></div>
+      <div class="drop-zone" id="extractDropZone" tabindex="0" role="button" data-i18n-aria-label="chooseEncoded">
+        <input class="file-picker" id="extractInput" type="file" accept="image/png">
+        <div class="drop-empty" id="extractEmpty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9h8M8 13h5"/><path d="m14 16 2 2 4-5"/></svg><strong data-i18n="dropEncoded">埋め込み済みPNGをここにドロップ</strong><span data-i18n="orChoose">またはクリックして選択</span></div>
+        <div class="file-summary" id="extractSummary" hidden><div class="file-summary-main"><img class="thumb" id="extractThumb" alt=""><div class="file-copy"><span class="file-name" id="extractImageName"></span><div class="file-meta" id="extractImageMeta"></div></div></div><button class="button subtle" id="replaceExtractButton" type="button" data-i18n="replace">変更</button></div>
+      </div>
+      <div class="error-box" id="extractError" role="alert" hidden></div>
+      <div class="action-row"><span class="processing-status" id="extractStatus" aria-live="polite"></span><button class="button primary" id="extractButton" type="button" disabled data-i18n="extractAction">ファイルを取り出す</button></div>
+      <section class="result-card" id="extractResult" aria-live="polite" hidden>
+        <div class="result-head"><span class="result-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 12 4 4 8-9"/></svg></span><div><h3 data-i18n="extractDone">ファイルを確認しました</h3><p data-i18n="extractDoneBody">埋め込み時のSHA-256と一致しました。</p></div></div>
+        <div class="result-grid"><div class="metric"><span data-i18n="originalName">元のファイル名</span><strong id="recoveredOriginalName">—</strong></div><div class="metric"><span data-i18n="payloadSize">ファイルサイズ</span><strong id="recoveredSize">—</strong></div><div class="metric"><span data-i18n="integrity">復元時の確認</span><strong id="hashResult">SHA-256 ✓</strong></div></div>
+        <div class="export-row"><label class="export-field" for="recoveredFilename"><span class="export-label" data-i18n="saveAs">保存ファイル名</span><span class="filename-control"><input class="filename-input" id="recoveredFilename" type="text" maxlength="220" autocomplete="off" spellcheck="false"></span></label><button class="button primary" id="saveRecoveredButton" type="button" data-i18n="saveFile">ファイルを保存</button></div>
+      </section>
     </section>
     <!-- APP:END -->
 
-    <section class="shell section" aria-labelledby="guaranteesTitle">
-      <div class="section-head">
-        <h2 class="section-title" id="guaranteesTitle" data-i18n="guaranteesTitle">Template guarantees</h2>
-        <p data-i18n="guaranteesBody">Keep these constraints unless the product specification explicitly changes them.</p>
-      </div>
-      <div class="card-grid">
-        <article class="card"><div class="card-number">01</div><h3 data-i18n="card1Title">One deliverable</h3><p data-i18n="card1Body">The release artifact is dist/index.html. It opens directly and can be hosted as a static page.</p></article>
-        <article class="card"><div class="card-number">02</div><h3 data-i18n="card2Title">Pinned dependencies</h3><p data-i18n="card2Body">Third-party npm assets are version-pinned, hashed, and embedded during the build.</p></article>
-        <article class="card"><div class="card-number">03</div><h3 data-i18n="card3Title">No runtime network</h3><p data-i18n="card3Body">Content Security Policy blocks runtime connections. User data stays inside the page.</p></article>
-        <article class="card"><div class="card-number">04</div><h3 data-i18n="card4Title">LLM-ready workflow</h3><p data-i18n="card4Body">AGENTS.md and APP_SPEC.md give coding agents a stable contract, acceptance criteria, and handoff format.</p></article>
-      </div>
-    </section>
-
-    <section class="shell section">
-      <details>
-        <summary data-i18n="buildInfo">Build information</summary>
-        <div class="build-grid">
-          <div class="build-item"><span data-i18n="appVersion">App version</span><strong id="buildVersion">—</strong></div>
-          <div class="build-item"><span data-i18n="builtAt">Built at</span><strong id="builtAt">—</strong></div>
-          <div class="build-item"><span data-i18n="dependencies">Embedded dependencies</span><strong id="dependencyCount">0</strong></div>
-        </div>
-      </details>
+    <section class="info-section">
+      <details><summary data-i18n="buildInfo">ビルド情報</summary><div class="build-grid"><div class="build-item"><span data-i18n="appVersion">アプリバージョン</span><strong id="buildVersion">—</strong></div><div class="build-item"><span data-i18n="builtAt">生成日時</span><strong id="builtAt">—</strong></div><div class="build-item"><span data-i18n="dependencies">内包依存数</span><strong id="dependencyCount">0</strong></div></div></details>
     </section>
   </main>
 
-  <footer><span id="footerName">Single HTML App Starter</span> · MIT License · <span data-i18n="footer">Generated as one self-contained HTML file</span></footer>
-  <div class="app-toast" id="appToast" role="status" aria-live="polite" aria-atomic="true" data-tone="default">
-    <span class="app-toast-message" id="appToastMessage"></span>
-    <button class="app-toast-action" id="appToastAction" type="button" hidden></button>
-  </div>
-
-  <!-- Reusable confirmation component. Keep in sync with components/confirm-dialog.html. -->
-  <dialog class="app-confirm-dialog" id="appConfirmDialog" aria-labelledby="appConfirmTitle" aria-describedby="appConfirmMessage">
-    <div class="app-confirm-header">
-      <h2 class="app-confirm-title" id="appConfirmTitle">確認</h2>
-      <button class="app-confirm-close" id="appConfirmClose" type="button" data-i18n-aria-label="close" aria-label="閉じる">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
-      </button>
-    </div>
-    <div class="app-confirm-body">
-      <p class="app-confirm-message" id="appConfirmMessage"></p>
-      <div class="app-confirm-actions">
-        <button class="app-confirm-button" id="appConfirmCancel" type="button">キャンセル</button>
-        <button class="app-confirm-button primary" id="appConfirmOk" type="button">実行する</button>
-      </div>
-    </div>
-  </dialog>
+  <footer><span id="footerName">File in Image</span> · MIT License · <span data-i18n="footer">ブラウザー内で処理</span></footer>
+  <div class="app-toast" id="appToast" role="status" aria-live="polite" aria-atomic="true" data-tone="default"><span id="appToastMessage"></span></div>
 
   <dialog id="helpDialog" aria-labelledby="helpTitle">
-    <div class="dialog-header">
-      <h2 id="helpTitle" data-i18n="helpTitle">使い方と注意事項</h2>
-      <button class="icon-button" id="closeHelpButton" type="button" data-i18n-title="close" data-i18n-aria-label="close" title="閉じる" aria-label="閉じる">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>
-      </button>
-    </div>
+    <div class="dialog-header"><h2 id="helpTitle" data-i18n="helpTitle">使い方と注意事項</h2><button class="icon-button" id="closeHelpButton" type="button" data-i18n-title="close" data-i18n-aria-label="close" title="閉じる" aria-label="閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg></button></div>
     <div class="dialog-body">
-      <!-- APP:HELP:BEGIN Update this section together with the real application. -->
-      <h3 data-i18n="helpBasicsTitle">基本操作</h3>
-      <ol>
-        <li data-i18n="helpStep1">作業領域へテキストを入力します。内容は入力のたびに端末内へ保存されます。</li>
-        <li data-i18n="helpStep2">出力ファイル名を必要に応じて変更し、「コピー」または「テキスト保存」で入力内容を取り出せます。</li>
-        <li data-i18n="helpStep3">「サンプルに戻す」や「消去」の直後は、トーストの「元に戻す」から取り消せます。</li>
-      </ol>
-
-      <h3 data-i18n="helpPrivacyTitle">プライバシー</h3>
-      <p data-i18n="helpPrivacyBody">入力内容と操作はブラウザー内で処理され、このアプリから外部へ送信されません。必要なコードと依存ファイルも配布用HTMLに内包されます。</p>
-
-      <h3 data-i18n="helpNotesTitle">注意事項</h3>
-      <ul>
-        <li data-i18n="helpNoteStorage">ブラウザーのサイトデータを削除すると、端末内に保存した入力内容も消える場合があります。必要な内容はファイルとして保存してください。</li>
-        <li data-i18n="helpNoteBrowser">一部の機能はブラウザーの制限や端末性能の影響を受けます。重要な成果物は保存後に内容を確認してください。</li>
-        <li data-i18n="helpNoteTemplate">この画面はスターターの例です。新しいアプリを作る際は、機能と一緒にこのヘルプも実際の操作へ書き換えます。</li>
-      </ul>
-      <p class="dialog-note" data-i18n="helpOffline">配布物は dist/index.html ひとつです。ローカルで直接開くことも、GitHub Pagesで公開することもできます。</p>
+      <!-- APP:HELP:BEGIN -->
+      <h3 data-i18n="helpEmbedTitle">埋め込む</h3><ol><li data-i18n="helpEmbed1">PNG / JPEG / WebP画像を選びます。</li><li data-i18n="helpEmbed2">画像に入れたい1ファイルを選び、容量に収まることを確認します。</li><li data-i18n="helpEmbed3">「画像に埋め込む」を実行してPNGを保存します。</li></ol>
+      <h3 data-i18n="helpExtractTitle">取り出す</h3><ol><li data-i18n="helpExtract1">「取り出す」へ切り替え、このツールで作ったPNGを選びます。</li><li data-i18n="helpExtract2">「ファイルを取り出す」を実行します。</li><li data-i18n="helpExtract3">SHA-256が一致したファイルだけ保存できます。</li></ol>
+      <h3 data-i18n="helpPrivacyTitle">プライバシー</h3><p data-i18n="helpPrivacyBody">画像とファイルはブラウザー内で処理され、このアプリから外部へ送信されません。ファイル内容は端末内ストレージにも保存しません。</p>
+      <h3 data-i18n="helpNotesTitle">注意事項</h3><ul><li data-i18n="helpNoteImage">生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。</li><li data-i18n="helpNoteEncryption">v0.2.0では暗号化していません。画像からデータを抽出できる人は、埋め込んだファイルを読むことができます。</li><li data-i18n="helpNoteFormat">v0.2.0の埋め込み形式は開発途中です。v1の正式互換形式はまだ固定していません。</li></ul>
+      <p class="dialog-note" data-i18n="helpOffline">実行時の外部通信を使わず、単一HTMLとしてローカルからも利用できる構成です。</p>
       <!-- APP:HELP:END -->
     </div>
   </dialog>
@@ -594,10 +321,9 @@
   <script>
     (() => {
       'use strict';
-
       const APP_CONFIG = __APP_CONFIG_JSON__;
       const BUILD_MANIFEST = __BUILD_MANIFEST_JSON__;
-      // Asset payloads are Base64 exactly once. The JSON bundle itself is embedded directly.
+      // Keep the current htmlapps-template embedded-asset API even though this app has no third-party dependencies yet.
       const assetBundle = __EMBEDDED_ASSET_BUNDLE_JSON__;
       const blobUrls = new Set();
       const assetByteCache = new Map();
@@ -608,370 +334,226 @@
         for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
         return bytes;
       }
-
-      function getAsset(dependencyId, assetKey) {
+      function getEmbeddedAsset(dependencyId, assetKey) {
         const asset = assetBundle.dependencies?.[dependencyId]?.assets?.[assetKey];
         if (!asset) throw new Error(`Embedded asset not found: ${dependencyId}/${assetKey}`);
         return asset;
       }
-
-      async function inflateAsset(asset) {
+      async function inflateEmbeddedAsset(asset) {
         const stored = decodeBase64Bytes(asset.base64);
         if (!asset.compression || asset.compression === 'none') return stored;
         if (asset.compression !== 'gzip') throw new Error(`Unsupported embedded asset compression: ${asset.compression}`);
         if (typeof DecompressionStream !== 'function') throw new Error('This browser cannot expand gzip-compressed embedded assets.');
         const stream = new Blob([stored]).stream().pipeThrough(new DecompressionStream('gzip'));
-        const expanded = new Uint8Array(await new Response(stream).arrayBuffer());
-        if (Number.isFinite(asset.originalBytes) && expanded.byteLength !== asset.originalBytes) {
-          throw new Error(`Embedded gzip asset size mismatch: expected ${asset.originalBytes}, got ${expanded.byteLength}`);
-        }
-        return expanded;
+        return new Uint8Array(await new Response(stream).arrayBuffer());
       }
-
       window.StandaloneAssets = Object.freeze({
         manifest: BUILD_MANIFEST,
-        list() {
-          return Object.entries(assetBundle.dependencies || {}).flatMap(([dependencyId, dependency]) =>
-            Object.keys(dependency.assets || {}).map(assetKey => `${dependencyId}/${assetKey}`));
-        },
-        has(dependencyId, assetKey) {
-          return Boolean(assetBundle.dependencies?.[dependencyId]?.assets?.[assetKey]);
-        },
-        bytes(dependencyId, assetKey) {
-          const asset = getAsset(dependencyId, assetKey);
-          if (asset.compression && asset.compression !== 'none') {
-            throw new Error(`Embedded asset ${dependencyId}/${assetKey} is gzip-compressed; use await StandaloneAssets.bytesAsync().`);
-          }
-          return decodeBase64Bytes(asset.base64);
-        },
-        async bytesAsync(dependencyId, assetKey) {
-          const cacheKey = `${dependencyId}/${assetKey}`;
-          if (!assetByteCache.has(cacheKey)) assetByteCache.set(cacheKey, inflateAsset(getAsset(dependencyId, assetKey)));
-          return new Uint8Array(await assetByteCache.get(cacheKey));
-        },
-        text(dependencyId, assetKey) {
-          return new TextDecoder().decode(this.bytes(dependencyId, assetKey));
-        },
-        async textAsync(dependencyId, assetKey) {
-          return new TextDecoder().decode(await this.bytesAsync(dependencyId, assetKey));
-        },
-        blobUrl(dependencyId, assetKey) {
-          const asset = getAsset(dependencyId, assetKey);
-          const url = URL.createObjectURL(new Blob([this.bytes(dependencyId, assetKey)], { type: asset.mime || 'application/octet-stream' }));
-          blobUrls.add(url);
-          return url;
-        },
-        async blobUrlAsync(dependencyId, assetKey) {
-          const asset = getAsset(dependencyId, assetKey);
-          const url = URL.createObjectURL(new Blob([await this.bytesAsync(dependencyId, assetKey)], { type: asset.mime || 'application/octet-stream' }));
-          blobUrls.add(url);
-          return url;
-        },
-        async loadClassicScript(dependencyId, assetKey, globalName = '') {
-          const sourceUrl = await this.blobUrlAsync(dependencyId, assetKey);
-          try {
-            await new Promise((resolve, reject) => {
-              const script = document.createElement('script');
-              script.src = sourceUrl;
-              script.onload = resolve;
-              script.onerror = () => reject(new Error(`Failed to load embedded script: ${dependencyId}/${assetKey}`));
-              document.head.append(script);
-            });
-            return globalName ? window[globalName] : true;
-          } finally {
-            URL.revokeObjectURL(sourceUrl);
-            blobUrls.delete(sourceUrl);
-          }
-        },
-        async importModule(dependencyId, assetKey) {
-          const sourceUrl = await this.blobUrlAsync(dependencyId, assetKey);
-          try {
-            return await import(sourceUrl);
-          } finally {
-            URL.revokeObjectURL(sourceUrl);
-            blobUrls.delete(sourceUrl);
-          }
-        }
+        list() { return Object.entries(assetBundle.dependencies || {}).flatMap(([dependencyId, dependency]) => Object.keys(dependency.assets || {}).map(assetKey => `${dependencyId}/${assetKey}`)); },
+        has(dependencyId, assetKey) { return Boolean(assetBundle.dependencies?.[dependencyId]?.assets?.[assetKey]); },
+        bytes(dependencyId, assetKey) { const asset = getEmbeddedAsset(dependencyId, assetKey); if (asset.compression && asset.compression !== 'none') throw new Error(`Embedded asset ${dependencyId}/${assetKey} is gzip-compressed; use await StandaloneAssets.bytesAsync().`); return decodeBase64Bytes(asset.base64); },
+        async bytesAsync(dependencyId, assetKey) { const cacheKey = `${dependencyId}/${assetKey}`; if (!assetByteCache.has(cacheKey)) assetByteCache.set(cacheKey, inflateEmbeddedAsset(getEmbeddedAsset(dependencyId, assetKey))); return new Uint8Array(await assetByteCache.get(cacheKey)); },
+        blobUrl(dependencyId, assetKey) { const asset = getEmbeddedAsset(dependencyId, assetKey); const url = URL.createObjectURL(new Blob([this.bytes(dependencyId, assetKey)], { type: asset.mime || 'application/octet-stream' })); blobUrls.add(url); return url; },
+        async blobUrlAsync(dependencyId, assetKey) { const asset = getEmbeddedAsset(dependencyId, assetKey); const url = URL.createObjectURL(new Blob([await this.bytesAsync(dependencyId, assetKey)], { type: asset.mime || 'application/octet-stream' })); blobUrls.add(url); return url; }
       });
 
-      window.addEventListener('pagehide', () => {
-        blobUrls.forEach(url => URL.revokeObjectURL(url));
-        blobUrls.clear();
-      });
+      const MAX_PAYLOAD_BYTES = 32 * 1024 * 1024;
+      const MAX_IMAGE_PIXELS = 32_000_000;
+      const MAX_IMAGE_DIMENSION = 8192;
+      const OUTER_HEADER_BYTES = 80;
+      const INNER_FIXED_BYTES = 48;
+      const HEADER_BITS = OUTER_HEADER_BYTES * 8;
+      const HEADER_PIXELS = Math.ceil(HEADER_BITS / 3);
+      const DEV_FORMAT_VERSION = 0;
+      const DEV_EMBEDDING_MODE = 0;
+      const MAX_BODY_BYTES = MAX_PAYLOAD_BYTES + INNER_FIXED_BYTES + 131070;
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder('utf-8', { fatal: true });
+      const $ = selector => document.querySelector(selector);
 
       const translations = {
         ja: {
-          brandMeta: '単一HTML・ローカル処理・GitHub Pages',
-          helpTitle: '使い方と注意事項', close: '閉じる',
-          helpBasicsTitle: '基本操作',
-          helpStep1: '作業領域へテキストを入力します。内容は入力のたびに端末内へ保存されます。',
-          helpStep2: '出力ファイル名を必要に応じて変更し、「コピー」または「テキスト保存」で入力内容を取り出せます。',
-          helpStep3: '「サンプルに戻す」や「消去」の直後は、トーストの「元に戻す」から取り消せます。',
-          helpPrivacyTitle: 'プライバシー',
-          helpPrivacyBody: '入力内容と操作はブラウザー内で処理され、このアプリから外部へ送信されません。必要なコードと依存ファイルも配布用HTMLに内包されます。',
-          helpNotesTitle: '注意事項',
-          helpNoteStorage: 'ブラウザーのサイトデータを削除すると、端末内に保存した入力内容も消える場合があります。必要な内容はファイルとして保存してください。',
-          helpNoteBrowser: '一部の機能はブラウザーの制限や端末性能の影響を受けます。重要な成果物は保存後に内容を確認してください。',
-          helpNoteTemplate: 'この画面はスターターの例です。新しいアプリを作る際は、機能と一緒にこのヘルプも実際の操作へ書き換えます。',
-          helpOffline: '配布物は dist/index.html ひとつです。ローカルで直接開くことも、GitHub Pagesで公開することもできます。',
-          introTitle: '単一HTMLアプリのスターター',
-          lead: 'PDF Organizerと同じ、固定依存・完全内包・実行時通信なしの構成から、新しいブラウザーアプリを作れます。',
-          localBadge: '実行時通信なし',
-          workspaceTitle: 'スターター作業領域',
-          workspaceBody: '入力内容はこのブラウザー内だけに保存され、このアプリから送信されません。',
-          characters: '文字', words: '単語', lines: '行', editorLabel: 'テキスト入力',
-          copy: 'コピー', download: 'テキスト保存', sample: 'サンプルに戻す', clear: '消去', savedLocally: '端末内に保存済み', outputFilename: '出力ファイル名', outputFilenameHint: '拡張子は自動で .txt が付きます', undo: '元に戻す', undone: '元に戻しました',
-          confirmTitle: '確認', confirmAction: '実行する', cancel: 'キャンセル',
-          guaranteesTitle: 'テンプレートの基本保証',
-          guaranteesBody: 'アプリ仕様で明示的に変更しない限り、この制約を維持します。',
-          card1Title: '配布物はひとつ', card1Body: 'リリース成果物は dist/index.html。直接開くことも、静的サイトとして公開することもできます。',
-          card2Title: '依存を固定して内包', card2Body: 'npmの外部素材はバージョンとtarball hashを固定し、検証してからHTMLへ内包します。',
-          card3Title: '実行時通信なし', card3Body: 'Content Security Policyで実行時通信を遮断し、ユーザーデータをページ内に保ちます。',
-          card4Title: 'LLM向けの作業契約', card4Body: 'AGENTS.mdとAPP_SPEC.mdで、実装方針、受入条件、完了報告を安定して伝えます。',
-          buildInfo: 'ビルド情報', appVersion: 'アプリバージョン', builtAt: '生成日時', dependencies: '内包依存数',
-          footer: '完全内包HTMLとして生成', copied: 'コピーしました', copyFailed: 'コピーできませんでした', downloaded: 'テキストを保存しました', cleared: '入力を消去しました', restored: 'サンプルを復元しました'
+          brandMeta: '画像にファイルを埋めて、あとから取り出す', helpTitle: '使い方と注意事項', close: '閉じる', introTitle: '画像にファイルを埋め込む', lead: '任意の1ファイルを画像の画素へ埋め込み、生成したPNGから元のファイルを取り出せます。', localBadge: 'ファイルを送信しません', embedTab: '埋め込む', extractTab: '取り出す',
+          embedTitle: '画像の中にファイルを入れる', embedBody: '画像とファイルを選ぶと、埋め込める容量を確認できます。', carrierTitle: '画像を選択', carrierBody: 'PNG / JPEG / WebP。出力はPNGになります。', dropImage: '画像をここにドロップ', orChoose: 'またはクリックして選択', chooseCarrier: '画像を選択', replace: '変更', dimensions: '画像サイズ', opaquePixels: '使用できる画素', capacity: '埋め込み容量', payloadTitle: '埋め込むファイルを選択', payloadBody: '形式は問いません。1ファイル、最大32 MiBです。', dropFile: 'ファイルをここにドロップ', choosePayload: '埋め込むファイルを選択', fitWaiting: '画像とファイルを選ぶと容量を確認できます。', fitOk: 'このファイルを埋め込めます。', fitBad: 'この画像にはファイルが収まりません。より大きな画像か小さなファイルを選んでください。', embedAction: '画像に埋め込む', packing: 'ファイルを準備しています…', embedding: '画像に埋め込んでいます…', makingPng: 'PNGを作成しています…', embedDone: 'ファイルを埋め込みました', embedDoneBody: '生成したPNGは編集・変換せず、そのまま保存してください。', outputSize: '出力サイズ', payloadSize: 'ファイルサイズ', integrity: '復元時の確認', outputWarning: 'リサイズ、トリミング、JPEG変換、画像編集、SNS等での再圧縮を行うと、ファイルを取り出せなくなる場合があります。', outputFilename: '出力ファイル名', savePng: 'PNGを保存', pngSaved: 'PNGを保存しました',
+          extractTitle: '画像からファイルを取り出す', extractBody: 'このツールで生成したPNGを選択します。', dropEncoded: '埋め込み済みPNGをここにドロップ', chooseEncoded: '埋め込み済みPNGを選択', extractAction: 'ファイルを取り出す', readingImage: '画像を読み込んでいます…', extracting: 'ファイルを取り出しています…', verifying: 'ファイルを確認しています…', extractDone: 'ファイルを確認しました', extractDoneBody: '埋め込み時のSHA-256と一致しました。', originalName: '元のファイル名', saveAs: '保存ファイル名', saveFile: 'ファイルを保存', fileSaved: 'ファイルを保存しました',
+          helpEmbedTitle: '埋め込む', helpEmbed1: 'PNG / JPEG / WebP画像を選びます。', helpEmbed2: '画像に入れたい1ファイルを選び、容量に収まることを確認します。', helpEmbed3: '「画像に埋め込む」を実行してPNGを保存します。', helpExtractTitle: '取り出す', helpExtract1: '「取り出す」へ切り替え、このツールで作ったPNGを選びます。', helpExtract2: '「ファイルを取り出す」を実行します。', helpExtract3: 'SHA-256が一致したファイルだけ保存できます。', helpPrivacyTitle: 'プライバシー', helpPrivacyBody: '画像とファイルはブラウザー内で処理され、このアプリから外部へ送信されません。ファイル内容は端末内ストレージにも保存しません。', helpNotesTitle: '注意事項', helpNoteImage: '生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。', helpNoteEncryption: 'v0.2.0では暗号化していません。画像からデータを抽出できる人は、埋め込んだファイルを読むことができます。', helpNoteFormat: 'v0.2.0の埋め込み形式は開発途中です。v1の正式互換形式はまだ固定していません。', helpOffline: '実行時の外部通信を使わず、単一HTMLとしてローカルからも利用できる構成です。',
+          buildInfo: 'ビルド情報', appVersion: 'アプリバージョン', builtAt: '生成日時', dependencies: '内包依存数', footer: 'ブラウザー内で処理', errorImageType: 'PNG、JPEG、WebP画像を選択してください。', errorImageTooLarge: 'この画像はこのバージョンで扱えるサイズを超えています。', errorImageRead: '画像を読み込めませんでした。対応形式か、ファイルが破損していないか確認してください。', errorPayloadTooLarge: '埋め込むファイルは32 MiB以下にしてください。', errorPayloadRead: 'ファイルを読み込めませんでした。', errorCapacity: 'この画像にはファイルが収まりません。', errorNoOpaque: 'この画像は完全に不透明な画素が少ないため使用できません。', errorNotBkfi: 'この画像には、このバージョンのFile in Imageで埋め込まれたデータを確認できませんでした。', errorUnsupportedDev: 'この画像は別の埋め込み形式で作られているため、このバージョンでは開けません。', errorCorrupt: '埋め込みデータが壊れているか、画像が変更されています。', errorHash: 'ファイルを正常に復元できませんでした。画像が変更されている可能性があります。', errorMemory: '画像を処理するためのメモリを確保できませんでした。より小さな画像を試してください。', errorCrypto: 'このブラウザーではSHA-256を利用できません。', errorGeneric: '処理できませんでした。別のファイルで試してください。'
         },
         en: {
-          brandMeta: 'Single file · Local-first · GitHub Pages',
-          helpTitle: 'How to use & notes', close: 'Close',
-          helpBasicsTitle: 'Basics',
-          helpStep1: 'Enter text in the workspace. The content is saved locally as you type.',
-          helpStep2: 'Change the output filename if needed, then use Copy or Download text.',
-          helpStep3: 'After Restore sample or Clear, use Undo in the toast to reverse the change.',
-          helpPrivacyTitle: 'Privacy',
-          helpPrivacyBody: 'Your content and actions are processed in the browser and are not sent outside by this app. Required code and dependencies are embedded in the distributable HTML.',
-          helpNotesTitle: 'Notes',
-          helpNoteStorage: 'Clearing browser site data may also remove content saved locally. Download anything important as a file.',
-          helpNoteBrowser: 'Some features are affected by browser restrictions and device performance. Review important output after saving it.',
-          helpNoteTemplate: 'This screen is a starter example. When building a new app, update this help together with the real features and workflow.',
-          helpOffline: 'The deliverable is one dist/index.html file. It can open locally or be published with GitHub Pages.',
-          introTitle: 'Single HTML App Starter',
-          lead: 'Build a new browser app from the same pinned-dependency, fully embedded, no-runtime-network foundation used by PDF Organizer.',
-          localBadge: 'No runtime network',
-          workspaceTitle: 'Starter workspace',
-          workspaceBody: 'Text stays in this browser. It is never sent by this app.',
-          characters: 'Characters', words: 'Words', lines: 'Lines', editorLabel: 'Text editor',
-          copy: 'Copy', download: 'Download text', sample: 'Restore sample', clear: 'Clear', savedLocally: 'Saved locally', outputFilename: 'Output filename', outputFilenameHint: 'The .txt extension is added automatically', undo: 'Undo', undone: 'Restored',
-          confirmTitle: 'Confirm', confirmAction: 'Continue', cancel: 'Cancel',
-          guaranteesTitle: 'Template guarantees',
-          guaranteesBody: 'Keep these constraints unless the product specification explicitly changes them.',
-          card1Title: 'One deliverable', card1Body: 'The release artifact is dist/index.html. It opens directly and can be hosted as a static page.',
-          card2Title: 'Pinned dependencies', card2Body: 'Third-party npm assets are version-pinned, hashed, and embedded during the build.',
-          card3Title: 'No runtime network', card3Body: 'Content Security Policy blocks runtime connections. User data stays inside the page.',
-          card4Title: 'LLM-ready workflow', card4Body: 'AGENTS.md and APP_SPEC.md give coding agents a stable contract, acceptance criteria, and handoff format.',
-          buildInfo: 'Build information', appVersion: 'App version', builtAt: 'Built at', dependencies: 'Embedded dependencies',
-          footer: 'Generated as one self-contained HTML file', copied: 'Copied', copyFailed: 'Could not copy', downloaded: 'Text downloaded', cleared: 'Text cleared', restored: 'Sample restored'
+          brandMeta: 'Hide and recover a file inside an image', helpTitle: 'How to use & notes', close: 'Close', introTitle: 'File in Image', lead: 'Hide one arbitrary file in image pixels and recover the original file from the generated PNG.', localBadge: 'Files stay on device', embedTab: 'Embed', extractTab: 'Extract',
+          embedTitle: 'Put a file inside an image', embedBody: 'Choose an image and a file to check whether the file fits.', carrierTitle: 'Choose an image', carrierBody: 'PNG / JPEG / WebP. Output is PNG.', dropImage: 'Drop an image here', orChoose: 'or click to choose', chooseCarrier: 'Choose carrier image', replace: 'Change', dimensions: 'Dimensions', opaquePixels: 'Usable pixels', capacity: 'Embedding capacity', payloadTitle: 'Choose the file to embed', payloadBody: 'Any file type. One file, up to 32 MiB.', dropFile: 'Drop a file here', choosePayload: 'Choose payload file', fitWaiting: 'Choose an image and a file to check capacity.', fitOk: 'This file fits in the image.', fitBad: 'This file does not fit. Choose a larger image or a smaller file.', embedAction: 'Embed in image', packing: 'Preparing file…', embedding: 'Embedding file…', makingPng: 'Creating PNG…', embedDone: 'File embedded', embedDoneBody: 'Keep the generated PNG unchanged when you save or share it.', outputSize: 'Output size', payloadSize: 'File size', integrity: 'Recovery check', outputWarning: 'Resizing, cropping, JPEG conversion, image editing, or recompression by social/messaging services can make the embedded file unrecoverable.', outputFilename: 'Output filename', savePng: 'Save PNG', pngSaved: 'PNG saved',
+          extractTitle: 'Recover a file from an image', extractBody: 'Choose a PNG generated by this tool.', dropEncoded: 'Drop an encoded PNG here', chooseEncoded: 'Choose encoded PNG', extractAction: 'Extract file', readingImage: 'Reading image…', extracting: 'Extracting file…', verifying: 'Verifying file…', extractDone: 'File verified', extractDoneBody: 'The recovered bytes match the embedded SHA-256 digest.', originalName: 'Original filename', saveAs: 'Save filename', saveFile: 'Save file', fileSaved: 'File saved',
+          helpEmbedTitle: 'Embed', helpEmbed1: 'Choose a PNG, JPEG, or WebP image.', helpEmbed2: 'Choose one file and confirm that it fits the available capacity.', helpEmbed3: 'Run Embed in image and save the PNG.', helpExtractTitle: 'Extract', helpExtract1: 'Switch to Extract and choose a PNG created by this tool.', helpExtract2: 'Run Extract file.', helpExtract3: 'Only a file whose SHA-256 matches can be saved.', helpPrivacyTitle: 'Privacy', helpPrivacyBody: 'Images and files are processed in the browser and are not sent outside by this app. File contents are not saved to browser storage.', helpNotesTitle: 'Notes', helpNoteImage: 'Resizing, cropping, editing, JPEG conversion, or recompressing the generated PNG can destroy the embedded data.', helpNoteEncryption: 'v0.2.0 does not encrypt the payload. Anyone able to extract the data can read the embedded file.', helpNoteFormat: 'The v0.2.0 embedding format is a development format. The stable v1 compatibility format has not been frozen yet.', helpOffline: 'The app uses no runtime network connection and is designed to work as one local HTML file.',
+          buildInfo: 'Build information', appVersion: 'App version', builtAt: 'Built at', dependencies: 'Embedded dependencies', footer: 'Processed in your browser', errorImageType: 'Choose a PNG, JPEG, or WebP image.', errorImageTooLarge: 'This image exceeds the size supported by this version.', errorImageRead: 'The image could not be read. Check its format or whether the file is damaged.', errorPayloadTooLarge: 'Choose a payload file no larger than 32 MiB.', errorPayloadRead: 'The file could not be read.', errorCapacity: 'The file does not fit in this image.', errorNoOpaque: 'This image does not contain enough fully opaque pixels.', errorNotBkfi: 'No data created by this version of File in Image was found in the image.', errorUnsupportedDev: 'This image uses another embedding format and cannot be opened by this version.', errorCorrupt: 'The embedded data is damaged or the image has been modified.', errorHash: 'The file could not be recovered correctly. The image may have been modified.', errorMemory: 'Not enough memory is available to process this image. Try a smaller image.', errorCrypto: 'SHA-256 is not available in this browser.', errorGeneric: 'The operation could not be completed. Try another file.'
         }
       };
 
-      const storageKeys = {
-        text: `${APP_CONFIG.slug}:starter-text`,
-        language: `${APP_CONFIG.slug}:language`
-      };
-      const sampleText = {
-        ja: 'この領域はサンプルです。\n\n新しいアプリを作るときは APP_SPEC.md に目的と受入条件を書き、LLMに AGENTS.md から読むよう指示してください。',
-        en: 'This workspace is a sample.\n\nFor a new app, describe the goal and acceptance criteria in APP_SPEC.md, then tell the LLM to start with AGENTS.md.'
-      };
+      let language = readStorage(`${APP_CONFIG.slug}:language`) || detectLanguage();
+      let generation = 0;
+      const state = { carrier: null, payload: null, encodedBlob: null, extractImage: null, recovered: null };
+      let carrierPreviewUrl = '';
+      let extractPreviewUrl = '';
+      let toastTimer = 0;
 
-      const $ = selector => document.querySelector(selector);
-      const editor = $('#editor');
-      const outputFilename = $('#outputFilename');
-      let language = readStorage(storageKeys.language) || detectLanguage();
-
-      // Reusable Promise-based confirmation API. Canonical source: components/confirm-dialog.html.
-      const AppConfirm = (() => {
-        const dialog = $('#appConfirmDialog');
-        const title = $('#appConfirmTitle');
-        const message = $('#appConfirmMessage');
-        const closeButton = $('#appConfirmClose');
-        const cancelButton = $('#appConfirmCancel');
-        const okButton = $('#appConfirmOk');
-        let resolver = null;
-        let restoreFocus = null;
-
-        function finish(result) {
-          if (!dialog.open) return;
-          const currentResolver = resolver;
-          resolver = null;
-          dialog.close();
-          if (restoreFocus instanceof HTMLElement && restoreFocus.isConnected) restoreFocus.focus({ preventScroll: true });
-          restoreFocus = null;
-          if (currentResolver) currentResolver(result);
-        }
-
-        function ask({ title: heading, message: body, confirmLabel, cancelLabel, tone = 'default' } = {}) {
-          if (dialog.open) finish(false);
-          title.textContent = heading || translate('confirmTitle');
-          message.textContent = body || '';
-          cancelButton.textContent = cancelLabel || translate('cancel');
-          okButton.textContent = confirmLabel || translate('confirmAction');
-          okButton.classList.toggle('danger', tone === 'danger');
-          okButton.classList.toggle('primary', tone !== 'danger');
-          restoreFocus = document.activeElement;
-          return new Promise(resolve => {
-            resolver = resolve;
-            dialog.showModal();
-            requestAnimationFrame(() => cancelButton.focus({ preventScroll: true }));
-          });
-        }
-
-        closeButton.addEventListener('click', () => finish(false));
-        cancelButton.addEventListener('click', () => finish(false));
-        okButton.addEventListener('click', () => finish(true));
-        dialog.addEventListener('cancel', event => { event.preventDefault(); finish(false); });
-        dialog.addEventListener('click', event => {
-          const rect = dialog.getBoundingClientRect();
-          const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
-          if (outside) finish(false);
-        });
-
-        return Object.freeze({ ask });
-      })();
-      window.AppConfirm = AppConfirm;
-
-      function readStorage(key) {
-        try { return localStorage.getItem(key); } catch { return null; }
-      }
-      function writeStorage(key, value) {
-        try { localStorage.setItem(key, value); } catch { /* Storage may be unavailable in private contexts. */ }
-      }
-      function detectLanguage() {
-        if (APP_CONFIG.defaultLanguage === 'ja' || APP_CONFIG.defaultLanguage === 'en') return APP_CONFIG.defaultLanguage;
-        return (navigator.language || '').toLowerCase().startsWith('ja') ? 'ja' : 'en';
-      }
-      function translate(key) { return translations[language]?.[key] ?? translations.en[key] ?? key; }
-
-      // Reusable toast / Undo API. Canonical source: components/toast.html.
-      const AppToast = (() => {
-        const root = $('#appToast');
-        const message = $('#appToastMessage');
-        const action = $('#appToastAction');
-        let timer = 0;
-        let actionHandler = null;
-        function dismiss() {
-          clearTimeout(timer);
-          timer = 0;
-          root.classList.remove('show');
-          actionHandler = null;
-        }
-        function show({ message: text = '', actionLabel = '', onAction = null, duration = 3200, tone = 'default' } = {}) {
-          clearTimeout(timer);
-          message.textContent = String(text);
+      function readStorage(key) { try { return localStorage.getItem(key); } catch { return null; } }
+      function writeStorage(key,value) { try { localStorage.setItem(key,value); } catch { } }
+      function detectLanguage() { if (APP_CONFIG.defaultLanguage === 'ja' || APP_CONFIG.defaultLanguage === 'en') return APP_CONFIG.defaultLanguage; return (navigator.language || '').toLowerCase().startsWith('ja') ? 'ja' : 'en'; }
+      function t(key) { return translations[language]?.[key] ?? translations.en[key] ?? key; }
+      function formatNumber(value) { return new Intl.NumberFormat(language).format(value); }
+      function formatBytes(bytes) { if (!Number.isFinite(bytes)) return '—'; const units = ['B','KiB','MiB','GiB']; let value = bytes; let unit = 0; while (value >= 1024 && unit < units.length - 1) { value /= 1024; unit += 1; } const digits = unit === 0 ? 0 : value >= 100 ? 0 : value >= 10 ? 1 : 2; return `${value.toFixed(digits)} ${units[unit]}`; }
+      const AppToast = Object.freeze({
+        show({ message = '', duration = 3200, tone = 'default' } = {}) {
+          clearTimeout(toastTimer);
+          const root = $('#appToast');
+          $('#appToastMessage').textContent = String(message);
           root.dataset.tone = tone;
-          actionHandler = typeof onAction === 'function' ? onAction : null;
-          action.textContent = actionLabel || '';
-          action.hidden = !actionHandler || !actionLabel;
           root.classList.add('show');
-          if (duration > 0) timer = window.setTimeout(dismiss, duration);
-          return Object.freeze({ dismiss });
+          if (duration > 0) toastTimer = setTimeout(() => root.classList.remove('show'), duration);
         }
-        action.addEventListener('click', () => {
-          const handler = actionHandler;
-          dismiss();
-          if (handler) handler();
-        });
-        return Object.freeze({ show, dismiss });
-      })();
+      });
       window.AppToast = AppToast;
-      function showToast(message, options = {}) { AppToast.show({ message, ...options }); }
-      function applyLanguage() {
-        document.documentElement.lang = language;
-        document.querySelectorAll('[data-i18n]').forEach(element => { element.textContent = translate(element.dataset.i18n); });
-        document.querySelectorAll('[data-i18n-title]').forEach(element => { element.title = translate(element.dataset.i18nTitle); });
-        document.querySelectorAll('[data-i18n-aria-label]').forEach(element => { element.setAttribute('aria-label', translate(element.dataset.i18nAriaLabel)); });
-        $('#languageButton').textContent = language === 'ja' ? 'EN' : '日本語';
-        $('#languageButton').setAttribute('aria-label', language === 'ja' ? '英語に切り替え' : 'Switch to Japanese');
-        document.title = language === 'ja' ? APP_CONFIG.nameJa : APP_CONFIG.name;
-        $('#brandName').textContent = language === 'ja' ? APP_CONFIG.nameJa : APP_CONFIG.name;
-        $('#footerName').textContent = language === 'ja' ? APP_CONFIG.nameJa : APP_CONFIG.name;
-        if (!editor.value) editor.value = sampleText[language];
-        updateStats();
+      function showToast(message,tone='default') { AppToast.show({ message, tone }); }
+      function setError(id,message='') { const el=$(id); el.textContent=message; el.hidden=!message; }
+      function nextGeneration() { generation += 1; return generation; }
+      function isCurrent(token) { return token === generation; }
+      function revokePreview(kind) { const key=kind==='carrier'?'carrierPreviewUrl':'extractPreviewUrl'; const url=kind==='carrier'?carrierPreviewUrl:extractPreviewUrl; if (url) URL.revokeObjectURL(url); if (key==='carrierPreviewUrl') carrierPreviewUrl=''; else extractPreviewUrl=''; }
+      function supportedImage(file) { return ['image/png','image/jpeg','image/webp'].includes(file.type); }
+      function sanitizeBase(value,fallback) { let base=String(value||'').trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'-').replace(/\.+$/g,'').trim(); base=base.replace(/\.png$/i,''); if (!base) base=fallback; if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(base)) base += '-file'; return base.slice(0,120); }
+      function sanitizeFullFilename(value,fallback) { let name=String(value||'').trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'-').replace(/\.+$/g,'').trim(); if (!name) name=fallback; if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(name)) name=`${name}-file`; return name.slice(0,220); }
+      function baseFromName(name) { return String(name||'file').replace(/\.[^.]+$/,'') || 'file'; }
+      function mimeOrDefault(file) { return file.type || 'application/octet-stream'; }
+      function writeAscii(bytes,offset,text) { for (let i=0;i<text.length;i+=1) bytes[offset+i]=text.charCodeAt(i); }
+      function readAscii(bytes,offset,length) { let out=''; for (let i=0;i<length;i+=1) out+=String.fromCharCode(bytes[offset+i]); return out; }
+      function bytesEqual(a,b) { if (a.length!==b.length) return false; let diff=0; for (let i=0;i<a.length;i+=1) diff|=a[i]^b[i]; return diff===0; }
+      async function sha256(bytes) { if (!crypto?.subtle?.digest) throw new Error('CRYPTO_UNAVAILABLE'); return new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)); }
+
+      async function decodeImage(file) {
+        if (!supportedImage(file) && file.type) throw new Error('IMAGE_TYPE');
+        const url=URL.createObjectURL(file); const img=new Image(); img.decoding='async'; img.src=url;
+        try { if (img.decode) await img.decode(); else await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;}); }
+        catch { URL.revokeObjectURL(url); throw new Error('IMAGE_READ'); }
+        const width=img.naturalWidth; const height=img.naturalHeight;
+        if (!width || !height) { URL.revokeObjectURL(url); throw new Error('IMAGE_READ'); }
+        if (width>MAX_IMAGE_DIMENSION || height>MAX_IMAGE_DIMENSION || width*height>MAX_IMAGE_PIXELS) { URL.revokeObjectURL(url); throw new Error('IMAGE_TOO_LARGE'); }
+        const canvas=document.createElement('canvas'); canvas.width=width; canvas.height=height;
+        const ctx=canvas.getContext('2d',{willReadFrequently:true}); if (!ctx) { URL.revokeObjectURL(url); throw new Error('MEMORY'); }
+        try { ctx.drawImage(img,0,0,width,height); const imageData=ctx.getImageData(0,0,width,height); URL.revokeObjectURL(url); return { imageData,width,height }; }
+        catch { URL.revokeObjectURL(url); throw new Error('MEMORY'); }
       }
-      function updateStats() {
-        const value = editor.value;
-        const words = value.trim() ? (value.match(/[\p{L}\p{N}]+(?:['’_-][\p{L}\p{N}]+)*/gu) || []).length : 0;
-        $('#characterCount').textContent = new Intl.NumberFormat(language).format([...value].length);
-        $('#wordCount').textContent = new Intl.NumberFormat(language).format(words);
-        $('#lineCount').textContent = new Intl.NumberFormat(language).format(value ? value.split(/\r?\n/).length : 0);
-        $('#saveStatus').textContent = translate('savedLocally');
+
+      function countOpaque(imageData) { const data=imageData.data; let count=0; for (let i=3;i<data.length;i+=4) if (data[i]===255) count+=1; return count; }
+      function bodyCapacityBytes(opaqueCount) { return Math.max(0,Math.floor((opaqueCount-HEADER_PIXELS)*3/8)); }
+      function packedLengthFor(file) { return INNER_FIXED_BYTES + encoder.encode(file.name||'file.bin').length + encoder.encode(mimeOrDefault(file)).length + file.size; }
+
+      async function packInner(file,bytes) {
+        const nameBytes=encoder.encode(file.name||'file.bin'); const mimeBytes=encoder.encode(mimeOrDefault(file));
+        if (nameBytes.length>65535 || mimeBytes.length>65535 || bytes.length>MAX_PAYLOAD_BYTES) throw new Error('PAYLOAD_TOO_LARGE');
+        const hash=await sha256(bytes); const total=INNER_FIXED_BYTES+nameBytes.length+mimeBytes.length+bytes.length; const out=new Uint8Array(total); const view=new DataView(out.buffer);
+        writeAscii(out,0,'BKFC'); view.setUint8(4,0); view.setUint8(5,0); view.setUint16(6,INNER_FIXED_BYTES,false); view.setUint16(8,nameBytes.length,false); view.setUint16(10,mimeBytes.length,false); view.setUint32(12,bytes.length,false); out.set(hash,16); let offset=INNER_FIXED_BYTES; out.set(nameBytes,offset); offset+=nameBytes.length; out.set(mimeBytes,offset); offset+=mimeBytes.length; out.set(bytes,offset); return out;
       }
-      function saveText() {
-        writeStorage(storageKeys.text, editor.value);
-        updateStats();
+
+      function parseInner(body) {
+        if (body.length<INNER_FIXED_BYTES || readAscii(body,0,4)!=='BKFC') throw new Error('CORRUPT');
+        const view=new DataView(body.buffer,body.byteOffset,body.byteLength); const version=view.getUint8(4); const fixed=view.getUint16(6,false); const nameLen=view.getUint16(8,false); const mimeLen=view.getUint16(10,false); const fileLen=view.getUint32(12,false);
+        if (version!==0 || fixed!==INNER_FIXED_BYTES || fileLen>MAX_PAYLOAD_BYTES) throw new Error('CORRUPT');
+        const expected=INNER_FIXED_BYTES+nameLen+mimeLen+fileLen; if (expected!==body.length) throw new Error('CORRUPT');
+        const expectedHash=body.slice(16,48); let offset=INNER_FIXED_BYTES; let filename,mime;
+        try { filename=decoder.decode(body.slice(offset,offset+nameLen)); offset+=nameLen; mime=decoder.decode(body.slice(offset,offset+mimeLen)); offset+=mimeLen; } catch { throw new Error('CORRUPT'); }
+        const fileBytes=body.slice(offset,offset+fileLen); return { filename: filename||'recovered-file.bin', mime: mime||'application/octet-stream', expectedHash, fileBytes };
       }
-      async function copyText() {
-        try {
-          await navigator.clipboard.writeText(editor.value);
-          showToast(translate('copied'));
-        } catch {
-          editor.select();
-          const ok = document.execCommand('copy');
-          showToast(translate(ok ? 'copied' : 'copyFailed'));
+
+      function buildOuter(bodyLength) { const out=new Uint8Array(OUTER_HEADER_BYTES); const view=new DataView(out.buffer); writeAscii(out,0,'BKFI'); view.setUint8(4,DEV_FORMAT_VERSION); view.setUint8(5,DEV_EMBEDDING_MODE); view.setUint8(6,0); view.setUint8(7,0); view.setUint16(8,OUTER_HEADER_BYTES,false); view.setUint16(10,0,false); view.setUint32(12,bodyLength,false); return out; }
+      function parseOuter(bytes) { if (bytes.length!==OUTER_HEADER_BYTES || readAscii(bytes,0,4)!=='BKFI') throw new Error('NOT_BKFI'); const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength); const version=view.getUint8(4); const mode=view.getUint8(5); const flags=view.getUint8(6); const kdf=view.getUint8(7); const headerLen=view.getUint16(8,false); const bodyLength=view.getUint32(12,false); if (version!==DEV_FORMAT_VERSION || mode!==DEV_EMBEDDING_MODE) throw new Error('UNSUPPORTED_DEV'); if (flags!==0 || kdf!==0 || headerLen!==OUTER_HEADER_BYTES || bodyLength<INNER_FIXED_BYTES || bodyLength>MAX_BODY_BYTES) throw new Error('CORRUPT'); return { bodyLength }; }
+      function getBit(bytes,bitIndex) { return (bytes[bitIndex>>3]>>(7-(bitIndex&7)))&1; }
+      function setBit(bytes,bitIndex,bit) { if (bit) bytes[bitIndex>>3] |= 1<<(7-(bitIndex&7)); }
+
+      function embedSequential(imageData,header,body) {
+        const copy=new ImageData(new Uint8ClampedArray(imageData.data),imageData.width,imageData.height); const data=copy.data; let opaqueIndex=0; let headerBit=0; let bodyBit=0; const bodyBits=body.length*8;
+        for (let px=0;px<data.length;px+=4) {
+          if (data[px+3]!==255) continue;
+          if (opaqueIndex<HEADER_PIXELS) {
+            for (let channel=0;channel<3;channel+=1) { if (headerBit<HEADER_BITS) { const bit=getBit(header,headerBit++); data[px+channel]=(data[px+channel]&0xFE)|bit; } }
+          } else if (bodyBit<bodyBits) {
+            for (let channel=0;channel<3 && bodyBit<bodyBits;channel+=1) { const bit=getBit(body,bodyBit++); data[px+channel]=(data[px+channel]&0xFE)|bit; }
+          }
+          opaqueIndex+=1; if (headerBit>=HEADER_BITS && bodyBit>=bodyBits) break;
         }
-      }
-      function normalizedFilenameBase() {
-        const fallback = APP_CONFIG.slug || 'text';
-        const cleaned = outputFilename.value.trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-').replace(/\.+$/g, '').trim();
-        let base = cleaned.replace(/\.txt$/i, '') || fallback;
-        if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(base)) base = `${base}-file`;
-        if (!cleaned) outputFilename.value = fallback;
-        return base.slice(0, 120);
-      }
-      function downloadText() {
-        const url = URL.createObjectURL(new Blob([editor.value], { type: 'text/plain;charset=utf-8' }));
-        const anchor = document.createElement('a');
-        const filenameBase = normalizedFilenameBase();
-        outputFilename.value = filenameBase;
-        anchor.href = url;
-        anchor.download = `${filenameBase}.txt`;
-        anchor.click();
-        URL.revokeObjectURL(url);
-        showToast(translate('downloaded'), { tone: 'success' });
+        if (headerBit!==HEADER_BITS || bodyBit!==bodyBits) throw new Error('CAPACITY'); return copy;
       }
 
-      $('#languageButton').addEventListener('click', () => {
-        language = language === 'ja' ? 'en' : 'ja';
-        writeStorage(storageKeys.language, language);
-        applyLanguage();
-      });
-      const helpDialog = $('#helpDialog');
-      $('#helpButton').addEventListener('click', () => helpDialog.showModal());
-      $('#closeHelpButton').addEventListener('click', () => helpDialog.close());
-      helpDialog.addEventListener('click', event => {
-        const rect = helpDialog.getBoundingClientRect();
-        const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
-        if (outside) helpDialog.close();
-      });
-      editor.addEventListener('input', saveText);
-      outputFilename.addEventListener('blur', () => { outputFilename.value = normalizedFilenameBase(); });
-      $('#copyButton').addEventListener('click', copyText);
-      $('#downloadButton').addEventListener('click', downloadText);
-      $('#sampleButton').addEventListener('click', () => {
-        const before = editor.value;
-        editor.value = sampleText[language];
-        saveText();
-        showToast(translate('restored'), { actionLabel: translate('undo'), onAction: () => { editor.value = before; saveText(); editor.focus(); showToast(translate('undone')); } });
-      });
-      $('#clearButton').addEventListener('click', () => {
-        if (!editor.value) return;
-        const before = editor.value;
-        editor.value = '';
-        saveText();
-        editor.focus();
-        showToast(translate('cleared'), {
-          actionLabel: translate('undo'),
-          onAction: () => { editor.value = before; saveText(); editor.focus(); showToast(translate('undone')); },
-          duration: 5000
-        });
-      });
+      function extractSequential(imageData) {
+        const data=imageData.data; const header=new Uint8Array(OUTER_HEADER_BYTES); let opaqueIndex=0; let headerBit=0;
+        for (let px=0;px<data.length && headerBit<HEADER_BITS;px+=4) { if (data[px+3]!==255) continue; if (opaqueIndex<HEADER_PIXELS) { for (let channel=0;channel<3 && headerBit<HEADER_BITS;channel+=1) setBit(header,headerBit++,data[px+channel]&1); } opaqueIndex+=1; }
+        if (headerBit!==HEADER_BITS) throw new Error('NOT_BKFI'); const parsed=parseOuter(header); const capacity=bodyCapacityBytes(countOpaque(imageData)); if (parsed.bodyLength>capacity) throw new Error('CORRUPT');
+        const body=new Uint8Array(parsed.bodyLength); const bodyBits=parsed.bodyLength*8; let bodyBit=0; opaqueIndex=0;
+        for (let px=0;px<data.length && bodyBit<bodyBits;px+=4) { if (data[px+3]!==255) continue; if (opaqueIndex>=HEADER_PIXELS) { for (let channel=0;channel<3 && bodyBit<bodyBits;channel+=1) setBit(body,bodyBit++,data[px+channel]&1); } opaqueIndex+=1; }
+        if (bodyBit!==bodyBits) throw new Error('CORRUPT'); return body;
+      }
 
-      editor.value = readStorage(storageKeys.text) || sampleText[language];
-      outputFilename.value = APP_CONFIG.slug || 'text';
-      $('#versionBadge').textContent = `v${APP_CONFIG.version}`;
-      $('#buildVersion').textContent = APP_CONFIG.version;
-      $('#builtAt').textContent = BUILD_MANIFEST.generatedAtUtc || '—';
-      $('#dependencyCount').textContent = String(BUILD_MANIFEST.dependencies?.length || 0);
-      applyLanguage();
+      async function imageDataToPng(imageData) { const canvas=document.createElement('canvas'); canvas.width=imageData.width; canvas.height=imageData.height; const ctx=canvas.getContext('2d'); if (!ctx) throw new Error('MEMORY'); ctx.putImageData(imageData,0,0); return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('MEMORY')),'image/png')); }
+      function downloadBlob(blob,filename) { const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); }
+
+      function friendlyError(error) { const code=error?.message||''; const map={ IMAGE_TYPE:'errorImageType', IMAGE_TOO_LARGE:'errorImageTooLarge', IMAGE_READ:'errorImageRead', PAYLOAD_TOO_LARGE:'errorPayloadTooLarge', PAYLOAD_READ:'errorPayloadRead', CAPACITY:'errorCapacity', NO_OPAQUE:'errorNoOpaque', NOT_BKFI:'errorNotBkfi', UNSUPPORTED_DEV:'errorUnsupportedDev', CORRUPT:'errorCorrupt', HASH_MISMATCH:'errorHash', MEMORY:'errorMemory', CRYPTO_UNAVAILABLE:'errorCrypto' }; return t(map[code]||'errorGeneric'); }
+
+      function refreshCarrierUi() {
+        const c=state.carrier; $('#carrierEmpty').hidden=Boolean(c); $('#carrierSummary').hidden=!c; $('#carrierMetrics').hidden=!c;
+        if (c) { $('#carrierName').textContent=c.file.name; $('#carrierMeta').textContent=`${formatBytes(c.file.size)} · ${c.file.type||'image'}`; $('#carrierDimensions').textContent=`${formatNumber(c.width)} × ${formatNumber(c.height)}`; $('#opaquePixelCount').textContent=formatNumber(c.opaqueCount); $('#carrierCapacity').textContent=formatBytes(c.capacity); }
+        refreshFit();
+      }
+      function refreshPayloadUi() { const p=state.payload; $('#payloadEmpty').hidden=Boolean(p); $('#payloadSummary').hidden=!p; if (p) { $('#payloadName').textContent=p.file.name; $('#payloadMeta').textContent=`${formatBytes(p.file.size)} · ${p.file.type||'application/octet-stream'}`; } refreshFit(); }
+      function refreshFit() { const box=$('#fitStatus'); const c=state.carrier,p=state.payload; box.className='fit-status neutral'; if (!c||!p) { box.textContent=t('fitWaiting'); $('#embedButton').disabled=true; return; } const needed=packedLengthFor(p.file); if (needed<=c.capacity) { box.className='fit-status ok'; box.textContent=`${t('fitOk')} ${formatBytes(needed)} / ${formatBytes(c.capacity)}`; $('#embedButton').disabled=false; } else { box.className='fit-status bad'; box.textContent=`${t('fitBad')} ${formatBytes(needed)} / ${formatBytes(c.capacity)}`; $('#embedButton').disabled=true; } }
+
+      async function selectCarrier(file) {
+        const token=nextGeneration(); setError('#embedError'); state.carrier=null; state.encodedBlob=null; $('#embedResult').hidden=true; refreshCarrierUi();
+        try { if (!file || (!supportedImage(file) && file.type)) throw new Error('IMAGE_TYPE'); $('#embedStatus').textContent=t('readingImage'); const decoded=await decodeImage(file); if (!isCurrent(token)) return; const opaqueCount=countOpaque(decoded.imageData); if (opaqueCount<HEADER_PIXELS) throw new Error('NO_OPAQUE'); state.carrier={ file,...decoded,opaqueCount,capacity:bodyCapacityBytes(opaqueCount) }; revokePreview('carrier'); carrierPreviewUrl=URL.createObjectURL(file); $('#carrierThumb').src=carrierPreviewUrl; $('#outputFilename').value=sanitizeBase(`${baseFromName(file.name)}-with-file`,'file-in-image'); $('#embedStatus').textContent=''; refreshCarrierUi(); }
+        catch (error) { if (isCurrent(token)) { $('#embedStatus').textContent=''; setError('#embedError',friendlyError(error)); refreshCarrierUi(); } }
+      }
+
+      async function selectPayload(file) {
+        const token=nextGeneration(); setError('#embedError'); state.payload=null; state.encodedBlob=null; $('#embedResult').hidden=true; refreshPayloadUi();
+        try { if (!file) return; if (file.size>MAX_PAYLOAD_BYTES) throw new Error('PAYLOAD_TOO_LARGE'); const bytes=new Uint8Array(await file.arrayBuffer()); if (!isCurrent(token)) return; state.payload={file,bytes}; refreshPayloadUi(); }
+        catch (error) { if (isCurrent(token)) { setError('#embedError',friendlyError(error)); refreshPayloadUi(); } }
+      }
+
+      async function runEmbed() {
+        if (!state.carrier||!state.payload) return; const token=generation; setError('#embedError'); $('#embedButton').disabled=true; $('#embedResult').hidden=true;
+        try { $('#embedStatus').textContent=t('packing'); const body=await packInner(state.payload.file,state.payload.bytes); if (!isCurrent(token)) return; if (body.length>state.carrier.capacity) throw new Error('CAPACITY'); const header=buildOuter(body.length); $('#embedStatus').textContent=t('embedding'); await new Promise(resolve=>setTimeout(resolve,0)); const modified=embedSequential(state.carrier.imageData,header,body); if (!isCurrent(token)) return; $('#embedStatus').textContent=t('makingPng'); const blob=await imageDataToPng(modified); if (!isCurrent(token)) return; state.encodedBlob=blob; $('#encodedBlobSize').textContent=formatBytes(blob.size); $('#encodedPayloadSize').textContent=formatBytes(state.payload.file.size); $('#embedResult').hidden=false; $('#embedStatus').textContent=''; $('#savePngButton').focus({preventScroll:true}); }
+        catch (error) { if (isCurrent(token)) { $('#embedStatus').textContent=''; setError('#embedError',friendlyError(error)); } }
+        finally { refreshFit(); }
+      }
+
+      async function selectExtractImage(file) {
+        const token=nextGeneration(); setError('#extractError'); state.extractImage=null; state.recovered=null; $('#extractResult').hidden=true; $('#extractButton').disabled=true;
+        try { if (!file || file.type!=='image/png') throw new Error('IMAGE_TYPE'); $('#extractStatus').textContent=t('readingImage'); const decoded=await decodeImage(file); if (!isCurrent(token)) return; const opaqueCount=countOpaque(decoded.imageData); if (opaqueCount<HEADER_PIXELS) throw new Error('NOT_BKFI'); state.extractImage={file,...decoded,opaqueCount}; revokePreview('extract'); extractPreviewUrl=URL.createObjectURL(file); $('#extractThumb').src=extractPreviewUrl; $('#extractEmpty').hidden=true; $('#extractSummary').hidden=false; $('#extractImageName').textContent=file.name; $('#extractImageMeta').textContent=`${formatBytes(file.size)} · ${formatNumber(decoded.width)} × ${formatNumber(decoded.height)}`; $('#extractStatus').textContent=''; $('#extractButton').disabled=false; }
+        catch (error) { if (isCurrent(token)) { $('#extractStatus').textContent=''; setError('#extractError',friendlyError(error)); } }
+      }
+
+      async function runExtract() {
+        if (!state.extractImage) return; const token=generation; setError('#extractError'); $('#extractButton').disabled=true; $('#extractResult').hidden=true;
+        try { $('#extractStatus').textContent=t('extracting'); await new Promise(resolve=>setTimeout(resolve,0)); const body=extractSequential(state.extractImage.imageData); if (!isCurrent(token)) return; const parsed=parseInner(body); $('#extractStatus').textContent=t('verifying'); const actualHash=await sha256(parsed.fileBytes); if (!isCurrent(token)) return; if (!bytesEqual(actualHash,parsed.expectedHash)) throw new Error('HASH_MISMATCH'); state.recovered=parsed; $('#recoveredOriginalName').textContent=parsed.filename; $('#recoveredSize').textContent=formatBytes(parsed.fileBytes.length); $('#recoveredFilename').value=sanitizeFullFilename(parsed.filename,'recovered-file.bin'); $('#extractResult').hidden=false; $('#extractStatus').textContent=''; $('#saveRecoveredButton').focus({preventScroll:true}); }
+        catch (error) { if (isCurrent(token)) { $('#extractStatus').textContent=''; setError('#extractError',friendlyError(error)); } }
+        finally { $('#extractButton').disabled=!state.extractImage; }
+      }
+
+      function setMode(mode) { const embed=mode==='embed'; $('#embedTab').setAttribute('aria-selected',String(embed)); $('#extractTab').setAttribute('aria-selected',String(!embed)); $('#embedPanel').hidden=!embed; $('#extractPanel').hidden=embed; }
+      function bindDropZone(zoneId,inputId,handler) { const zone=$(zoneId),input=$(inputId); zone.addEventListener('click',e=>{ if (e.target.closest('button')) return; input.click(); }); zone.addEventListener('keydown',e=>{ if (e.key==='Enter'||e.key===' ') { e.preventDefault(); input.click(); } }); input.addEventListener('change',()=>{ const file=input.files?.[0]; if (file) handler(file); input.value=''; }); ['dragenter','dragover'].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.add('is-dragover');})); ['dragleave','drop'].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.remove('is-dragover');})); zone.addEventListener('drop',e=>{ const file=e.dataTransfer?.files?.[0]; if (file) handler(file); }); }
+
+      function applyLanguage() {
+        document.documentElement.lang=language; document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);}); document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);}); document.querySelectorAll('[data-i18n-aria-label]').forEach(el=>el.setAttribute('aria-label',t(el.dataset.i18nAriaLabel))); $('#languageButton').textContent=language==='ja'?'EN':'日本語'; $('#languageButton').setAttribute('aria-label',language==='ja'?'英語に切り替え':'Switch to Japanese'); document.title=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; $('#brandName').textContent=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; $('#footerName').textContent=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; refreshCarrierUi(); refreshPayloadUi();
+      }
+
+      $('#embedTab').addEventListener('click',()=>setMode('embed')); $('#extractTab').addEventListener('click',()=>setMode('extract'));
+      $('#languageButton').addEventListener('click',()=>{language=language==='ja'?'en':'ja';writeStorage(`${APP_CONFIG.slug}:language`,language);applyLanguage();});
+      const helpDialog=$('#helpDialog'); $('#helpButton').addEventListener('click',()=>helpDialog.showModal()); $('#closeHelpButton').addEventListener('click',()=>helpDialog.close()); helpDialog.addEventListener('click',event=>{const rect=helpDialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)helpDialog.close();});
+      bindDropZone('#carrierDropZone','#carrierInput',selectCarrier); bindDropZone('#payloadDropZone','#payloadInput',selectPayload); bindDropZone('#extractDropZone','#extractInput',selectExtractImage);
+      $('#replaceCarrierButton').addEventListener('click',e=>{e.stopPropagation();$('#carrierInput').click();}); $('#replacePayloadButton').addEventListener('click',e=>{e.stopPropagation();$('#payloadInput').click();}); $('#replaceExtractButton').addEventListener('click',e=>{e.stopPropagation();$('#extractInput').click();});
+      $('#embedButton').addEventListener('click',runEmbed); $('#extractButton').addEventListener('click',runExtract);
+      $('#savePngButton').addEventListener('click',()=>{ if (!state.encodedBlob) return; const base=sanitizeBase($('#outputFilename').value,'file-in-image'); $('#outputFilename').value=base; downloadBlob(state.encodedBlob,`${base}.png`); showToast(t('pngSaved'),'success'); });
+      $('#saveRecoveredButton').addEventListener('click',()=>{ if (!state.recovered) return; const name=sanitizeFullFilename($('#recoveredFilename').value,state.recovered.filename||'recovered-file.bin'); $('#recoveredFilename').value=name; downloadBlob(new Blob([state.recovered.fileBytes],{type:state.recovered.mime}),name); showToast(t('fileSaved'),'success'); });
+      $('#outputFilename').addEventListener('blur',()=>{$('#outputFilename').value=sanitizeBase($('#outputFilename').value,'file-in-image');}); $('#recoveredFilename').addEventListener('blur',()=>{if(state.recovered)$('#recoveredFilename').value=sanitizeFullFilename($('#recoveredFilename').value,state.recovered.filename||'recovered-file.bin');});
+      window.addEventListener('pagehide',()=>{revokePreview('carrier');revokePreview('extract');blobUrls.forEach(url=>URL.revokeObjectURL(url));blobUrls.clear();});
+
+      $('#versionBadge').textContent=`v${APP_CONFIG.version}`; $('#buildVersion').textContent=APP_CONFIG.version; $('#builtAt').textContent=BUILD_MANIFEST.generatedAtUtc||'—'; $('#dependencyCount').textContent=String(BUILD_MANIFEST.dependencies?.length||0); applyLanguage(); setMode('embed');
     })();
   </script>
 </body>
