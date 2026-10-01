@@ -4,7 +4,7 @@
 
 任意の1ファイルを画像の画素へ埋め込み、生成されたPNGからあとで元のファイルを取り出すブラウザーツールです。処理はブラウザー内で完結します。
 
-> **現在の開発版:** v0.8.0。BKFI/BKFC形式はまだ開発途中で、v1の正式互換形式は固定していません。
+> **リリース候補:** v0.9.0。新規出力は互換形式 version 1 を使用します。これまでの開発版で作った version 0 の画像も引き続き読み込めます。
 
 ## Features
 
@@ -16,52 +16,60 @@
 - 進捗・キャンセル対応のBlob Worker処理
 - 保存前の生成PNG自動復元確認
 - 復元ファイルをSHA-256で確認
-- v0.2.0〜v0.7.0の開発形式を復元可能
+- パスワード表示 / 非表示
+- 読み込み後も再ドロップ可能なコンパクトなファイル選択表示
 - 日本語 / 英語UI
 - 実行時CDN・API・analytics・telemetry・ファイルアップロードなし
 - `file://` 直接起動と単一HTML配布を前提
 
-## v0.8.0 UI / Mobile / Accessibility
+## v0.9.0 互換形式候補
 
-今回はファイル形式や埋め込みアルゴリズムを変更せず、操作性を仕上げています。
+v0.9.0で新しく作る画像は、
 
-### ファイル選択
+- BKFI outer format version 1
+- BKFC inner container version 1
+- adaptive embedding mode 1
 
-Drag & Drop領域はそのまま残しつつ、空状態には通常の「ファイルを選択」ボタンを追加しました。これにより、以前の「button相当のドロップ領域の中に変更ボタンがある」入れ子構造を解消しています。
+を使用します。
 
-### タブのキーボード操作
+v0.2.0〜v0.8.0で作った version 0 画像も引き続き読み込めます。旧 sequential mode 0 と adaptive mode 1 の両方をdecode対象に残しています。
 
-「埋め込む / 取り出す」はroving tabindexに対応し、左右矢印・Home・Endでも切り替えられます。
+8×8適応配置、GZIP、PBKDF2/AES-GCM、80-byte BKFI header、48-byte BKFC fixed headerの意味は変更していません。
 
-### 処理状態
+RC後にバイナリ仕様変更が必要な重大問題が見つかった場合は、version 1の意味を書き換えず、format versionを上げる方針です。
 
-処理中のパネルは `aria-busy` を持ち、現在の処理内容と進捗率を読み上げ可能にしました。完了時は保存ボタンへ直接飛ばず、まず結果カードへフォーカスします。
+## 自動フォーマット回帰
 
-### スマートフォン
+`scripts/check-format-regression.mjs` をrepository checkへ追加しています。
 
-- ボタンやヘッダー操作のタップ領域を拡大
-- パスワード・ファイル名入力を16pxにしてiOSの自動ズームを抑制
-- safe areaを考慮したヘッダー / フッター / ダイアログ
-- 長いファイル名はスマホで最大2行表示
-- モードタブを横幅いっぱいに表示
-- コンテンツを隠す下部固定バーは追加しない
+CIで少なくとも、
 
-## 互換性
+- version 1の新規出力
+- version 0/1のdecode
+- 予約領域・未知flagsの拒否
+- adaptive mode 1 round-trip
+- legacy mode 0 decode
 
-v0.8.0ではv0.7.0の形式・処理を維持しています。
+を確認します。
 
-- `formatVersion=0`
-- 新規出力は `embeddingMode=1`
-- 旧 `embeddingMode=0` も復元可能
-- GZIP / AES-GCM / 適応配置 / Worker / 自動復元確認は変更なし
+CIはNode.js 24を明示して実行します。
+
+## RC手動確認
+
+v1.0前には実ブラウザー・実端末での確認が必要です。
+
+- `docs/RELEASE_CANDIDATE_CHECKLIST.ja.md`
+- `docs/RELEASE_CANDIDATE_CHECKLIST.md`
+
+にChrome / Edge / Firefox / Safari / Android Chrome / iOS Safari、日英、file://、暗号化、GZIP、旧形式復元、スマホUI、エラー状態などの確認項目をまとめています。
 
 ## 重要な注意
 
-自動復元確認は「生成直後のPNGから正常に復元できる」ことを確認する機能です。その後のリサイズ、トリミング、画像編集、JPEG/非可逆WebP変換、スクリーンショット、SNS等での再圧縮に対する耐性を付けるものではありません。
+自動復元確認は「アプリが生成した直後のPNGから正常に復元できる」ことを確認する機能です。その後のリサイズ、トリミング、画像編集、JPEG/非可逆WebP変換、スクリーンショット、SNS等での再圧縮に対する耐性を付けるものではありません。
 
 ## Privacy
 
-画像、ファイル、パスワード、Worker buffer、生成PNG、復元データは端末内で処理します。`connect-src 'none'` を維持し、外部runtime依存は追加していません。
+画像、ファイル、パスワード、Worker buffer、生成PNG、復元データは端末内で処理します。実行時通信は `connect-src 'none'` で遮断したままです。
 
 ## Development
 
@@ -69,6 +77,12 @@ v0.8.0ではv0.7.0の形式・処理を維持しています。
 
 ```bat
 build-standalone.bat
+```
+
+repository check:
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-repository.ps1
 ```
 
 ## License
