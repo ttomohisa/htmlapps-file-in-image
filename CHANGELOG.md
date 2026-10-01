@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.0 - 2026-10-01
+
+- Require generated-PNG recovery verification before Save becomes available.
+- Decode the actual Canvas-generated PNG Blob and re-read the BKFI header.
+- Re-extract the generated PNG through the normal Worker path.
+- Repeat PBKDF2 + AES-GCM authentication/decryption for encrypted self-verification.
+- Verify recovered SHA-256 against both BKFC and the original source digest.
+- Verify recovered filename, MIME, and byte length against the selected source.
+- Keep generated Blob state unavailable when verification fails or is cancelled.
+- Guard Save with both button disabled state and an internal verified flag.
+- Transfer disposable verification ImageData directly to the Worker to avoid one extra full-size copy.
+- Invalidate in-flight output when password/protection fields change.
+
 ## 0.6.0 - 2026-10-01
 
 - Move adaptive image analysis, embed, adaptive extract, and legacy body extraction into an embedded Blob Web Worker.
