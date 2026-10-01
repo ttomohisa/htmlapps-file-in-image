@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.8.0 - 2026-10-01
+
+- Remove nested interactive semantics from Drag & Drop areas and add explicit empty-state file-picker buttons.
+- Add roving tabindex plus Arrow / Home / End keyboard behavior to Embed / Extract tabs.
+- Add localized progress labels, aria-valuetext, atomic status messages, and aria-busy processing state.
+- Move completion focus to result summaries before Save actions.
+- Increase mobile touch targets and add safe-area-aware layout spacing.
+- Use 16 px mobile password/filename inputs to avoid iOS focus zoom.
+- Allow long filenames to wrap to two lines on small screens and preserve full names in title/alt metadata.
+- Add explicit password description relationships.
+- Keep binary format, Worker algorithm, crypto, GZIP, adaptive placement, and generated-PNG verification unchanged.
+
 ## 0.7.0 - 2026-10-01
 
 - Require generated-PNG recovery verification before Save becomes available.
