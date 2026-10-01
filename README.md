@@ -4,7 +4,7 @@
 
 File in Image hides one arbitrary file inside image pixels and recovers the original file from the generated PNG. Processing stays in the browser.
 
-> **Current development release:** v0.7.0. The BKFI/BKFC format is still under development; the stable v1 compatibility format has not been frozen.
+> **Current development release:** v0.8.0. The BKFI/BKFC format is still under development; the stable v1 compatibility format has not been frozen.
 
 ## Features
 
@@ -13,54 +13,55 @@ File in Image hides one arbitrary file inside image pixels and recovers the orig
 - GZIP when the complete inner container becomes smaller
 - Optional PBKDF2-HMAC-SHA-256 + AES-256-GCM password protection
 - 8×8 adaptive high-detail placement
-- Cancellable Blob Worker processing
-- Progress display and stale-result protection
-- **Mandatory generated-PNG recovery verification before Save**
+- Blob Worker processing with progress / Cancel
+- Mandatory generated-PNG recovery verification before Save
 - SHA-256 verification of recovered source bytes
-- v0.2.0–v0.6.0 development-format decode compatibility
+- v0.2.0–v0.7.0 development-format decode compatibility
 - Japanese / English UI
 - No runtime CDN, API, analytics, telemetry, or file upload
 - Direct `file://` use and single-HTML distribution
 
-## Generated-PNG verification
+## v0.8.0 UI / mobile / accessibility
 
-v0.7.0 does not enable Save immediately after Canvas produces a PNG.
+This release does not change the file format or embedding algorithm.
 
-The generated PNG Blob is decoded again through the normal image path. The app reads its BKFI header, re-extracts the body with the normal Worker, and runs the real recovery path.
+### File selection
 
-For password-protected output, PBKDF2 is run again from the password and decoded header, then AES-256-GCM authenticates/decrypts the recovered body. GZIP is expanded when required and BKFC is parsed.
+Drop areas remain available for Drag & Drop, but the empty state now contains an explicit native file-selection button. This removes the previous nested-interactive pattern where a drop area exposed as a synthetic button also contained a Change button.
 
-The recovered file must match the original source SHA-256, filename, MIME, and byte length. Only after all checks succeed does the Save button become available.
+### Keyboard tabs
 
-This verifies the actual PNG produced by Canvas rather than only checking the pre-encode ImageData.
+Embed / Extract use roving tab focus and support Left / Right Arrow, Home, and End.
 
-## Save safety
+### Processing state
 
-Save is guarded by both the disabled button state and an internal `encodedVerified` flag. A failed or cancelled verification never leaves a saveable generated Blob in application state.
+The active panel exposes `aria-busy`. Status and progress information are announced with localized accessible text, and result focus moves to the completed summary rather than jumping directly to Save.
 
-Changing password protection settings or password text invalidates any in-flight/previous output.
+### Smartphone polish
 
-## Memory behavior
-
-The PNG must be decoded again to verify it. That verification ImageData is disposable, so its pixel ArrayBuffer is transferred directly to the extraction Worker instead of first making another full-size Worker copy.
-
-The originally selected carrier remains intact for retry.
+- larger touch targets;
+- 16 px password / filename fields on phones to avoid iOS focus zoom;
+- safe-area-aware header / footer / dialog spacing;
+- two-line long filename display;
+- full-width mode tabs;
+- no fixed bottom bar that could cover content.
 
 ## Compatibility
 
-v0.7.0 does not change the v0.5.0/v0.6.0 binary layout or adaptive placement algorithm.
+v0.8.0 retains the v0.7.0 binary format and runtime behavior:
 
 - `formatVersion=0`
 - new output `embeddingMode=1`
 - legacy `embeddingMode=0` remains readable
+- GZIP / AES-GCM / adaptive placement / Worker / generated-PNG verification unchanged
 
 ## Important note
 
-Automatic recovery verification confirms that the PNG produced by the app can be recovered at generation time. It does not make the PNG resistant to later editing. Resizing, cropping, filters, JPEG/lossy WebP conversion, screenshots, or social/messaging recompression can still destroy the embedded data.
+Automatic recovery verification confirms that the PNG produced by the app is recoverable at generation time. Later resizing, cropping, image editing, JPEG/lossy WebP conversion, screenshots, or social/messaging recompression can still destroy the embedded data.
 
 ## Privacy
 
-Selected images, files, passwords, generated PNGs, and verification buffers stay local. The app keeps `connect-src 'none'` and introduces no third-party runtime dependency.
+Selected images, files, passwords, Worker buffers, generated PNGs, and recovered data stay local. The app keeps `connect-src 'none'` and introduces no third-party runtime dependency.
 
 ## Development
 
