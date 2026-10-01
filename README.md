@@ -4,62 +4,60 @@
 
 File in Image hides one arbitrary file inside image pixels and recovers the original file from the generated PNG. Processing stays in the browser.
 
-> **Current development release:** v0.4.0. The BKFI/BKFC format is still under development; the stable v1 compatibility format has not been frozen.
+> **Current development release:** v0.5.0. The BKFI/BKFC format is still under development; the stable v1 compatibility format has not been frozen.
 
 ## Features
 
-- Carrier images: PNG / JPEG / WebP
-- Payload: one arbitrary file, up to 32 MiB
-- Output: PNG
-- Optional password protection
-- PBKDF2-HMAC-SHA-256 with 600,000 iterations and a random 16-byte salt
-- AES-256-GCM with a random 12-byte IV and 128-bit authentication tag
-- Filename and MIME metadata are encrypted together with the payload when password protection is enabled
-- The BKFI outer header is authenticated as AES-GCM additional data
-- GZIP-compresses the complete BKFC container when that actually makes it smaller
-- Shows exact stored size and capacity before embedding, including encryption overhead
-- Verifies recovered file bytes with SHA-256
+- PNG / JPEG / WebP carrier input, PNG output
+- One arbitrary payload file, up to 32 MiB
+- GZIP when the complete inner container becomes smaller
+- Optional PBKDF2-HMAC-SHA-256 + AES-256-GCM password protection
+- Filename and MIME are encrypted with the payload when protection is enabled
+- 8×8 adaptive placement that prioritizes higher-detail image regions
+- LSB-independent Sobel scoring so extraction recomputes the same ranking after embedding
+- Deterministic randomized placement without allocating a full-image RGB-slot array
+- SHA-256 verification of recovered source bytes
 - Japanese / English UI
 - No runtime CDN, API, analytics, telemetry, or file upload
-- Designed for direct `file://` use and single-HTML distribution
+- Direct `file://` use and single-HTML distribution
+
+## Adaptive placement
+
+New v0.5.0 output uses BKFI `embeddingMode=1`. The first 214 fully opaque pixels remain reserved for the BKFI header. The body is placed separately.
+
+The image is divided into 8×8 blocks. Detail is measured with Sobel gradients after masking the least-significant RGB bits, so writing body bits does not change the detail ranking used during extraction. Higher-detail blocks are selected first until roughly twice the required body capacity is available, then the selected blocks and their RGB slots are traversed in a deterministic pseudorandom order.
+
+For encrypted output, placement randomization also depends on PBKDF2-derived material. For unencrypted output it depends on a random placement salt stored in the BKFI header.
+
+This placement is an image-quality technique, not an encryption guarantee.
+
+## Backward compatibility
+
+v0.5.0 still reads development images created by v0.2.0–v0.4.0 with sequential `embeddingMode=0`. New v0.5.0 images use adaptive `embeddingMode=1`.
 
 ## Password protection
 
-Password protection is optional. When enabled, the app compresses the BKFC container when useful and then encrypts the whole stored inner body with AES-256-GCM.
+Password protection remains optional. New encrypted output uses PBKDF2-HMAC-SHA-256 at 600,000 iterations, a random 16-byte salt, AES-256-GCM with a random 12-byte IV, and a 128-bit tag. The complete BKFI header is authenticated as AES-GCM AAD.
 
-The password is encoded exactly as entered: the app does not trim or Unicode-normalize it. It is not written to localStorage or IndexedDB.
-
-The BKFI header stores the KDF parameters, random salt, and IV needed to derive the key again. Those values are not secret. The complete header is authenticated through AES-GCM AAD, so authenticated header changes cause decryption to fail.
-
-A wrong password or modified authenticated data is reported as an authentication failure without exposing the inner filename or MIME metadata.
-
-## GZIP
-
-GZIP is applied before encryption and only when it makes the complete BKFC container smaller. Compression improves capacity only; it is not encryption.
+Passwords are not trimmed or Unicode-normalized and are not persisted in browser storage.
 
 ## Important note
 
-Embedded data is stored in image-pixel least-significant bits. Resizing, cropping, editing, JPEG conversion, lossy WebP conversion, screenshots, or recompression by social/messaging services can make the payload unrecoverable. Keep the generated PNG unchanged.
+Adaptive placement does not make the PNG tolerant of image modification. Resizing, cropping, filters, JPEG/lossy WebP conversion, screenshots, or social/messaging recompression can destroy the embedded data. Keep the generated PNG unchanged.
 
-v0.4.0 does not yet implement adaptive high-detail placement or automatic generated-PNG self-verification.
+v0.5.0 does not yet include Worker-based processing or automatic generated-PNG self-verification.
 
 ## Privacy
 
-Selected images, files, and passwords are processed in browser memory. The app keeps `connect-src 'none'`, does not upload file contents, and does not persist file bytes or passwords in browser storage.
+Selected images, files, and passwords are processed in browser memory. The app keeps `connect-src 'none'`, does not upload user data, and does not persist file bytes or passwords.
 
 ## Development
 
 The repository follows the current `htmlapps-template` contract. Edit `src/index.template.html`; do not hand-edit generated `dist` files.
 
-On Windows:
-
 ```bat
 build-standalone.bat
 ```
-
-## Browser support
-
-Current Chrome / Edge / Firefox / Safari / Android Chrome / iOS Safari are targeted. Direct `file://` opening is a product requirement.
 
 ## License
 
