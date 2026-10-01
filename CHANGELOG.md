@@ -10,6 +10,7 @@
 - Use 16 px mobile password/filename inputs to avoid iOS focus zoom.
 - Allow long filenames to wrap to two lines on small screens and preserve full names in title/alt metadata.
 - Add explicit password description relationships.
+- Reset Extract to a clean empty state before validating a replacement file and scroll completed result summaries into view.
 - Keep binary format, Worker algorithm, crypto, GZIP, adaptive placement, and generated-PNG verification unchanged.
 
 ## 0.7.0 - 2026-10-01
