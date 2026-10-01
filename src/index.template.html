@@ -119,8 +119,15 @@
     .password-status.bad { color: var(--danger); }
     .password-status.ok { color: var(--accent); }
     .action-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; }
-    .action-row .button.primary { min-width: 180px; }
+    .processing-area { min-width: 0; flex: 1 1 auto; display: grid; gap: 6px; }
     .processing-status { min-width: 0; color: var(--muted); font-size: 12px; }
+    .processing-progress { width: min(360px,100%); height: 7px; border: 0; border-radius: 999px; overflow: hidden; background: var(--surface-muted); accent-color: var(--accent); }
+    .processing-progress::-webkit-progress-bar { background: var(--surface-muted); border-radius: 999px; }
+    .processing-progress::-webkit-progress-value { background: var(--accent); border-radius: 999px; }
+    .processing-progress::-moz-progress-bar { background: var(--accent); border-radius: 999px; }
+    .action-buttons { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex: 0 0 auto; }
+    .action-row .button.primary { min-width: 180px; }
+    .cancel-button { min-width: 94px; }
     .result-card { margin-top: 16px; padding: 16px; border: 1px solid color-mix(in srgb,var(--accent) 30%,var(--line)); border-radius: 14px; background: color-mix(in srgb,var(--accent-soft) 55%,#fff); }
     .result-card[hidden] { display: none; }
     .result-head { display: flex; align-items: flex-start; gap: 10px; }
@@ -171,6 +178,9 @@
       .workspace-head { flex-direction: column; }
       .capacity-box,.result-grid,.password-grid { grid-template-columns: 1fr; }
       .action-row,.export-row { align-items: stretch; flex-direction: column; }
+      .processing-progress { width: 100%; }
+      .action-buttons { width: 100%; }
+      .action-buttons .button { flex: 1 1 0; }
       .action-row .button.primary,.export-row .button { width: 100%; }
       .export-field { width: 100%; min-width: 0; }
       .build-grid { grid-template-columns: 1fr; }
@@ -202,7 +212,7 @@
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"><img id="appBrandIcon" src="__APP_ICON_DATA_URI__" alt=""></div>
         <div class="brand-copy">
-          <p class="brand-name"><span id="brandName">File in Image</span><span class="version-badge" id="versionBadge">v0.5.0</span></p>
+          <p class="brand-name"><span id="brandName">File in Image</span><span class="version-badge" id="versionBadge">v0.6.0</span></p>
           <p class="brand-meta" data-i18n="brandMeta">画像にファイルを埋めて、あとから取り出す</p>
         </div>
       </div>
@@ -300,8 +310,8 @@
 
       <div class="error-box" id="embedError" role="alert" hidden></div>
       <div class="action-row">
-        <span class="processing-status" id="embedStatus" aria-live="polite"></span>
-        <button class="button primary" id="embedButton" type="button" disabled data-i18n="embedAction">画像に埋め込む</button>
+        <div class="processing-area"><span class="processing-status" id="embedStatus" aria-live="polite"></span><progress class="processing-progress" id="embedProgress" max="100" value="0" hidden></progress></div>
+        <div class="action-buttons"><button class="button cancel-button" id="cancelEmbedButton" type="button" hidden data-i18n="cancel">キャンセル</button><button class="button primary" id="embedButton" type="button" disabled data-i18n="embedAction">画像に埋め込む</button></div>
       </div>
 
       <section class="result-card" id="embedResult" aria-live="polite" hidden>
@@ -324,7 +334,7 @@
         <p class="protection-note" data-i18n="extractPasswordNote">正しいパスワードを入力すると、ファイル名を含むデータを復号できます。</p>
       </div>
       <div class="error-box" id="extractError" role="alert" hidden></div>
-      <div class="action-row"><span class="processing-status" id="extractStatus" aria-live="polite"></span><button class="button primary" id="extractButton" type="button" disabled data-i18n="extractAction">ファイルを取り出す</button></div>
+      <div class="action-row"><div class="processing-area"><span class="processing-status" id="extractStatus" aria-live="polite"></span><progress class="processing-progress" id="extractProgress" max="100" value="0" hidden></progress></div><div class="action-buttons"><button class="button cancel-button" id="cancelExtractButton" type="button" hidden data-i18n="cancel">キャンセル</button><button class="button primary" id="extractButton" type="button" disabled data-i18n="extractAction">ファイルを取り出す</button></div></div>
       <section class="result-card" id="extractResult" aria-live="polite" hidden>
         <div class="result-head"><span class="result-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 12 4 4 8-9"/></svg></span><div><h3 data-i18n="extractDone">ファイルを確認しました</h3><p data-i18n="extractDoneBody">埋め込み時のSHA-256と一致しました。</p></div></div>
         <div class="result-grid"><div class="metric"><span data-i18n="originalName">元のファイル名</span><strong id="recoveredOriginalName">—</strong></div><div class="metric"><span data-i18n="payloadSize">ファイルサイズ</span><strong id="recoveredSize">—</strong></div><div class="metric"><span data-i18n="integrity">復元時の確認</span><strong id="hashResult">SHA-256 ✓</strong></div></div>
@@ -348,7 +358,7 @@
       <h3 data-i18n="helpEmbedTitle">埋め込む</h3><ol><li data-i18n="helpEmbed1">PNG / JPEG / WebP画像を選びます。</li><li data-i18n="helpEmbed2">画像に入れたい1ファイルを選び、容量に収まることを確認します。</li><li data-i18n="helpEmbed3">「画像に埋め込む」を実行してPNGを保存します。</li></ol>
       <h3 data-i18n="helpExtractTitle">取り出す</h3><ol><li data-i18n="helpExtract1">「取り出す」へ切り替え、このツールで作ったPNGを選びます。</li><li data-i18n="helpExtract2">「ファイルを取り出す」を実行します。</li><li data-i18n="helpExtract3">SHA-256が一致したファイルだけ保存できます。</li></ol>
       <h3 data-i18n="helpPrivacyTitle">プライバシー</h3><p data-i18n="helpPrivacyBody">画像とファイルはブラウザー内で処理され、このアプリから外部へ送信されません。ファイル内容は端末内ストレージにも保存しません。</p>
-      <h3 data-i18n="helpNotesTitle">注意事項</h3><ul><li data-i18n="helpNoteImage">生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。</li><li data-i18n="helpNoteCompression">GZIPで小さくなる場合だけ圧縮し、収まるかどうかは実際の圧縮後サイズで判定します。</li><li data-i18n="helpNoteAdaptive">画像の変化が目立ちにくいよう、ディテールが多い領域を優先して埋め込みます。画像編集への耐性を高める機能ではありません。</li><li data-i18n="helpNoteEncryption">パスワード保護を有効にすると、ファイル名を含むデータをAES-256-GCMで暗号化します。パスワードを設定しない場合は暗号化されません。</li><li data-i18n="helpNoteFormat">v0.5.0の埋め込み形式は開発途中です。v1の正式互換形式はまだ固定していません。</li></ul>
+      <h3 data-i18n="helpNotesTitle">注意事項</h3><ul><li data-i18n="helpNoteImage">生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。</li><li data-i18n="helpNoteCompression">GZIPで小さくなる場合だけ圧縮し、収まるかどうかは実際の圧縮後サイズで判定します。</li><li data-i18n="helpNoteAdaptive">画像の変化が目立ちにくいよう、ディテールが多い領域を優先して埋め込みます。画像編集への耐性を高める機能ではありません。</li><li data-i18n="helpNoteEncryption">パスワード保護を有効にすると、ファイル名を含むデータをAES-256-GCMで暗号化します。パスワードを設定しない場合は暗号化されません。</li><li data-i18n="helpNoteFormat">v0.6.0の埋め込み形式は開発途中です。v1の正式互換形式はまだ固定していません。</li></ul>
       <p class="dialog-note" data-i18n="helpOffline">実行時の外部通信を使わず、単一HTMLとしてローカルからも利用できる構成です。</p>
       <!-- APP:HELP:END -->
     </div>
@@ -426,23 +436,27 @@
       const translations = {
         ja: {
           brandMeta: '画像にファイルを埋めて、あとから取り出す', helpTitle: '使い方と注意事項', close: '閉じる', introTitle: '画像にファイルを埋め込む', lead: '任意の1ファイルを画像の画素へ埋め込み、生成したPNGから元のファイルを取り出せます。', localBadge: 'ファイルを送信しません', embedTab: '埋め込む', extractTab: '取り出す',
-          embedTitle: '画像の中にファイルを入れる', embedBody: '画像とファイルを選ぶと、埋め込める容量を確認できます。', carrierTitle: '画像を選択', carrierBody: 'PNG / JPEG / WebP。出力はPNGになります。', dropImage: '画像をここにドロップ', orChoose: 'またはクリックして選択', chooseCarrier: '画像を選択', replace: '変更', dimensions: '画像サイズ', opaquePixels: '使用できる画素', capacity: '埋め込み容量', payloadTitle: '埋め込むファイルを選択', payloadBody: '形式は問いません。1ファイル、最大32 MiBです。', dropFile: 'ファイルをここにドロップ', choosePayload: '埋め込むファイルを選択', fitWaiting: '画像とファイルを選ぶと容量を確認できます。', fitOk: 'このファイルを埋め込めます。', fitBad: 'この画像にはファイルが収まりません。より大きな画像か小さなファイルを選んでください。', payloadOriginalSize: '元ファイル', storedBodySize: '埋め込みデータ', compression: '圧縮', gzipUsed: 'GZIPを使用', gzipSkipped: '圧縮なし', gzipUnavailable: '圧縮なし（API非対応）', protectionTitle: 'パスワード保護', protectionBody: '必要な場合だけ、ファイルを暗号化してから画像へ埋め込みます。', protectWithPassword: 'パスワードで保護する', protectionNote: '有効にすると、ファイル名を含む埋め込みデータを暗号化します。', password: 'パスワード', passwordConfirm: 'パスワード（確認）', passwordEmpty: 'パスワードを入力してください。', passwordMismatch: '確認用パスワードが一致していません。', passwordReady: 'AES-256-GCMで保護します。', derivingKey: 'パスワードから鍵を準備しています…', encrypting: 'ファイルを暗号化しています…', embedAction: '画像に埋め込む', packing: 'ファイルを準備しています…', compressingPayload: 'ファイルを圧縮しています…', analyzingImage: '画像のディテールを解析しています…', embedding: '画像に埋め込んでいます…', makingPng: 'PNGを作成しています…', embedDone: 'ファイルを埋め込みました', embedDoneBody: '生成したPNGは編集・変換せず、そのまま保存してください。', outputSize: '出力サイズ', payloadSize: 'ファイルサイズ', integrity: '復元時の確認', outputWarning: 'リサイズ、トリミング、JPEG変換、画像編集、SNS等での再圧縮を行うと、ファイルを取り出せなくなる場合があります。', outputFilename: '出力ファイル名', savePng: 'PNGを保存', pngSaved: 'PNGを保存しました',
+          embedTitle: '画像の中にファイルを入れる', embedBody: '画像とファイルを選ぶと、埋め込める容量を確認できます。', carrierTitle: '画像を選択', carrierBody: 'PNG / JPEG / WebP。出力はPNGになります。', dropImage: '画像をここにドロップ', orChoose: 'またはクリックして選択', chooseCarrier: '画像を選択', replace: '変更', dimensions: '画像サイズ', opaquePixels: '使用できる画素', capacity: '埋め込み容量', payloadTitle: '埋め込むファイルを選択', payloadBody: '形式は問いません。1ファイル、最大32 MiBです。', dropFile: 'ファイルをここにドロップ', choosePayload: '埋め込むファイルを選択', fitWaiting: '画像とファイルを選ぶと容量を確認できます。', fitOk: 'このファイルを埋め込めます。', fitBad: 'この画像にはファイルが収まりません。より大きな画像か小さなファイルを選んでください。', payloadOriginalSize: '元ファイル', storedBodySize: '埋め込みデータ', compression: '圧縮', gzipUsed: 'GZIPを使用', gzipSkipped: '圧縮なし', gzipUnavailable: '圧縮なし（API非対応）', cancel: 'キャンセル', cancelled: '処理をキャンセルしました。', protectionTitle: 'パスワード保護', protectionBody: '必要な場合だけ、ファイルを暗号化してから画像へ埋め込みます。', protectWithPassword: 'パスワードで保護する', protectionNote: '有効にすると、ファイル名を含む埋め込みデータを暗号化します。', password: 'パスワード', passwordConfirm: 'パスワード（確認）', passwordEmpty: 'パスワードを入力してください。', passwordMismatch: '確認用パスワードが一致していません。', passwordReady: 'AES-256-GCMで保護します。', derivingKey: 'パスワードから鍵を準備しています…', encrypting: 'ファイルを暗号化しています…', embedAction: '画像に埋め込む', packing: 'ファイルを準備しています…', compressingPayload: 'ファイルを圧縮しています…', analyzingImage: '画像のディテールを解析しています…', embedding: '画像に埋め込んでいます…', makingPng: 'PNGを作成しています…', embedDone: 'ファイルを埋め込みました', embedDoneBody: '生成したPNGは編集・変換せず、そのまま保存してください。', outputSize: '出力サイズ', payloadSize: 'ファイルサイズ', integrity: '復元時の確認', outputWarning: 'リサイズ、トリミング、JPEG変換、画像編集、SNS等での再圧縮を行うと、ファイルを取り出せなくなる場合があります。', outputFilename: '出力ファイル名', savePng: 'PNGを保存', pngSaved: 'PNGを保存しました',
           extractTitle: '画像からファイルを取り出す', extractBody: 'このツールで生成したPNGを選択します。', dropEncoded: '埋め込み済みPNGをここにドロップ', chooseEncoded: '埋め込み済みPNGを選択', passwordRequiredForImage: 'この画像はパスワードで保護されています', extractPasswordNote: '正しいパスワードを入力すると、ファイル名を含むデータを復号できます。', extractAction: 'ファイルを取り出す', readingImage: '画像を読み込んでいます…', extracting: 'ファイルを取り出しています…', decrypting: '暗号化されたデータを復号しています…', decompressing: '圧縮データを展開しています…', verifying: 'ファイルを確認しています…', extractDone: 'ファイルを確認しました', extractDoneBody: '埋め込み時のSHA-256と一致しました。', originalName: '元のファイル名', saveAs: '保存ファイル名', saveFile: 'ファイルを保存', fileSaved: 'ファイルを保存しました',
-          helpEmbedTitle: '埋め込む', helpEmbed1: 'PNG / JPEG / WebP画像を選びます。', helpEmbed2: '画像に入れたい1ファイルを選び、容量に収まることを確認します。', helpEmbed3: '「画像に埋め込む」を実行してPNGを保存します。', helpExtractTitle: '取り出す', helpExtract1: '「取り出す」へ切り替え、このツールで作ったPNGを選びます。', helpExtract2: '「ファイルを取り出す」を実行します。', helpExtract3: 'SHA-256が一致したファイルだけ保存できます。', helpPrivacyTitle: 'プライバシー', helpPrivacyBody: '画像とファイルはブラウザー内で処理され、このアプリから外部へ送信されません。ファイル内容は端末内ストレージにも保存しません。', helpNotesTitle: '注意事項', helpNoteImage: '生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。', helpNoteCompression: 'GZIPで小さくなる場合だけ圧縮し、収まるかどうかは実際の圧縮後サイズで判定します。', helpNoteAdaptive: '画像の変化が目立ちにくいよう、ディテールが多い領域を優先して埋め込みます。画像編集への耐性を高める機能ではありません。', helpNoteEncryption: 'パスワード保護を有効にすると、ファイル名を含むデータをAES-256-GCMで暗号化します。パスワードを設定しない場合は暗号化されません。', helpNoteFormat: 'v0.5.0の埋め込み形式は開発途中です。v1の正式互換形式はまだ固定していません。', helpOffline: '実行時の外部通信を使わず、単一HTMLとしてローカルからも利用できる構成です。',
-          buildInfo: 'ビルド情報', appVersion: 'アプリバージョン', builtAt: '生成日時', dependencies: '内包依存数', footer: 'ブラウザー内で処理', errorImageType: 'PNG、JPEG、WebP画像を選択してください。', errorImageTooLarge: 'この画像はこのバージョンで扱えるサイズを超えています。', errorImageRead: '画像を読み込めませんでした。対応形式か、ファイルが破損していないか確認してください。', errorPayloadTooLarge: '埋め込むファイルは32 MiB以下にしてください。', errorPayloadRead: 'ファイルを読み込めませんでした。', errorCapacity: 'この画像にはファイルが収まりません。', errorNoOpaque: 'この画像は完全に不透明な画素が少ないため使用できません。', errorNotBkfi: 'この画像には、このバージョンのFile in Imageで埋め込まれたデータを確認できませんでした。', errorUnsupportedDev: 'この画像は別の埋め込み形式で作られているため、このバージョンでは開けません。', errorCorrupt: '埋め込みデータが壊れているか、画像が変更されています。', errorHash: 'ファイルを正常に復元できませんでした。画像が変更されている可能性があります。', errorMemory: '画像を処理するためのメモリを確保できませんでした。より小さな画像を試してください。', errorCrypto: 'このブラウザーでは必要なWeb Crypto機能を利用できません。', errorPasswordRequired: 'パスワードを入力してください。', errorPasswordMismatch: '確認用パスワードが一致していません。', errorAuth: 'パスワードが違うか、画像が変更されています。', errorCompression: 'この画像のGZIPデータを展開できません。このブラウザーがDecompressionStreamに対応しているか、画像が変更されていないか確認してください。', errorGeneric: '処理できませんでした。別のファイルで試してください。'
+          helpEmbedTitle: '埋め込む', helpEmbed1: 'PNG / JPEG / WebP画像を選びます。', helpEmbed2: '画像に入れたい1ファイルを選び、容量に収まることを確認します。', helpEmbed3: '「画像に埋め込む」を実行してPNGを保存します。', helpExtractTitle: '取り出す', helpExtract1: '「取り出す」へ切り替え、このツールで作ったPNGを選びます。', helpExtract2: '「ファイルを取り出す」を実行します。', helpExtract3: 'SHA-256が一致したファイルだけ保存できます。', helpPrivacyTitle: 'プライバシー', helpPrivacyBody: '画像とファイルはブラウザー内で処理され、このアプリから外部へ送信されません。ファイル内容は端末内ストレージにも保存しません。', helpNotesTitle: '注意事項', helpNoteImage: '生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。', helpNoteCompression: 'GZIPで小さくなる場合だけ圧縮し、収まるかどうかは実際の圧縮後サイズで判定します。', helpNoteAdaptive: '画像の変化が目立ちにくいよう、ディテールが多い領域を優先して埋め込みます。画像編集への耐性を高める機能ではありません。', helpNoteEncryption: 'パスワード保護を有効にすると、ファイル名を含むデータをAES-256-GCMで暗号化します。パスワードを設定しない場合は暗号化されません。', helpNoteFormat: 'v0.6.0の埋め込み形式は開発途中です。v1の正式互換形式はまだ固定していません。', helpOffline: '実行時の外部通信を使わず、単一HTMLとしてローカルからも利用できる構成です。',
+          buildInfo: 'ビルド情報', appVersion: 'アプリバージョン', builtAt: '生成日時', dependencies: '内包依存数', footer: 'ブラウザー内で処理', errorImageType: 'PNG、JPEG、WebP画像を選択してください。', errorImageTooLarge: 'この画像はこのバージョンで扱えるサイズを超えています。', errorImageRead: '画像を読み込めませんでした。対応形式か、ファイルが破損していないか確認してください。', errorPayloadTooLarge: '埋め込むファイルは32 MiB以下にしてください。', errorPayloadRead: 'ファイルを読み込めませんでした。', errorCapacity: 'この画像にはファイルが収まりません。', errorNoOpaque: 'この画像は完全に不透明な画素が少ないため使用できません。', errorNotBkfi: 'この画像には、このバージョンのFile in Imageで埋め込まれたデータを確認できませんでした。', errorUnsupportedDev: 'この画像は別の埋め込み形式で作られているため、このバージョンでは開けません。', errorCorrupt: '埋め込みデータが壊れているか、画像が変更されています。', errorHash: 'ファイルを正常に復元できませんでした。画像が変更されている可能性があります。', errorMemory: '画像を処理するためのメモリを確保できませんでした。より小さな画像を試してください。', errorCrypto: 'このブラウザーでは必要なWeb Crypto機能を利用できません。', errorPasswordRequired: 'パスワードを入力してください。', errorPasswordMismatch: '確認用パスワードが一致していません。', errorAuth: 'パスワードが違うか、画像が変更されています。', errorCompression: 'この画像のGZIPデータを展開できません。このブラウザーがDecompressionStreamに対応しているか、画像が変更されていないか確認してください。', errorWorker: 'このブラウザーでは画像処理を開始できません。Web Workerが利用できるか確認してください。', errorGeneric: '処理できませんでした。別のファイルで試してください。'
         },
         en: {
           brandMeta: 'Hide and recover a file inside an image', helpTitle: 'How to use & notes', close: 'Close', introTitle: 'File in Image', lead: 'Hide one arbitrary file in image pixels and recover the original file from the generated PNG.', localBadge: 'Files stay on device', embedTab: 'Embed', extractTab: 'Extract',
-          embedTitle: 'Put a file inside an image', embedBody: 'Choose an image and a file to check whether the file fits.', carrierTitle: 'Choose an image', carrierBody: 'PNG / JPEG / WebP. Output is PNG.', dropImage: 'Drop an image here', orChoose: 'or click to choose', chooseCarrier: 'Choose carrier image', replace: 'Change', dimensions: 'Dimensions', opaquePixels: 'Usable pixels', capacity: 'Embedding capacity', payloadTitle: 'Choose the file to embed', payloadBody: 'Any file type. One file, up to 32 MiB.', dropFile: 'Drop a file here', choosePayload: 'Choose payload file', fitWaiting: 'Choose an image and a file to check capacity.', fitOk: 'This file fits in the image.', fitBad: 'This file does not fit. Choose a larger image or a smaller file.', payloadOriginalSize: 'Original file', storedBodySize: 'Embedded data', compression: 'Compression', gzipUsed: 'GZIP used', gzipSkipped: 'Not compressed', gzipUnavailable: 'Not compressed (API unavailable)', protectionTitle: 'Password protection', protectionBody: 'Encrypt the file before embedding only when you need password protection.', protectWithPassword: 'Protect with a password', protectionNote: 'When enabled, the embedded data including the filename is encrypted.', password: 'Password', passwordConfirm: 'Confirm password', passwordEmpty: 'Enter a password.', passwordMismatch: 'The confirmation password does not match.', passwordReady: 'The embedded data will be protected with AES-256-GCM.', derivingKey: 'Preparing encryption key…', encrypting: 'Encrypting file…', embedAction: 'Embed in image', packing: 'Preparing file…', compressingPayload: 'Compressing file…', analyzingImage: 'Analyzing image detail…', embedding: 'Embedding file…', makingPng: 'Creating PNG…', embedDone: 'File embedded', embedDoneBody: 'Keep the generated PNG unchanged when you save or share it.', outputSize: 'Output size', payloadSize: 'File size', integrity: 'Recovery check', outputWarning: 'Resizing, cropping, JPEG conversion, image editing, or recompression by social/messaging services can make the embedded file unrecoverable.', outputFilename: 'Output filename', savePng: 'Save PNG', pngSaved: 'PNG saved',
+          embedTitle: 'Put a file inside an image', embedBody: 'Choose an image and a file to check whether the file fits.', carrierTitle: 'Choose an image', carrierBody: 'PNG / JPEG / WebP. Output is PNG.', dropImage: 'Drop an image here', orChoose: 'or click to choose', chooseCarrier: 'Choose carrier image', replace: 'Change', dimensions: 'Dimensions', opaquePixels: 'Usable pixels', capacity: 'Embedding capacity', payloadTitle: 'Choose the file to embed', payloadBody: 'Any file type. One file, up to 32 MiB.', dropFile: 'Drop a file here', choosePayload: 'Choose payload file', fitWaiting: 'Choose an image and a file to check capacity.', fitOk: 'This file fits in the image.', fitBad: 'This file does not fit. Choose a larger image or a smaller file.', payloadOriginalSize: 'Original file', storedBodySize: 'Embedded data', compression: 'Compression', gzipUsed: 'GZIP used', gzipSkipped: 'Not compressed', gzipUnavailable: 'Not compressed (API unavailable)', cancel: 'Cancel', cancelled: 'Processing cancelled.', protectionTitle: 'Password protection', protectionBody: 'Encrypt the file before embedding only when you need password protection.', protectWithPassword: 'Protect with a password', protectionNote: 'When enabled, the embedded data including the filename is encrypted.', password: 'Password', passwordConfirm: 'Confirm password', passwordEmpty: 'Enter a password.', passwordMismatch: 'The confirmation password does not match.', passwordReady: 'The embedded data will be protected with AES-256-GCM.', derivingKey: 'Preparing encryption key…', encrypting: 'Encrypting file…', embedAction: 'Embed in image', packing: 'Preparing file…', compressingPayload: 'Compressing file…', analyzingImage: 'Analyzing image detail…', embedding: 'Embedding file…', makingPng: 'Creating PNG…', embedDone: 'File embedded', embedDoneBody: 'Keep the generated PNG unchanged when you save or share it.', outputSize: 'Output size', payloadSize: 'File size', integrity: 'Recovery check', outputWarning: 'Resizing, cropping, JPEG conversion, image editing, or recompression by social/messaging services can make the embedded file unrecoverable.', outputFilename: 'Output filename', savePng: 'Save PNG', pngSaved: 'PNG saved',
           extractTitle: 'Recover a file from an image', extractBody: 'Choose a PNG generated by this tool.', dropEncoded: 'Drop an encoded PNG here', chooseEncoded: 'Choose encoded PNG', passwordRequiredForImage: 'This image is password protected', extractPasswordNote: 'Enter the correct password to decrypt the data, including the original filename.', extractAction: 'Extract file', readingImage: 'Reading image…', extracting: 'Extracting file…', decrypting: 'Decrypting protected data…', decompressing: 'Decompressing embedded data…', verifying: 'Verifying file…', extractDone: 'File verified', extractDoneBody: 'The recovered bytes match the embedded SHA-256 digest.', originalName: 'Original filename', saveAs: 'Save filename', saveFile: 'Save file', fileSaved: 'File saved',
-          helpEmbedTitle: 'Embed', helpEmbed1: 'Choose a PNG, JPEG, or WebP image.', helpEmbed2: 'Choose one file and confirm that it fits the available capacity.', helpEmbed3: 'Run Embed in image and save the PNG.', helpExtractTitle: 'Extract', helpExtract1: 'Switch to Extract and choose a PNG created by this tool.', helpExtract2: 'Run Extract file.', helpExtract3: 'Only a file whose SHA-256 matches can be saved.', helpPrivacyTitle: 'Privacy', helpPrivacyBody: 'Images and files are processed in the browser and are not sent outside by this app. File contents are not saved to browser storage.', helpNotesTitle: 'Notes', helpNoteImage: 'Resizing, cropping, editing, JPEG conversion, or recompressing the generated PNG can destroy the embedded data.', helpNoteCompression: 'GZIP is used only when it makes the data smaller, and fit is checked against the exact stored size.', helpNoteAdaptive: 'The app prioritizes higher-detail areas to make LSB changes less noticeable. This does not make the payload resistant to image editing.', helpNoteEncryption: 'When password protection is enabled, AES-256-GCM encrypts the data including the filename. Without a password, the embedded data is not encrypted.', helpNoteFormat: 'The v0.5.0 embedding format is a development format. The stable v1 compatibility format has not been frozen yet.', helpOffline: 'The app uses no runtime network connection and is designed to work as one local HTML file.',
-          buildInfo: 'Build information', appVersion: 'App version', builtAt: 'Built at', dependencies: 'Embedded dependencies', footer: 'Processed in your browser', errorImageType: 'Choose a PNG, JPEG, or WebP image.', errorImageTooLarge: 'This image exceeds the size supported by this version.', errorImageRead: 'The image could not be read. Check its format or whether the file is damaged.', errorPayloadTooLarge: 'Choose a payload file no larger than 32 MiB.', errorPayloadRead: 'The file could not be read.', errorCapacity: 'The file does not fit in this image.', errorNoOpaque: 'This image does not contain enough fully opaque pixels.', errorNotBkfi: 'No data created by this version of File in Image was found in the image.', errorUnsupportedDev: 'This image uses another embedding format and cannot be opened by this version.', errorCorrupt: 'The embedded data is damaged or the image has been modified.', errorHash: 'The file could not be recovered correctly. The image may have been modified.', errorMemory: 'Not enough memory is available to process this image. Try a smaller image.', errorCrypto: 'Required Web Crypto features are not available in this browser.', errorPasswordRequired: 'Enter the password.', errorPasswordMismatch: 'The confirmation password does not match.', errorAuth: 'The password is incorrect or the image has been modified.', errorCompression: 'The GZIP payload could not be decompressed. Check browser DecompressionStream support or whether the image was modified.', errorGeneric: 'The operation could not be completed. Try another file.'
+          helpEmbedTitle: 'Embed', helpEmbed1: 'Choose a PNG, JPEG, or WebP image.', helpEmbed2: 'Choose one file and confirm that it fits the available capacity.', helpEmbed3: 'Run Embed in image and save the PNG.', helpExtractTitle: 'Extract', helpExtract1: 'Switch to Extract and choose a PNG created by this tool.', helpExtract2: 'Run Extract file.', helpExtract3: 'Only a file whose SHA-256 matches can be saved.', helpPrivacyTitle: 'Privacy', helpPrivacyBody: 'Images and files are processed in the browser and are not sent outside by this app. File contents are not saved to browser storage.', helpNotesTitle: 'Notes', helpNoteImage: 'Resizing, cropping, editing, JPEG conversion, or recompressing the generated PNG can destroy the embedded data.', helpNoteCompression: 'GZIP is used only when it makes the data smaller, and fit is checked against the exact stored size.', helpNoteAdaptive: 'The app prioritizes higher-detail areas to make LSB changes less noticeable. This does not make the payload resistant to image editing.', helpNoteEncryption: 'When password protection is enabled, AES-256-GCM encrypts the data including the filename. Without a password, the embedded data is not encrypted.', helpNoteFormat: 'The v0.6.0 embedding format is a development format. The stable v1 compatibility format has not been frozen yet.', helpOffline: 'The app uses no runtime network connection and is designed to work as one local HTML file.',
+          buildInfo: 'Build information', appVersion: 'App version', builtAt: 'Built at', dependencies: 'Embedded dependencies', footer: 'Processed in your browser', errorImageType: 'Choose a PNG, JPEG, or WebP image.', errorImageTooLarge: 'This image exceeds the size supported by this version.', errorImageRead: 'The image could not be read. Check its format or whether the file is damaged.', errorPayloadTooLarge: 'Choose a payload file no larger than 32 MiB.', errorPayloadRead: 'The file could not be read.', errorCapacity: 'The file does not fit in this image.', errorNoOpaque: 'This image does not contain enough fully opaque pixels.', errorNotBkfi: 'No data created by this version of File in Image was found in the image.', errorUnsupportedDev: 'This image uses another embedding format and cannot be opened by this version.', errorCorrupt: 'The embedded data is damaged or the image has been modified.', errorHash: 'The file could not be recovered correctly. The image may have been modified.', errorMemory: 'Not enough memory is available to process this image. Try a smaller image.', errorCrypto: 'Required Web Crypto features are not available in this browser.', errorPasswordRequired: 'Enter the password.', errorPasswordMismatch: 'The confirmation password does not match.', errorAuth: 'The password is incorrect or the image has been modified.', errorCompression: 'The GZIP payload could not be decompressed. Check browser DecompressionStream support or whether the image was modified.', errorWorker: 'Image processing could not start in this browser. Check Web Worker support.', errorGeneric: 'The operation could not be completed. Try another file.'
         }
       };
 
       let language = readStorage(`${APP_CONFIG.slug}:language`) || detectLanguage();
       let generation = 0;
       const state = { carrier: null, payload: null, encodedBlob: null, extractImage: null, recovered: null };
+      const operationBusy = { embed:false, extract:false };
+      let activeImageTask = null;
+      let imageTaskSequence = 0;
+      let imageWorkerUrl = '';
       let carrierPreviewUrl = '';
       let extractPreviewUrl = '';
       let toastTimer = 0;
@@ -466,7 +480,7 @@
       window.AppToast = AppToast;
       function showToast(message,tone='default') { AppToast.show({ message, tone }); }
       function setError(id,message='') { const el=$(id); el.textContent=message; el.hidden=!message; }
-      function nextGeneration() { generation += 1; return generation; }
+      function nextGeneration() { generation += 1; terminateActiveImageTask('STALE'); return generation; }
       function isCurrent(token) { return token === generation; }
       function revokePreview(kind) { const key=kind==='carrier'?'carrierPreviewUrl':'extractPreviewUrl'; const url=kind==='carrier'?carrierPreviewUrl:extractPreviewUrl; if (url) URL.revokeObjectURL(url); if (key==='carrierPreviewUrl') carrierPreviewUrl=''; else extractPreviewUrl=''; }
       function supportedImage(file) { return ['image/png','image/jpeg','image/webp'].includes(file.type); }
@@ -645,152 +659,6 @@
       function getBit(bytes,bitIndex) { return (bytes[bitIndex>>3]>>(7-(bitIndex&7)))&1; }
       function setBit(bytes,bitIndex,bit) { if (bit) bytes[bitIndex>>3] |= 1<<(7-(bitIndex&7)); }
 
-      function rotl32(value,count) { return ((value<<count)|(value>>>(32-count)))>>>0; }
-      function createXoshiro128ss(seedBytes) {
-        if (!(seedBytes instanceof Uint8Array) || seedBytes.byteLength<16) throw new Error('CORRUPT');
-        const view=new DataView(seedBytes.buffer,seedBytes.byteOffset,seedBytes.byteLength);
-        let s0=view.getUint32(0,false), s1=view.getUint32(4,false), s2=view.getUint32(8,false), s3=view.getUint32(12,false);
-        if ((s0|s1|s2|s3)===0) s0=0x9e3779b9;
-        return () => {
-          const result=Math.imul(rotl32(Math.imul(s1,5)>>>0,7),9)>>>0;
-          const t=(s1<<9)>>>0;
-          s2=(s2^s0)>>>0; s3=(s3^s1)>>>0; s1=(s1^s2)>>>0; s0=(s0^s3)>>>0; s2=(s2^t)>>>0; s3=rotl32(s3,11);
-          return result;
-        };
-      }
-      function shuffleTypedPrefix(values,count,nextRandom) {
-        for (let i=count-1;i>0;i-=1) {
-          const j=nextRandom()%(i+1);
-          const tmp=values[i]; values[i]=values[j]; values[j]=tmp;
-        }
-      }
-      function findHeaderLastPixelIndex(imageData) {
-        const data=imageData.data; let opaque=0;
-        for (let pixel=0,offset=0;offset<data.length;pixel+=1,offset+=4) {
-          if (data[offset+3]!==255) continue;
-          opaque+=1;
-          if (opaque===HEADER_PIXELS) return pixel;
-        }
-        throw new Error('NO_OPAQUE');
-      }
-      function analyzeAdaptiveBlocks(imageData) {
-        const {width,height}=imageData, data=imageData.data, pixelCount=width*height;
-        const luma=new Uint8Array(pixelCount);
-        for (let pixel=0,offset=0;pixel<pixelCount;pixel+=1,offset+=4) {
-          luma[pixel]=data[offset+3]===255 ? (77*(data[offset]&0xFE)+150*(data[offset+1]&0xFE)+29*(data[offset+2]&0xFE))>>8 : 0;
-        }
-        const headerLastPixel=findHeaderLastPixelIndex(imageData);
-        const blocksX=Math.ceil(width/ADAPTIVE_BLOCK_SIZE), blocksY=Math.ceil(height/ADAPTIVE_BLOCK_SIZE), blockCount=blocksX*blocksY;
-        const scores=new Uint32Array(blockCount), scoreCounts=new Uint8Array(blockCount), capacities=new Uint16Array(blockCount);
-        let nonEmpty=0,totalCapacity=0;
-        for (let by=0;by<blocksY;by+=1) {
-          const y0=by*ADAPTIVE_BLOCK_SIZE, y1=Math.min(height,y0+ADAPTIVE_BLOCK_SIZE);
-          for (let bx=0;bx<blocksX;bx+=1) {
-            const x0=bx*ADAPTIVE_BLOCK_SIZE, x1=Math.min(width,x0+ADAPTIVE_BLOCK_SIZE), blockIndex=by*blocksX+bx;
-            let score=0,count=0,capacity=0;
-            for (let y=y0;y<y1;y+=1) for (let x=x0;x<x1;x+=1) {
-              const pixel=y*width+x, offset=pixel*4;
-              if (pixel>headerLastPixel && data[offset+3]===255) capacity+=3;
-            }
-            const sy0=Math.max(1,y0), sy1=Math.min(height-1,y1), sx0=Math.max(1,x0), sx1=Math.min(width-1,x1);
-            for (let y=sy0;y<sy1;y+=1) for (let x=sx0;x<sx1;x+=1) {
-              const p=y*width+x;
-              const tl=luma[p-width-1], tc=luma[p-width], tr=luma[p-width+1], ml=luma[p-1], mr=luma[p+1], bl=luma[p+width-1], bc=luma[p+width], br=luma[p+width+1];
-              const gx=-tl-2*ml-bl+tr+2*mr+br, gy=-tl-2*tc-tr+bl+2*bc+br;
-              score+=Math.abs(gx)+Math.abs(gy); count+=1;
-            }
-            scores[blockIndex]=score; scoreCounts[blockIndex]=count; capacities[blockIndex]=capacity;
-            if (capacity>0) { nonEmpty+=1; totalCapacity+=capacity; }
-          }
-        }
-        const order=new Uint32Array(nonEmpty); let cursor=0;
-        for (let i=0;i<blockCount;i+=1) if (capacities[i]>0) order[cursor++]=i;
-        order.sort((a,b)=>{
-          const ca=scoreCounts[a]||1, cb=scoreCounts[b]||1;
-          const left=scores[a]*cb, right=scores[b]*ca;
-          if (left!==right) return right-left;
-          return a-b;
-        });
-        return { blocksX,headerLastPixel,capacities,order,totalCapacity };
-      }
-      function selectAdaptiveCandidates(analysis,bodyBits) {
-        if (bodyBits>analysis.totalCapacity) throw new Error('CAPACITY');
-        const target=Math.min(analysis.totalCapacity,bodyBits*2);
-        let candidateCapacity=0,candidateCount=0;
-        while (candidateCount<analysis.order.length && candidateCapacity<target) {
-          candidateCapacity+=analysis.capacities[analysis.order[candidateCount]];
-          candidateCount+=1;
-        }
-        return { blocks:analysis.order.slice(0,candidateCount), capacity:candidateCapacity };
-      }
-      function collectBlockSlots(imageData,analysis,blockIndex,slotBuffer) {
-        const {width,height}=imageData, data=imageData.data;
-        const bx=blockIndex%analysis.blocksX, by=Math.floor(blockIndex/analysis.blocksX);
-        const x0=bx*ADAPTIVE_BLOCK_SIZE, x1=Math.min(width,x0+ADAPTIVE_BLOCK_SIZE), y0=by*ADAPTIVE_BLOCK_SIZE, y1=Math.min(height,y0+ADAPTIVE_BLOCK_SIZE);
-        let count=0;
-        for (let y=y0;y<y1;y+=1) for (let x=x0;x<x1;x+=1) {
-          const pixel=y*width+x, offset=pixel*4;
-          if (pixel<=analysis.headerLastPixel || data[offset+3]!==255) continue;
-          slotBuffer[count++]=offset; slotBuffer[count++]=offset+1; slotBuffer[count++]=offset+2;
-        }
-        return count;
-      }
-      function processAdaptiveBody(imageData,body,seedBytes,write,preparedAnalysis=null) {
-        const bodyBits=body.byteLength*8, analysis=preparedAnalysis||analyzeAdaptiveBlocks(imageData), selected=selectAdaptiveCandidates(analysis,bodyBits);
-        const nextRandom=createXoshiro128ss(seedBytes); shuffleTypedPrefix(selected.blocks,selected.blocks.length,nextRandom);
-        const slots=new Uint32Array(ADAPTIVE_SLOT_BUFFER_SIZE);
-        let bitIndex=0,remainingBits=bodyBits,remainingSlots=selected.capacity;
-        for (let i=0;i<selected.blocks.length && remainingBits>0;i+=1) {
-          const slotCount=collectBlockSlots(imageData,analysis,selected.blocks[i],slots);
-          shuffleTypedPrefix(slots,slotCount,nextRandom);
-          let take=remainingSlots===slotCount ? remainingBits : Math.floor(slotCount*remainingBits/remainingSlots);
-          if (take>remainingBits) take=remainingBits;
-          for (let s=0;s<take;s+=1) {
-            const offset=slots[s];
-            if (write) imageData.data[offset]=(imageData.data[offset]&0xFE)|getBit(body,bitIndex);
-            else setBit(body,bitIndex,imageData.data[offset]&1);
-            bitIndex+=1;
-          }
-          remainingBits-=take; remainingSlots-=slotCount;
-        }
-        if (bitIndex!==bodyBits) throw new Error(write?'CAPACITY':'CORRUPT');
-      }
-      function embedHeaderOnly(imageData,header) {
-        const data=imageData.data; let opaqueIndex=0,headerBit=0;
-        for (let px=0;px<data.length && headerBit<HEADER_BITS;px+=4) {
-          if (data[px+3]!==255) continue;
-          if (opaqueIndex<HEADER_PIXELS) for (let channel=0;channel<3 && headerBit<HEADER_BITS;channel+=1) data[px+channel]=(data[px+channel]&0xFE)|getBit(header,headerBit++);
-          opaqueIndex+=1;
-        }
-        if (headerBit!==HEADER_BITS) throw new Error('CAPACITY');
-      }
-      function embedAdaptive(imageData,header,body,seedBytes) {
-        const analysis=analyzeAdaptiveBlocks(imageData);
-        const copy=new ImageData(new Uint8ClampedArray(imageData.data),imageData.width,imageData.height);
-        embedHeaderOnly(copy,header);
-        processAdaptiveBody(copy,body,seedBytes,true,analysis);
-        return copy;
-      }
-      function extractAdaptive(imageData,outer,seedBytes) {
-        const body=new Uint8Array(outer.bodyLength);
-        processAdaptiveBody(imageData,body,seedBytes,false);
-        return { body,outer };
-      }
-
-      function embedSequential(imageData,header,body) {
-        const copy=new ImageData(new Uint8ClampedArray(imageData.data),imageData.width,imageData.height); const data=copy.data; let opaqueIndex=0; let headerBit=0; let bodyBit=0; const bodyBits=body.length*8;
-        for (let px=0;px<data.length;px+=4) {
-          if (data[px+3]!==255) continue;
-          if (opaqueIndex<HEADER_PIXELS) {
-            for (let channel=0;channel<3;channel+=1) { if (headerBit<HEADER_BITS) { const bit=getBit(header,headerBit++); data[px+channel]=(data[px+channel]&0xFE)|bit; } }
-          } else if (bodyBit<bodyBits) {
-            for (let channel=0;channel<3 && bodyBit<bodyBits;channel+=1) { const bit=getBit(body,bodyBit++); data[px+channel]=(data[px+channel]&0xFE)|bit; }
-          }
-          opaqueIndex+=1; if (headerBit>=HEADER_BITS && bodyBit>=bodyBits) break;
-        }
-        if (headerBit!==HEADER_BITS || bodyBit!==bodyBits) throw new Error('CAPACITY'); return copy;
-      }
-
       function extractOuterHeader(imageData) {
         const data=imageData.data; const header=new Uint8Array(OUTER_HEADER_BYTES); let opaqueIndex=0; let headerBit=0;
         for (let px=0;px<data.length && headerBit<HEADER_BITS;px+=4) {
@@ -802,23 +670,261 @@
         return parseOuter(header);
       }
 
-      function extractSequential(imageData,outer=null) {
-        const parsed=outer||extractOuterHeader(imageData);
-        const capacity=bodyCapacityBytes(countOpaque(imageData)); if (parsed.bodyLength>capacity) throw new Error('CORRUPT');
-        const data=imageData.data; const body=new Uint8Array(parsed.bodyLength); const bodyBits=parsed.bodyLength*8; let bodyBit=0; let opaqueIndex=0;
-        for (let px=0;px<data.length && bodyBit<bodyBits;px+=4) {
-          if (data[px+3]!==255) continue;
-          if (opaqueIndex>=HEADER_PIXELS) for (let channel=0;channel<3 && bodyBit<bodyBits;channel+=1) setBit(body,bodyBit++,data[px+channel]&1);
-          opaqueIndex+=1;
+      function imageWorkerMain() {
+        'use strict';
+        const HEADER_PIXELS=214, HEADER_BITS=640, ADAPTIVE_BLOCK_SIZE=8, ADAPTIVE_SLOT_BUFFER_SIZE=192, LEGACY_EMBEDDING_MODE=0, ADAPTIVE_EMBEDDING_MODE=1;
+        function getBit(bytes,bitIndex) { return (bytes[bitIndex>>3]>>(7-(bitIndex&7)))&1; }
+        function setBit(bytes,bitIndex,bit) { if (bit) bytes[bitIndex>>3]|=1<<(7-(bitIndex&7)); }
+        function rotl32(value,count) { return ((value<<count)|(value>>>(32-count)))>>>0; }
+        function createXoshiro128ss(seedBytes) {
+          if (!(seedBytes instanceof Uint8Array) || seedBytes.byteLength<16) throw new Error('CORRUPT');
+          const view=new DataView(seedBytes.buffer,seedBytes.byteOffset,seedBytes.byteLength);
+          let s0=view.getUint32(0,false),s1=view.getUint32(4,false),s2=view.getUint32(8,false),s3=view.getUint32(12,false);
+          if ((s0|s1|s2|s3)===0) s0=0x9e3779b9;
+          return () => {
+            const result=Math.imul(rotl32(Math.imul(s1,5)>>>0,7),9)>>>0;
+            const t=(s1<<9)>>>0;
+            s2=(s2^s0)>>>0; s3=(s3^s1)>>>0; s1=(s1^s2)>>>0; s0=(s0^s3)>>>0; s2=(s2^t)>>>0; s3=rotl32(s3,11);
+            return result;
+          };
         }
-        if (bodyBit!==bodyBits) throw new Error('CORRUPT');
-        return { body, outer:parsed };
+        function shuffleTypedPrefix(values,count,nextRandom) {
+          for (let i=count-1;i>0;i-=1) { const j=nextRandom()%(i+1); const temp=values[i]; values[i]=values[j]; values[j]=temp; }
+        }
+        function createReporter() {
+          let last=-3;
+          return (stage,value) => {
+            const progress=Math.max(0,Math.min(100,Math.round(value)));
+            if (progress>=100 || progress-last>=2) { last=progress; self.postMessage({type:'progress',stage,progress}); }
+          };
+        }
+        function findHeaderLastPixelIndex(imageData) {
+          const data=imageData.data; let opaque=0;
+          for (let pixel=0,offset=0;offset<data.length;pixel+=1,offset+=4) {
+            if (data[offset+3]!==255) continue;
+            opaque+=1;
+            if (opaque===HEADER_PIXELS) return pixel;
+          }
+          throw new Error('NO_OPAQUE');
+        }
+        function analyzeAdaptiveBlocks(imageData,report) {
+          const {width,height}=imageData,data=imageData.data,pixelCount=width*height;
+          const luma=new Uint8Array(pixelCount);
+          const pixelStep=Math.max(1,Math.floor(pixelCount/40));
+          for (let pixel=0,offset=0;pixel<pixelCount;pixel+=1,offset+=4) {
+            luma[pixel]=data[offset+3]===255 ? (77*(data[offset]&0xFE)+150*(data[offset+1]&0xFE)+29*(data[offset+2]&0xFE))>>8 : 0;
+            if (pixel%pixelStep===0) report('analyzingImage',pixel/pixelCount*24);
+          }
+          const headerLastPixel=findHeaderLastPixelIndex(imageData);
+          const blocksX=Math.ceil(width/ADAPTIVE_BLOCK_SIZE),blocksY=Math.ceil(height/ADAPTIVE_BLOCK_SIZE),blockCount=blocksX*blocksY;
+          const scores=new Uint32Array(blockCount),scoreCounts=new Uint8Array(blockCount),capacities=new Uint16Array(blockCount);
+          let nonEmpty=0,totalCapacity=0;
+          for (let by=0;by<blocksY;by+=1) {
+            const y0=by*ADAPTIVE_BLOCK_SIZE,y1=Math.min(height,y0+ADAPTIVE_BLOCK_SIZE);
+            for (let bx=0;bx<blocksX;bx+=1) {
+              const x0=bx*ADAPTIVE_BLOCK_SIZE,x1=Math.min(width,x0+ADAPTIVE_BLOCK_SIZE),blockIndex=by*blocksX+bx;
+              let score=0,count=0,capacity=0;
+              for (let y=y0;y<y1;y+=1) for (let x=x0;x<x1;x+=1) {
+                const pixel=y*width+x,offset=pixel*4;
+                if (pixel>headerLastPixel && data[offset+3]===255) capacity+=3;
+              }
+              const sy0=Math.max(1,y0),sy1=Math.min(height-1,y1),sx0=Math.max(1,x0),sx1=Math.min(width-1,x1);
+              for (let y=sy0;y<sy1;y+=1) for (let x=sx0;x<sx1;x+=1) {
+                const p=y*width+x;
+                const tl=luma[p-width-1],tc=luma[p-width],tr=luma[p-width+1],ml=luma[p-1],mr=luma[p+1],bl=luma[p+width-1],bc=luma[p+width],br=luma[p+width+1];
+                const gx=-tl-2*ml-bl+tr+2*mr+br,gy=-tl-2*tc-tr+bl+2*bc+br;
+                score+=Math.abs(gx)+Math.abs(gy); count+=1;
+              }
+              scores[blockIndex]=score; scoreCounts[blockIndex]=count; capacities[blockIndex]=capacity;
+              if (capacity>0) { nonEmpty+=1; totalCapacity+=capacity; }
+            }
+            report('analyzingImage',24+(by+1)/blocksY*48);
+          }
+          const order=new Uint32Array(nonEmpty); let cursor=0;
+          for (let i=0;i<blockCount;i+=1) if (capacities[i]>0) order[cursor++]=i;
+          order.sort((a,b)=>{
+            const ca=scoreCounts[a]||1,cb=scoreCounts[b]||1,left=scores[a]*cb,right=scores[b]*ca;
+            if (left!==right) return right-left;
+            return a-b;
+          });
+          report('analyzingImage',75);
+          return {blocksX,headerLastPixel,capacities,order,totalCapacity};
+        }
+        function selectAdaptiveCandidates(analysis,bodyBits) {
+          if (bodyBits>analysis.totalCapacity) throw new Error('CAPACITY');
+          const target=Math.min(analysis.totalCapacity,bodyBits*2);
+          let candidateCapacity=0,candidateCount=0;
+          while (candidateCount<analysis.order.length && candidateCapacity<target) {
+            candidateCapacity+=analysis.capacities[analysis.order[candidateCount]];
+            candidateCount+=1;
+          }
+          return {blocks:analysis.order.slice(0,candidateCount),capacity:candidateCapacity};
+        }
+        function collectBlockSlots(imageData,analysis,blockIndex,slotBuffer) {
+          const {width,height}=imageData,data=imageData.data;
+          const bx=blockIndex%analysis.blocksX,by=Math.floor(blockIndex/analysis.blocksX);
+          const x0=bx*ADAPTIVE_BLOCK_SIZE,x1=Math.min(width,x0+ADAPTIVE_BLOCK_SIZE),y0=by*ADAPTIVE_BLOCK_SIZE,y1=Math.min(height,y0+ADAPTIVE_BLOCK_SIZE);
+          let count=0;
+          for (let y=y0;y<y1;y+=1) for (let x=x0;x<x1;x+=1) {
+            const pixel=y*width+x,offset=pixel*4;
+            if (pixel<=analysis.headerLastPixel || data[offset+3]!==255) continue;
+            slotBuffer[count++]=offset; slotBuffer[count++]=offset+1; slotBuffer[count++]=offset+2;
+          }
+          return count;
+        }
+        function processAdaptiveBody(imageData,body,seedBytes,write,analysis,report,stage) {
+          const bodyBits=body.byteLength*8,selected=selectAdaptiveCandidates(analysis,bodyBits);
+          const nextRandom=createXoshiro128ss(seedBytes); shuffleTypedPrefix(selected.blocks,selected.blocks.length,nextRandom);
+          const slots=new Uint32Array(ADAPTIVE_SLOT_BUFFER_SIZE);
+          let bitIndex=0,remainingBits=bodyBits,remainingSlots=selected.capacity;
+          for (let i=0;i<selected.blocks.length && remainingBits>0;i+=1) {
+            const slotCount=collectBlockSlots(imageData,analysis,selected.blocks[i],slots);
+            shuffleTypedPrefix(slots,slotCount,nextRandom);
+            let take=remainingSlots===slotCount ? remainingBits : Math.floor(slotCount*remainingBits/remainingSlots);
+            if (take>remainingBits) take=remainingBits;
+            for (let s=0;s<take;s+=1) {
+              const offset=slots[s];
+              if (write) imageData.data[offset]=(imageData.data[offset]&0xFE)|getBit(body,bitIndex);
+              else setBit(body,bitIndex,imageData.data[offset]&1);
+              bitIndex+=1;
+            }
+            remainingBits-=take; remainingSlots-=slotCount;
+            report(stage,75+(i+1)/selected.blocks.length*25);
+          }
+          if (bitIndex!==bodyBits) throw new Error(write?'CAPACITY':'CORRUPT');
+        }
+        function embedHeaderOnly(imageData,header) {
+          const data=imageData.data; let opaqueIndex=0,headerBit=0;
+          for (let px=0;px<data.length && headerBit<HEADER_BITS;px+=4) {
+            if (data[px+3]!==255) continue;
+            if (opaqueIndex<HEADER_PIXELS) for (let channel=0;channel<3 && headerBit<HEADER_BITS;channel+=1) data[px+channel]=(data[px+channel]&0xFE)|getBit(header,headerBit++);
+            opaqueIndex+=1;
+          }
+          if (headerBit!==HEADER_BITS) throw new Error('CAPACITY');
+        }
+        function extractSequential(imageData,bodyLength,report) {
+          const data=imageData.data,body=new Uint8Array(bodyLength),bodyBits=bodyLength*8;
+          let bodyBit=0,opaqueIndex=0;
+          const step=Math.max(1,Math.floor(data.length/160));
+          for (let px=0;px<data.length && bodyBit<bodyBits;px+=4) {
+            if (data[px+3]!==255) continue;
+            if (opaqueIndex>=HEADER_PIXELS) for (let channel=0;channel<3 && bodyBit<bodyBits;channel+=1) setBit(body,bodyBit++,data[px+channel]&1);
+            opaqueIndex+=1;
+            if (px%step===0) report('extracting',Math.min(99,px/data.length*100));
+          }
+          if (bodyBit!==bodyBits) throw new Error('CORRUPT');
+          report('extracting',100);
+          return body;
+        }
+        self.onmessage=event=>{
+          const message=event.data||{},report=createReporter();
+          try {
+            if (!(message.imageBuffer instanceof ArrayBuffer)) throw new Error('CORRUPT');
+            const imageData={width:message.width,height:message.height,data:new Uint8ClampedArray(message.imageBuffer)};
+            if (message.operation==='embed') {
+              const header=new Uint8Array(message.headerBuffer),body=new Uint8Array(message.bodyBuffer),seed=new Uint8Array(message.seedBuffer);
+              const analysis=analyzeAdaptiveBlocks(imageData,report);
+              embedHeaderOnly(imageData,header);
+              processAdaptiveBody(imageData,body,seed,true,analysis,report,'embedding');
+              report('embedding',100);
+              self.postMessage({type:'result',operation:'embed',imageBuffer:imageData.data.buffer},[imageData.data.buffer]);
+              return;
+            }
+            if (message.operation==='extract') {
+              let body;
+              if (message.mode===ADAPTIVE_EMBEDDING_MODE) {
+                const seed=new Uint8Array(message.seedBuffer);
+                const analysis=analyzeAdaptiveBlocks(imageData,report);
+                body=new Uint8Array(message.bodyLength);
+                processAdaptiveBody(imageData,body,seed,false,analysis,report,'extracting');
+              } else if (message.mode===LEGACY_EMBEDDING_MODE) {
+                body=extractSequential(imageData,message.bodyLength,report);
+              } else throw new Error('CORRUPT');
+              self.postMessage({type:'result',operation:'extract',bodyBuffer:body.buffer},[body.buffer]);
+              return;
+            }
+            throw new Error('CORRUPT');
+          } catch (error) {
+            self.postMessage({type:'error',code:error?.message||'WORKER_FAILED'});
+          }
+        };
+      }
+
+      function getImageWorkerUrl() {
+        if (imageWorkerUrl) return imageWorkerUrl;
+        if (typeof Worker!=='function' || typeof Blob!=='function' || !URL?.createObjectURL) throw new Error('WORKER_UNAVAILABLE');
+        imageWorkerUrl=URL.createObjectURL(new Blob([`(${imageWorkerMain.toString()})();`],{type:'text/javascript'}));
+        return imageWorkerUrl;
+      }
+      function terminateActiveImageTask(reason='CANCELLED') {
+        const task=activeImageTask;
+        if (!task) return;
+        activeImageTask=null;
+        task.worker.terminate();
+        task.reject(new Error(reason));
+      }
+      function setOperationProgress(kind,stageKey,percent) {
+        const status=$(kind==='embed'?'#embedStatus':'#extractStatus');
+        const progress=$(kind==='embed'?'#embedProgress':'#extractProgress');
+        status.textContent=t(stageKey);
+        progress.hidden=false;
+        progress.value=Math.max(0,Math.min(100,Math.round(percent)));
+      }
+      function clearOperationProgress(kind,{message=''}={}) {
+        const status=$(kind==='embed'?'#embedStatus':'#extractStatus');
+        const progress=$(kind==='embed'?'#embedProgress':'#extractProgress');
+        status.textContent=message;
+        progress.hidden=true; progress.value=0;
+      }
+      function setOperationBusy(kind,busy) {
+        operationBusy[kind]=busy;
+        $(kind==='embed'?'#cancelEmbedButton':'#cancelExtractButton').hidden=!busy;
+        if (kind==='embed') refreshFit(); else refreshExtractReady();
+      }
+      function cancelOperation(kind,{announce=true}={}) {
+        generation+=1;
+        terminateActiveImageTask('CANCELLED');
+        setOperationBusy(kind,false);
+        clearOperationProgress(kind,{message:announce?t('cancelled'):''});
+      }
+      function runImageWorkerTask({kind,operation,imageData,header=null,body=null,seedBytes=null,mode=null,bodyLength=null,progressFrom=0,progressTo=100}) {
+        terminateActiveImageTask('STALE');
+        const taskId=++imageTaskSequence,worker=new Worker(getImageWorkerUrl());
+        const imageBytes=new Uint8ClampedArray(imageData.data);
+        const message={operation,width:imageData.width,height:imageData.height,imageBuffer:imageBytes.buffer};
+        const transfers=[imageBytes.buffer];
+        if (operation==='embed') {
+          const headerCopy=new Uint8Array(header),bodyCopy=new Uint8Array(body),seedCopy=new Uint8Array(seedBytes);
+          message.headerBuffer=headerCopy.buffer; message.bodyBuffer=bodyCopy.buffer; message.seedBuffer=seedCopy.buffer;
+          transfers.push(headerCopy.buffer,bodyCopy.buffer,seedCopy.buffer);
+        } else {
+          message.mode=mode; message.bodyLength=bodyLength;
+          const seedCopy=seedBytes instanceof Uint8Array ? new Uint8Array(seedBytes) : new Uint8Array(0);
+          message.seedBuffer=seedCopy.buffer; transfers.push(seedCopy.buffer);
+        }
+        return new Promise((resolve,reject)=>{
+          activeImageTask={id:taskId,kind,worker,reject};
+          const cleanup=()=>{ if (activeImageTask?.id===taskId) activeImageTask=null; worker.terminate(); };
+          worker.onmessage=event=>{
+            if (activeImageTask?.id!==taskId) return;
+            const data=event.data||{};
+            if (data.type==='progress') {
+              const mapped=progressFrom+(progressTo-progressFrom)*(Math.max(0,Math.min(100,data.progress))/100);
+              setOperationProgress(kind,data.stage,mapped);
+              return;
+            }
+            if (data.type==='error') { cleanup(); reject(new Error(data.code||'WORKER_FAILED')); return; }
+            if (data.type==='result') { cleanup(); resolve(data); }
+          };
+          worker.onerror=()=>{ cleanup(); reject(new Error('WORKER_FAILED')); };
+          try { worker.postMessage(message,transfers); } catch { cleanup(); reject(new Error('WORKER_FAILED')); }
+        });
       }
 
       async function imageDataToPng(imageData) { const canvas=document.createElement('canvas'); canvas.width=imageData.width; canvas.height=imageData.height; const ctx=canvas.getContext('2d'); if (!ctx) throw new Error('MEMORY'); ctx.putImageData(imageData,0,0); return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('MEMORY')),'image/png')); }
       function downloadBlob(blob,filename) { const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); }
 
-      function friendlyError(error) { const code=error?.message||''; const map={ IMAGE_TYPE:'errorImageType', IMAGE_TOO_LARGE:'errorImageTooLarge', IMAGE_READ:'errorImageRead', PAYLOAD_TOO_LARGE:'errorPayloadTooLarge', PAYLOAD_READ:'errorPayloadRead', CAPACITY:'errorCapacity', NO_OPAQUE:'errorNoOpaque', NOT_BKFI:'errorNotBkfi', UNSUPPORTED_DEV:'errorUnsupportedDev', CORRUPT:'errorCorrupt', HASH_MISMATCH:'errorHash', MEMORY:'errorMemory', CRYPTO_UNAVAILABLE:'errorCrypto', PASSWORD_REQUIRED:'errorPasswordRequired', PASSWORD_MISMATCH:'errorPasswordMismatch', AUTH_FAILED:'errorAuth', COMPRESSION_UNAVAILABLE:'errorCompression', DECOMPRESS_FAILED:'errorCompression', DECOMPRESS_TOO_LARGE:'errorCompression' }; return t(map[code]||'errorGeneric'); }
+      function friendlyError(error) { const code=error?.message||''; const map={ IMAGE_TYPE:'errorImageType', IMAGE_TOO_LARGE:'errorImageTooLarge', IMAGE_READ:'errorImageRead', PAYLOAD_TOO_LARGE:'errorPayloadTooLarge', PAYLOAD_READ:'errorPayloadRead', CAPACITY:'errorCapacity', NO_OPAQUE:'errorNoOpaque', NOT_BKFI:'errorNotBkfi', UNSUPPORTED_DEV:'errorUnsupportedDev', CORRUPT:'errorCorrupt', HASH_MISMATCH:'errorHash', MEMORY:'errorMemory', CRYPTO_UNAVAILABLE:'errorCrypto', PASSWORD_REQUIRED:'errorPasswordRequired', PASSWORD_MISMATCH:'errorPasswordMismatch', AUTH_FAILED:'errorAuth', COMPRESSION_UNAVAILABLE:'errorCompression', DECOMPRESS_FAILED:'errorCompression', DECOMPRESS_TOO_LARGE:'errorCompression', WORKER_UNAVAILABLE:'errorWorker', WORKER_FAILED:'errorWorker' }; return t(map[code]||'errorGeneric'); }
 
       function refreshCarrierUi() {
         const c=state.carrier; $('#carrierEmpty').hidden=Boolean(c); $('#carrierSummary').hidden=!c; $('#carrierMetrics').hidden=!c;
@@ -851,22 +957,22 @@
         box.className='fit-status neutral';
         if (!c||!p) { box.textContent=t('fitWaiting'); $('#embedButton').disabled=true; return; }
         const needed=predictedStoredBodyLength();
-        if (needed<=c.capacity) { box.className='fit-status ok'; box.textContent=`${t('fitOk')} ${formatBytes(needed)} / ${formatBytes(c.capacity)}`; $('#embedButton').disabled=!protection.valid; }
+        if (needed<=c.capacity) { box.className='fit-status ok'; box.textContent=`${t('fitOk')} ${formatBytes(needed)} / ${formatBytes(c.capacity)}`; $('#embedButton').disabled=operationBusy.embed||!protection.valid; }
         else { box.className='fit-status bad'; box.textContent=`${t('fitBad')} ${formatBytes(needed)} / ${formatBytes(c.capacity)}`; $('#embedButton').disabled=true; }
       }
       function refreshExtractReady() {
         const image=state.extractImage;
-        $('#extractButton').disabled=!image || (image.outer.encrypted && !$('#extractPassword').value);
+        $('#extractButton').disabled=operationBusy.extract || !image || (image.outer.encrypted && !$('#extractPassword').value);
       }
 
       async function selectCarrier(file) {
-        const token=nextGeneration(); setError('#embedError'); state.carrier=null; state.encodedBlob=null; $('#embedResult').hidden=true; refreshCarrierUi();
+        const token=nextGeneration(); setOperationBusy('embed',false); clearOperationProgress('embed'); setError('#embedError'); state.carrier=null; state.encodedBlob=null; $('#embedResult').hidden=true; refreshCarrierUi();
         try { if (!file || (!supportedImage(file) && file.type)) throw new Error('IMAGE_TYPE'); $('#embedStatus').textContent=t('readingImage'); const decoded=await decodeImage(file); if (!isCurrent(token)) return; const opaqueCount=countOpaque(decoded.imageData); if (opaqueCount<HEADER_PIXELS) throw new Error('NO_OPAQUE'); state.carrier={ file,...decoded,opaqueCount,capacity:bodyCapacityBytes(opaqueCount) }; revokePreview('carrier'); carrierPreviewUrl=URL.createObjectURL(file); $('#carrierThumb').src=carrierPreviewUrl; $('#outputFilename').value=sanitizeBase(`${baseFromName(file.name)}-with-file`,'file-in-image'); $('#embedStatus').textContent=''; refreshCarrierUi(); }
         catch (error) { if (isCurrent(token)) { $('#embedStatus').textContent=''; setError('#embedError',friendlyError(error)); refreshCarrierUi(); } }
       }
 
       async function selectPayload(file) {
-        const token=nextGeneration(); setError('#embedError'); state.payload=null; state.encodedBlob=null; $('#embedResult').hidden=true; refreshPayloadUi();
+        const token=nextGeneration(); setOperationBusy('embed',false); clearOperationProgress('embed'); setError('#embedError'); state.payload=null; state.encodedBlob=null; $('#embedResult').hidden=true; refreshPayloadUi();
         try {
           if (!file) return;
           if (file.size>MAX_PAYLOAD_BYTES) throw new Error('PAYLOAD_TOO_LARGE');
@@ -886,17 +992,18 @@
       }
 
       async function runEmbed() {
-        if (!state.carrier||!state.payload) return; const token=generation; const protection=embedProtectionState(); setError('#embedError'); $('#embedButton').disabled=true; $('#embedResult').hidden=true;
+        if (!state.carrier||!state.payload) return;
+        const token=generation,protection=embedProtectionState();
+        setError('#embedError'); $('#embedResult').hidden=true; setOperationBusy('embed',true); setOperationProgress('embed','packing',2);
         try {
           if (!protection.valid) throw new Error(protection.reason==='mismatch'?'PASSWORD_MISMATCH':'PASSWORD_REQUIRED');
-          let body=state.payload.body, header, placementSeed;
+          let body=state.payload.body,header,placementSeed;
           if (protection.enabled) {
             if (body.byteLength+AES_GCM_TAG_BYTES>state.carrier.capacity) throw new Error('CAPACITY');
-            $('#embedStatus').textContent=t('derivingKey'); await new Promise(resolve=>setTimeout(resolve,0));
-            if (!isCurrent(token)) return;
-            $('#embedStatus').textContent=t('encrypting');
+            setOperationProgress('embed','derivingKey',7);
             const encrypted=await encryptStoredBody(body,protection.password,state.payload.compressed);
             if (!isCurrent(token)) return;
+            setOperationProgress('embed','encrypting',20);
             header=encrypted.header; body=encrypted.body; placementSeed=encrypted.placementSeed;
           } else {
             if (body.byteLength>state.carrier.capacity) throw new Error('CAPACITY');
@@ -905,21 +1012,30 @@
             placementSeed=await derivePlacementSeed(null,placementSalt);
             if (!isCurrent(token)) return;
           }
-          $('#embedStatus').textContent=t('analyzingImage'); await new Promise(resolve=>setTimeout(resolve,0));
-          const modified=embedAdaptive(state.carrier.imageData,header,body,placementSeed); if (!isCurrent(token)) return;
-          $('#embedStatus').textContent=t('makingPng'); const blob=await imageDataToPng(modified); if (!isCurrent(token)) return;
+          const workerResult=await runImageWorkerTask({kind:'embed',operation:'embed',imageData:state.carrier.imageData,header,body,seedBytes:placementSeed,progressFrom:25,progressTo:88});
+          if (!isCurrent(token)) return;
+          const modified=new ImageData(new Uint8ClampedArray(workerResult.imageBuffer),state.carrier.width,state.carrier.height);
+          setOperationProgress('embed','makingPng',93);
+          const blob=await imageDataToPng(modified);
+          if (!isCurrent(token)) return;
           state.encodedBlob=blob;
           $('#encodedBlobSize').textContent=formatBytes(blob.size);
           $('#encodedPayloadSize').textContent=formatBytes(state.payload.file.size);
           $('#encodedStoredSize').textContent=`${formatBytes(body.byteLength)}${state.payload.compressed?' · GZIP':''}${protection.enabled?' · AES-256-GCM':''}`;
-          $('#embedResult').hidden=false; $('#embedStatus').textContent=''; $('#savePngButton').focus({preventScroll:true});
+          setOperationProgress('embed','makingPng',100);
+          $('#embedResult').hidden=false; $('#savePngButton').focus({preventScroll:true});
+          clearOperationProgress('embed');
         }
-        catch (error) { if (isCurrent(token)) { $('#embedStatus').textContent=''; setError('#embedError',friendlyError(error)); } }
-        finally { refreshFit(); }
+        catch (error) {
+          if (isCurrent(token) && error?.message!=='CANCELLED' && error?.message!=='STALE') { clearOperationProgress('embed'); setError('#embedError',friendlyError(error)); }
+        }
+        finally {
+          if (isCurrent(token)) { setOperationBusy('embed',false); refreshFit(); }
+        }
       }
 
       async function selectExtractImage(file) {
-        const token=nextGeneration(); setError('#extractError'); state.extractImage=null; state.recovered=null; $('#extractResult').hidden=true; $('#extractButton').disabled=true; $('#extractPasswordBox').hidden=true; $('#extractPassword').value='';
+        const token=nextGeneration(); setOperationBusy('extract',false); clearOperationProgress('extract'); setError('#extractError'); state.extractImage=null; state.recovered=null; $('#extractResult').hidden=true; $('#extractButton').disabled=true; $('#extractPasswordBox').hidden=true; $('#extractPassword').value='';
         try {
           if (!file || file.type!=='image/png') throw new Error('IMAGE_TYPE');
           $('#extractStatus').textContent=t('readingImage');
@@ -937,42 +1053,43 @@
       }
 
       async function runExtract() {
-        if (!state.extractImage) return; const token=generation; setError('#extractError'); $('#extractButton').disabled=true; $('#extractResult').hidden=true;
+        if (!state.extractImage) return;
+        const token=generation; setError('#extractError'); $('#extractResult').hidden=true; setOperationBusy('extract',true); setOperationProgress('extract','extracting',2);
         let cryptoMaterial=null;
         try {
           const outer=state.extractImage.outer;
           let placementSeed=null;
           if (outer.encrypted) {
             const password=$('#extractPassword').value; if (!password) throw new Error('PASSWORD_REQUIRED');
-            $('#extractStatus').textContent=t('derivingKey'); await new Promise(resolve=>setTimeout(resolve,0));
+            setOperationProgress('extract','derivingKey',7);
             cryptoMaterial=await deriveCryptoMaterial(password,outer.salt,outer.iterations); if (!isCurrent(token)) return;
             if (outer.mode===ADAPTIVE_EMBEDDING_MODE) placementSeed=await derivePlacementSeed(cryptoMaterial.placementMaterial,outer.placementSalt);
           } else if (outer.mode===ADAPTIVE_EMBEDDING_MODE) {
             placementSeed=await derivePlacementSeed(null,outer.placementSalt);
           }
           if (!isCurrent(token)) return;
-          $('#extractStatus').textContent=outer.mode===ADAPTIVE_EMBEDDING_MODE?t('analyzingImage'):t('extracting'); await new Promise(resolve=>setTimeout(resolve,0));
-          const extracted=outer.mode===ADAPTIVE_EMBEDDING_MODE ? extractAdaptive(state.extractImage.imageData,outer,placementSeed) : extractSequential(state.extractImage.imageData,outer);
+          const workerResult=await runImageWorkerTask({kind:'extract',operation:'extract',imageData:state.extractImage.imageData,seedBytes:placementSeed,mode:outer.mode,bodyLength:outer.bodyLength,progressFrom:15,progressTo:68});
           if (!isCurrent(token)) return;
-          let body=extracted.body;
+          let body=new Uint8Array(workerResult.bodyBuffer);
           if (outer.encrypted) {
-            $('#extractStatus').textContent=t('decrypting'); body=await decryptStoredBodyWithKey(body,cryptoMaterial.aesKey,outer); if (!isCurrent(token)) return;
+            setOperationProgress('extract','decrypting',75);
+            body=await decryptStoredBodyWithKey(body,cryptoMaterial.aesKey,outer); if (!isCurrent(token)) return;
           }
-          if (outer.compressed) { $('#extractStatus').textContent=t('decompressing'); body=await gunzipBytesLimited(body); if (!isCurrent(token)) return; }
-          const parsed=parseInner(body); $('#extractStatus').textContent=t('verifying');
+          if (outer.compressed) { setOperationProgress('extract','decompressing',84); body=await gunzipBytesLimited(body); if (!isCurrent(token)) return; }
+          const parsed=parseInner(body); setOperationProgress('extract','verifying',94);
           const actualHash=await sha256(parsed.fileBytes); if (!isCurrent(token)) return;
           if (!bytesEqual(actualHash,parsed.expectedHash)) throw new Error('HASH_MISMATCH');
-          state.recovered=parsed; $('#recoveredOriginalName').textContent=parsed.filename; $('#recoveredSize').textContent=formatBytes(parsed.fileBytes.length); $('#recoveredFilename').value=sanitizeFullFilename(parsed.filename,'recovered-file.bin'); $('#hashResult').textContent=outer.encrypted?'AES-GCM + SHA-256 ✓':'SHA-256 ✓'; $('#extractResult').hidden=false; $('#extractStatus').textContent=''; $('#saveRecoveredButton').focus({preventScroll:true});
+          state.recovered=parsed; $('#recoveredOriginalName').textContent=parsed.filename; $('#recoveredSize').textContent=formatBytes(parsed.fileBytes.length); $('#recoveredFilename').value=sanitizeFullFilename(parsed.filename,'recovered-file.bin'); $('#hashResult').textContent=outer.encrypted?'AES-GCM + SHA-256 ✓':'SHA-256 ✓'; setOperationProgress('extract','verifying',100); $('#extractResult').hidden=false; $('#saveRecoveredButton').focus({preventScroll:true}); clearOperationProgress('extract');
         }
         catch (error) {
-          if (isCurrent(token)) {
-            $('#extractStatus').textContent=''; setError('#extractError',friendlyError(error));
+          if (isCurrent(token) && error?.message!=='CANCELLED' && error?.message!=='STALE') {
+            clearOperationProgress('extract'); setError('#extractError',friendlyError(error));
             if (error?.message==='AUTH_FAILED') { $('#extractPassword').focus({preventScroll:true}); $('#extractPassword').select(); }
           }
         }
         finally {
           if (cryptoMaterial?.placementMaterial) cryptoMaterial.placementMaterial.fill(0);
-          refreshExtractReady();
+          if (isCurrent(token)) { setOperationBusy('extract',false); refreshExtractReady(); }
         }
       }
 
@@ -983,7 +1100,7 @@
         document.documentElement.lang=language; document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);}); document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);}); document.querySelectorAll('[data-i18n-aria-label]').forEach(el=>el.setAttribute('aria-label',t(el.dataset.i18nAriaLabel))); $('#languageButton').textContent=language==='ja'?'EN':'日本語'; $('#languageButton').setAttribute('aria-label',language==='ja'?'英語に切り替え':'Switch to Japanese'); document.title=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; $('#brandName').textContent=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; $('#footerName').textContent=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; refreshCarrierUi(); refreshProtectionUi(); refreshExtractReady();
       }
 
-      $('#embedTab').addEventListener('click',()=>setMode('embed')); $('#extractTab').addEventListener('click',()=>setMode('extract'));
+      $('#embedTab').addEventListener('click',()=>{ if (activeImageTask||operationBusy.extract) { generation+=1; terminateActiveImageTask('STALE'); setOperationBusy('extract',false); clearOperationProgress('extract'); } setMode('embed'); }); $('#extractTab').addEventListener('click',()=>{ if (activeImageTask||operationBusy.embed) { generation+=1; terminateActiveImageTask('STALE'); setOperationBusy('embed',false); clearOperationProgress('embed'); } setMode('extract'); });
       $('#languageButton').addEventListener('click',()=>{language=language==='ja'?'en':'ja';writeStorage(`${APP_CONFIG.slug}:language`,language);applyLanguage();});
       const helpDialog=$('#helpDialog'); $('#helpButton').addEventListener('click',()=>helpDialog.showModal()); $('#closeHelpButton').addEventListener('click',()=>helpDialog.close()); helpDialog.addEventListener('click',event=>{const rect=helpDialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)helpDialog.close();});
       bindDropZone('#carrierDropZone','#carrierInput',selectCarrier); bindDropZone('#payloadDropZone','#payloadInput',selectPayload); bindDropZone('#extractDropZone','#extractInput',selectExtractImage);
@@ -992,11 +1109,12 @@
       $('#embedPassword').addEventListener('input',()=>{ state.encodedBlob=null; $('#embedResult').hidden=true; refreshProtectionUi(); });
       $('#embedPasswordConfirm').addEventListener('input',()=>{ state.encodedBlob=null; $('#embedResult').hidden=true; refreshProtectionUi(); });
       $('#extractPassword').addEventListener('input',()=>{ state.recovered=null; $('#extractResult').hidden=true; setError('#extractError'); refreshExtractReady(); });
+      $('#cancelEmbedButton').addEventListener('click',()=>cancelOperation('embed')); $('#cancelExtractButton').addEventListener('click',()=>cancelOperation('extract'));
       $('#embedButton').addEventListener('click',runEmbed); $('#extractButton').addEventListener('click',runExtract);
       $('#savePngButton').addEventListener('click',()=>{ if (!state.encodedBlob) return; const base=sanitizeBase($('#outputFilename').value,'file-in-image'); $('#outputFilename').value=base; downloadBlob(state.encodedBlob,`${base}.png`); showToast(t('pngSaved'),'success'); });
       $('#saveRecoveredButton').addEventListener('click',()=>{ if (!state.recovered) return; const name=sanitizeFullFilename($('#recoveredFilename').value,state.recovered.filename||'recovered-file.bin'); $('#recoveredFilename').value=name; downloadBlob(new Blob([state.recovered.fileBytes],{type:state.recovered.mime}),name); showToast(t('fileSaved'),'success'); });
       $('#outputFilename').addEventListener('blur',()=>{$('#outputFilename').value=sanitizeBase($('#outputFilename').value,'file-in-image');}); $('#recoveredFilename').addEventListener('blur',()=>{if(state.recovered)$('#recoveredFilename').value=sanitizeFullFilename($('#recoveredFilename').value,state.recovered.filename||'recovered-file.bin');});
-      window.addEventListener('pagehide',()=>{revokePreview('carrier');revokePreview('extract');blobUrls.forEach(url=>URL.revokeObjectURL(url));blobUrls.clear();});
+      window.addEventListener('pagehide',()=>{terminateActiveImageTask('STALE');if(imageWorkerUrl){URL.revokeObjectURL(imageWorkerUrl);imageWorkerUrl='';}revokePreview('carrier');revokePreview('extract');blobUrls.forEach(url=>URL.revokeObjectURL(url));blobUrls.clear();});
 
       $('#versionBadge').textContent=`v${APP_CONFIG.version}`; $('#buildVersion').textContent=APP_CONFIG.version; $('#builtAt').textContent=BUILD_MANIFEST.generatedAtUtc||'—'; $('#dependencyCount').textContent=String(BUILD_MANIFEST.dependencies?.length||0); applyLanguage(); setMode('embed');
     })();
