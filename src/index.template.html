@@ -106,6 +106,18 @@
     .fit-status.ok { color: var(--accent); background: var(--accent-soft); }
     .fit-status.bad { color: var(--danger); background: var(--danger-soft); }
     .fit-status.neutral { color: var(--muted); background: var(--surface-muted); }
+    .protection-box { margin: 0 16px 16px; padding: 13px; border: 1px solid var(--line); border-radius: 12px; background: #fbfbf9; }
+    .checkbox-row { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-weight: 760; }
+    .checkbox-row input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--accent); flex: 0 0 auto; }
+    .protection-note { margin: 6px 0 0 28px; color: var(--muted); font-size: 12px; }
+    .password-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 13px; }
+    .password-field { display: grid; gap: 5px; min-width: 0; }
+    .password-field > span { color: var(--muted); font-size: 11px; font-weight: 700; }
+    .password-input { width: 100%; min-width: 0; min-height: 42px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); }
+    .password-input:hover { border-color: var(--line-strong); }
+    .password-status { margin-top: 9px; min-height: 18px; color: var(--muted); font-size: 12px; }
+    .password-status.bad { color: var(--danger); }
+    .password-status.ok { color: var(--accent); }
     .action-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; }
     .action-row .button.primary { min-width: 180px; }
     .processing-status { min-width: 0; color: var(--muted); font-size: 12px; }
@@ -157,7 +169,7 @@
       .page-intro { align-items: stretch; flex-direction: column; gap: 10px; }
       .local-badge { align-self: flex-start; }
       .workspace-head { flex-direction: column; }
-      .capacity-box,.result-grid { grid-template-columns: 1fr; }
+      .capacity-box,.result-grid,.password-grid { grid-template-columns: 1fr; }
       .action-row,.export-row { align-items: stretch; flex-direction: column; }
       .action-row .button.primary,.export-row .button { width: 100%; }
       .export-field { width: 100%; min-width: 0; }
@@ -190,7 +202,7 @@
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"><img id="appBrandIcon" src="__APP_ICON_DATA_URI__" alt=""></div>
         <div class="brand-copy">
-          <p class="brand-name"><span id="brandName">File in Image</span><span class="version-badge" id="versionBadge">v0.3.0</span></p>
+          <p class="brand-name"><span id="brandName">File in Image</span><span class="version-badge" id="versionBadge">v0.4.0</span></p>
           <p class="brand-meta" data-i18n="brandMeta">画像にファイルを埋めて、あとから取り出す</p>
         </div>
       </div>
@@ -269,6 +281,21 @@
           </div>
           <div class="fit-status neutral" id="fitStatus" data-i18n="fitWaiting">画像とファイルを選ぶと容量を確認できます。</div>
         </section>
+
+        <section class="step-card">
+          <div class="step-head"><span class="step-number">3</span><div><h3 data-i18n="protectionTitle">パスワード保護</h3><p data-i18n="protectionBody">必要な場合だけ、ファイルを暗号化してから画像へ埋め込みます。</p></div></div>
+          <div class="protection-box">
+            <label class="checkbox-row"><input id="passwordProtectToggle" type="checkbox"><span data-i18n="protectWithPassword">パスワードで保護する</span></label>
+            <p class="protection-note" data-i18n="protectionNote">有効にすると、ファイル名を含む埋め込みデータを暗号化します。</p>
+            <div id="embedPasswordFields" hidden>
+              <div class="password-grid">
+                <label class="password-field" for="embedPassword"><span data-i18n="password">パスワード</span><input class="password-input" id="embedPassword" type="password" maxlength="1024" autocomplete="new-password" spellcheck="false"></label>
+                <label class="password-field" for="embedPasswordConfirm"><span data-i18n="passwordConfirm">パスワード（確認）</span><input class="password-input" id="embedPasswordConfirm" type="password" maxlength="1024" autocomplete="new-password" spellcheck="false"></label>
+              </div>
+              <div class="password-status" id="embedPasswordStatus" aria-live="polite"></div>
+            </div>
+          </div>
+        </section>
       </div>
 
       <div class="error-box" id="embedError" role="alert" hidden></div>
@@ -291,6 +318,10 @@
         <input class="file-picker" id="extractInput" type="file" accept="image/png">
         <div class="drop-empty" id="extractEmpty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9h8M8 13h5"/><path d="m14 16 2 2 4-5"/></svg><strong data-i18n="dropEncoded">埋め込み済みPNGをここにドロップ</strong><span data-i18n="orChoose">またはクリックして選択</span></div>
         <div class="file-summary" id="extractSummary" hidden><div class="file-summary-main"><img class="thumb" id="extractThumb" alt=""><div class="file-copy"><span class="file-name" id="extractImageName"></span><div class="file-meta" id="extractImageMeta"></div></div></div><button class="button subtle" id="replaceExtractButton" type="button" data-i18n="replace">変更</button></div>
+      </div>
+      <div class="protection-box" id="extractPasswordBox" hidden>
+        <label class="password-field" for="extractPassword"><span data-i18n="passwordRequiredForImage">この画像はパスワードで保護されています</span><input class="password-input" id="extractPassword" type="password" maxlength="1024" autocomplete="current-password" spellcheck="false"></label>
+        <p class="protection-note" data-i18n="extractPasswordNote">正しいパスワードを入力すると、ファイル名を含むデータを復号できます。</p>
       </div>
       <div class="error-box" id="extractError" role="alert" hidden></div>
       <div class="action-row"><span class="processing-status" id="extractStatus" aria-live="polite"></span><button class="button primary" id="extractButton" type="button" disabled data-i18n="extractAction">ファイルを取り出す</button></div>
@@ -317,7 +348,7 @@
       <h3 data-i18n="helpEmbedTitle">埋め込む</h3><ol><li data-i18n="helpEmbed1">PNG / JPEG / WebP画像を選びます。</li><li data-i18n="helpEmbed2">画像に入れたい1ファイルを選び、容量に収まることを確認します。</li><li data-i18n="helpEmbed3">「画像に埋め込む」を実行してPNGを保存します。</li></ol>
       <h3 data-i18n="helpExtractTitle">取り出す</h3><ol><li data-i18n="helpExtract1">「取り出す」へ切り替え、このツールで作ったPNGを選びます。</li><li data-i18n="helpExtract2">「ファイルを取り出す」を実行します。</li><li data-i18n="helpExtract3">SHA-256が一致したファイルだけ保存できます。</li></ol>
       <h3 data-i18n="helpPrivacyTitle">プライバシー</h3><p data-i18n="helpPrivacyBody">画像とファイルはブラウザー内で処理され、このアプリから外部へ送信されません。ファイル内容は端末内ストレージにも保存しません。</p>
-      <h3 data-i18n="helpNotesTitle">注意事項</h3><ul><li data-i18n="helpNoteImage">生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。</li><li data-i18n="helpNoteCompression">GZIPで小さくなる場合だけ圧縮し、収まるかどうかは実際の圧縮後サイズで判定します。</li><li data-i18n="helpNoteEncryption">v0.3.0では暗号化していません。画像からデータを抽出できる人は、埋め込んだファイルを読むことができます。</li><li data-i18n="helpNoteFormat">v0.3.0の埋め込み形式は開発途中です。v1の正式互換形式はまだ固定していません。</li></ul>
+      <h3 data-i18n="helpNotesTitle">注意事項</h3><ul><li data-i18n="helpNoteImage">生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。</li><li data-i18n="helpNoteCompression">GZIPで小さくなる場合だけ圧縮し、収まるかどうかは実際の圧縮後サイズで判定します。</li><li data-i18n="helpNoteEncryption">パスワード保護を有効にすると、ファイル名を含むデータをAES-256-GCMで暗号化します。パスワードを設定しない場合は暗号化されません。</li><li data-i18n="helpNoteFormat">v0.4.0の埋め込み形式は開発途中です。v1の正式互換形式はまだ固定していません。</li></ul>
       <p class="dialog-note" data-i18n="helpOffline">実行時の外部通信を使わず、単一HTMLとしてローカルからも利用できる構成です。</p>
       <!-- APP:HELP:END -->
     </div>
@@ -371,8 +402,17 @@
       const HEADER_PIXELS = Math.ceil(HEADER_BITS / 3);
       const DEV_FORMAT_VERSION = 0;
       const DEV_EMBEDDING_MODE = 0;
+      const FLAG_ENCRYPTED = 0x01;
       const FLAG_GZIP = 0x02;
-      const MAX_BODY_BYTES = MAX_PAYLOAD_BYTES + INNER_FIXED_BYTES + 131070;
+      const KDF_NONE = 0;
+      const KDF_PBKDF2_SHA256 = 1;
+      const PBKDF2_ITERATIONS = 600_000;
+      const PBKDF2_MIN_ITERATIONS = 100_000;
+      const PBKDF2_MAX_ITERATIONS = 2_000_000;
+      const KDF_SALT_BYTES = 16;
+      const AES_GCM_IV_BYTES = 12;
+      const AES_GCM_TAG_BYTES = 16;
+      const MAX_BODY_BYTES = MAX_PAYLOAD_BYTES + INNER_FIXED_BYTES + 131070 + AES_GCM_TAG_BYTES;
       const encoder = new TextEncoder();
       const decoder = new TextDecoder('utf-8', { fatal: true });
       const $ = selector => document.querySelector(selector);
@@ -380,17 +420,17 @@
       const translations = {
         ja: {
           brandMeta: '画像にファイルを埋めて、あとから取り出す', helpTitle: '使い方と注意事項', close: '閉じる', introTitle: '画像にファイルを埋め込む', lead: '任意の1ファイルを画像の画素へ埋め込み、生成したPNGから元のファイルを取り出せます。', localBadge: 'ファイルを送信しません', embedTab: '埋め込む', extractTab: '取り出す',
-          embedTitle: '画像の中にファイルを入れる', embedBody: '画像とファイルを選ぶと、埋め込める容量を確認できます。', carrierTitle: '画像を選択', carrierBody: 'PNG / JPEG / WebP。出力はPNGになります。', dropImage: '画像をここにドロップ', orChoose: 'またはクリックして選択', chooseCarrier: '画像を選択', replace: '変更', dimensions: '画像サイズ', opaquePixels: '使用できる画素', capacity: '埋め込み容量', payloadTitle: '埋め込むファイルを選択', payloadBody: '形式は問いません。1ファイル、最大32 MiBです。', dropFile: 'ファイルをここにドロップ', choosePayload: '埋め込むファイルを選択', fitWaiting: '画像とファイルを選ぶと容量を確認できます。', fitOk: 'このファイルを埋め込めます。', fitBad: 'この画像にはファイルが収まりません。より大きな画像か小さなファイルを選んでください。', payloadOriginalSize: '元ファイル', storedBodySize: '埋め込みデータ', compression: '圧縮', gzipUsed: 'GZIPを使用', gzipSkipped: '圧縮なし', gzipUnavailable: '圧縮なし（API非対応）', embedAction: '画像に埋め込む', packing: 'ファイルを準備しています…', compressingPayload: 'ファイルを圧縮しています…', embedding: '画像に埋め込んでいます…', makingPng: 'PNGを作成しています…', embedDone: 'ファイルを埋め込みました', embedDoneBody: '生成したPNGは編集・変換せず、そのまま保存してください。', outputSize: '出力サイズ', payloadSize: 'ファイルサイズ', integrity: '復元時の確認', outputWarning: 'リサイズ、トリミング、JPEG変換、画像編集、SNS等での再圧縮を行うと、ファイルを取り出せなくなる場合があります。', outputFilename: '出力ファイル名', savePng: 'PNGを保存', pngSaved: 'PNGを保存しました',
-          extractTitle: '画像からファイルを取り出す', extractBody: 'このツールで生成したPNGを選択します。', dropEncoded: '埋め込み済みPNGをここにドロップ', chooseEncoded: '埋め込み済みPNGを選択', extractAction: 'ファイルを取り出す', readingImage: '画像を読み込んでいます…', extracting: 'ファイルを取り出しています…', decompressing: '圧縮データを展開しています…', verifying: 'ファイルを確認しています…', extractDone: 'ファイルを確認しました', extractDoneBody: '埋め込み時のSHA-256と一致しました。', originalName: '元のファイル名', saveAs: '保存ファイル名', saveFile: 'ファイルを保存', fileSaved: 'ファイルを保存しました',
-          helpEmbedTitle: '埋め込む', helpEmbed1: 'PNG / JPEG / WebP画像を選びます。', helpEmbed2: '画像に入れたい1ファイルを選び、容量に収まることを確認します。', helpEmbed3: '「画像に埋め込む」を実行してPNGを保存します。', helpExtractTitle: '取り出す', helpExtract1: '「取り出す」へ切り替え、このツールで作ったPNGを選びます。', helpExtract2: '「ファイルを取り出す」を実行します。', helpExtract3: 'SHA-256が一致したファイルだけ保存できます。', helpPrivacyTitle: 'プライバシー', helpPrivacyBody: '画像とファイルはブラウザー内で処理され、このアプリから外部へ送信されません。ファイル内容は端末内ストレージにも保存しません。', helpNotesTitle: '注意事項', helpNoteImage: '生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。', helpNoteCompression: 'GZIPで小さくなる場合だけ圧縮し、収まるかどうかは実際の圧縮後サイズで判定します。', helpNoteEncryption: 'v0.3.0では暗号化していません。画像からデータを抽出できる人は、埋め込んだファイルを読むことができます。', helpNoteFormat: 'v0.3.0の埋め込み形式は開発途中です。v1の正式互換形式はまだ固定していません。', helpOffline: '実行時の外部通信を使わず、単一HTMLとしてローカルからも利用できる構成です。',
-          buildInfo: 'ビルド情報', appVersion: 'アプリバージョン', builtAt: '生成日時', dependencies: '内包依存数', footer: 'ブラウザー内で処理', errorImageType: 'PNG、JPEG、WebP画像を選択してください。', errorImageTooLarge: 'この画像はこのバージョンで扱えるサイズを超えています。', errorImageRead: '画像を読み込めませんでした。対応形式か、ファイルが破損していないか確認してください。', errorPayloadTooLarge: '埋め込むファイルは32 MiB以下にしてください。', errorPayloadRead: 'ファイルを読み込めませんでした。', errorCapacity: 'この画像にはファイルが収まりません。', errorNoOpaque: 'この画像は完全に不透明な画素が少ないため使用できません。', errorNotBkfi: 'この画像には、このバージョンのFile in Imageで埋め込まれたデータを確認できませんでした。', errorUnsupportedDev: 'この画像は別の埋め込み形式で作られているため、このバージョンでは開けません。', errorCorrupt: '埋め込みデータが壊れているか、画像が変更されています。', errorHash: 'ファイルを正常に復元できませんでした。画像が変更されている可能性があります。', errorMemory: '画像を処理するためのメモリを確保できませんでした。より小さな画像を試してください。', errorCrypto: 'このブラウザーではSHA-256を利用できません。', errorCompression: 'この画像のGZIPデータを展開できません。このブラウザーがDecompressionStreamに対応しているか、画像が変更されていないか確認してください。', errorGeneric: '処理できませんでした。別のファイルで試してください。'
+          embedTitle: '画像の中にファイルを入れる', embedBody: '画像とファイルを選ぶと、埋め込める容量を確認できます。', carrierTitle: '画像を選択', carrierBody: 'PNG / JPEG / WebP。出力はPNGになります。', dropImage: '画像をここにドロップ', orChoose: 'またはクリックして選択', chooseCarrier: '画像を選択', replace: '変更', dimensions: '画像サイズ', opaquePixels: '使用できる画素', capacity: '埋め込み容量', payloadTitle: '埋め込むファイルを選択', payloadBody: '形式は問いません。1ファイル、最大32 MiBです。', dropFile: 'ファイルをここにドロップ', choosePayload: '埋め込むファイルを選択', fitWaiting: '画像とファイルを選ぶと容量を確認できます。', fitOk: 'このファイルを埋め込めます。', fitBad: 'この画像にはファイルが収まりません。より大きな画像か小さなファイルを選んでください。', payloadOriginalSize: '元ファイル', storedBodySize: '埋め込みデータ', compression: '圧縮', gzipUsed: 'GZIPを使用', gzipSkipped: '圧縮なし', gzipUnavailable: '圧縮なし（API非対応）', protectionTitle: 'パスワード保護', protectionBody: '必要な場合だけ、ファイルを暗号化してから画像へ埋め込みます。', protectWithPassword: 'パスワードで保護する', protectionNote: '有効にすると、ファイル名を含む埋め込みデータを暗号化します。', password: 'パスワード', passwordConfirm: 'パスワード（確認）', passwordEmpty: 'パスワードを入力してください。', passwordMismatch: '確認用パスワードが一致していません。', passwordReady: 'AES-256-GCMで保護します。', derivingKey: 'パスワードから鍵を準備しています…', encrypting: 'ファイルを暗号化しています…', embedAction: '画像に埋め込む', packing: 'ファイルを準備しています…', compressingPayload: 'ファイルを圧縮しています…', embedding: '画像に埋め込んでいます…', makingPng: 'PNGを作成しています…', embedDone: 'ファイルを埋め込みました', embedDoneBody: '生成したPNGは編集・変換せず、そのまま保存してください。', outputSize: '出力サイズ', payloadSize: 'ファイルサイズ', integrity: '復元時の確認', outputWarning: 'リサイズ、トリミング、JPEG変換、画像編集、SNS等での再圧縮を行うと、ファイルを取り出せなくなる場合があります。', outputFilename: '出力ファイル名', savePng: 'PNGを保存', pngSaved: 'PNGを保存しました',
+          extractTitle: '画像からファイルを取り出す', extractBody: 'このツールで生成したPNGを選択します。', dropEncoded: '埋め込み済みPNGをここにドロップ', chooseEncoded: '埋め込み済みPNGを選択', passwordRequiredForImage: 'この画像はパスワードで保護されています', extractPasswordNote: '正しいパスワードを入力すると、ファイル名を含むデータを復号できます。', extractAction: 'ファイルを取り出す', readingImage: '画像を読み込んでいます…', extracting: 'ファイルを取り出しています…', decrypting: '暗号化されたデータを復号しています…', decompressing: '圧縮データを展開しています…', verifying: 'ファイルを確認しています…', extractDone: 'ファイルを確認しました', extractDoneBody: '埋め込み時のSHA-256と一致しました。', originalName: '元のファイル名', saveAs: '保存ファイル名', saveFile: 'ファイルを保存', fileSaved: 'ファイルを保存しました',
+          helpEmbedTitle: '埋め込む', helpEmbed1: 'PNG / JPEG / WebP画像を選びます。', helpEmbed2: '画像に入れたい1ファイルを選び、容量に収まることを確認します。', helpEmbed3: '「画像に埋め込む」を実行してPNGを保存します。', helpExtractTitle: '取り出す', helpExtract1: '「取り出す」へ切り替え、このツールで作ったPNGを選びます。', helpExtract2: '「ファイルを取り出す」を実行します。', helpExtract3: 'SHA-256が一致したファイルだけ保存できます。', helpPrivacyTitle: 'プライバシー', helpPrivacyBody: '画像とファイルはブラウザー内で処理され、このアプリから外部へ送信されません。ファイル内容は端末内ストレージにも保存しません。', helpNotesTitle: '注意事項', helpNoteImage: '生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。', helpNoteCompression: 'GZIPで小さくなる場合だけ圧縮し、収まるかどうかは実際の圧縮後サイズで判定します。', helpNoteEncryption: 'パスワード保護を有効にすると、ファイル名を含むデータをAES-256-GCMで暗号化します。パスワードを設定しない場合は暗号化されません。', helpNoteFormat: 'v0.4.0の埋め込み形式は開発途中です。v1の正式互換形式はまだ固定していません。', helpOffline: '実行時の外部通信を使わず、単一HTMLとしてローカルからも利用できる構成です。',
+          buildInfo: 'ビルド情報', appVersion: 'アプリバージョン', builtAt: '生成日時', dependencies: '内包依存数', footer: 'ブラウザー内で処理', errorImageType: 'PNG、JPEG、WebP画像を選択してください。', errorImageTooLarge: 'この画像はこのバージョンで扱えるサイズを超えています。', errorImageRead: '画像を読み込めませんでした。対応形式か、ファイルが破損していないか確認してください。', errorPayloadTooLarge: '埋め込むファイルは32 MiB以下にしてください。', errorPayloadRead: 'ファイルを読み込めませんでした。', errorCapacity: 'この画像にはファイルが収まりません。', errorNoOpaque: 'この画像は完全に不透明な画素が少ないため使用できません。', errorNotBkfi: 'この画像には、このバージョンのFile in Imageで埋め込まれたデータを確認できませんでした。', errorUnsupportedDev: 'この画像は別の埋め込み形式で作られているため、このバージョンでは開けません。', errorCorrupt: '埋め込みデータが壊れているか、画像が変更されています。', errorHash: 'ファイルを正常に復元できませんでした。画像が変更されている可能性があります。', errorMemory: '画像を処理するためのメモリを確保できませんでした。より小さな画像を試してください。', errorCrypto: 'このブラウザーでは必要なWeb Crypto機能を利用できません。', errorPasswordRequired: 'パスワードを入力してください。', errorPasswordMismatch: '確認用パスワードが一致していません。', errorAuth: 'パスワードが違うか、画像が変更されています。', errorCompression: 'この画像のGZIPデータを展開できません。このブラウザーがDecompressionStreamに対応しているか、画像が変更されていないか確認してください。', errorGeneric: '処理できませんでした。別のファイルで試してください。'
         },
         en: {
           brandMeta: 'Hide and recover a file inside an image', helpTitle: 'How to use & notes', close: 'Close', introTitle: 'File in Image', lead: 'Hide one arbitrary file in image pixels and recover the original file from the generated PNG.', localBadge: 'Files stay on device', embedTab: 'Embed', extractTab: 'Extract',
-          embedTitle: 'Put a file inside an image', embedBody: 'Choose an image and a file to check whether the file fits.', carrierTitle: 'Choose an image', carrierBody: 'PNG / JPEG / WebP. Output is PNG.', dropImage: 'Drop an image here', orChoose: 'or click to choose', chooseCarrier: 'Choose carrier image', replace: 'Change', dimensions: 'Dimensions', opaquePixels: 'Usable pixels', capacity: 'Embedding capacity', payloadTitle: 'Choose the file to embed', payloadBody: 'Any file type. One file, up to 32 MiB.', dropFile: 'Drop a file here', choosePayload: 'Choose payload file', fitWaiting: 'Choose an image and a file to check capacity.', fitOk: 'This file fits in the image.', fitBad: 'This file does not fit. Choose a larger image or a smaller file.', payloadOriginalSize: 'Original file', storedBodySize: 'Embedded data', compression: 'Compression', gzipUsed: 'GZIP used', gzipSkipped: 'Not compressed', gzipUnavailable: 'Not compressed (API unavailable)', embedAction: 'Embed in image', packing: 'Preparing file…', compressingPayload: 'Compressing file…', embedding: 'Embedding file…', makingPng: 'Creating PNG…', embedDone: 'File embedded', embedDoneBody: 'Keep the generated PNG unchanged when you save or share it.', outputSize: 'Output size', payloadSize: 'File size', integrity: 'Recovery check', outputWarning: 'Resizing, cropping, JPEG conversion, image editing, or recompression by social/messaging services can make the embedded file unrecoverable.', outputFilename: 'Output filename', savePng: 'Save PNG', pngSaved: 'PNG saved',
-          extractTitle: 'Recover a file from an image', extractBody: 'Choose a PNG generated by this tool.', dropEncoded: 'Drop an encoded PNG here', chooseEncoded: 'Choose encoded PNG', extractAction: 'Extract file', readingImage: 'Reading image…', extracting: 'Extracting file…', decompressing: 'Decompressing embedded data…', verifying: 'Verifying file…', extractDone: 'File verified', extractDoneBody: 'The recovered bytes match the embedded SHA-256 digest.', originalName: 'Original filename', saveAs: 'Save filename', saveFile: 'Save file', fileSaved: 'File saved',
-          helpEmbedTitle: 'Embed', helpEmbed1: 'Choose a PNG, JPEG, or WebP image.', helpEmbed2: 'Choose one file and confirm that it fits the available capacity.', helpEmbed3: 'Run Embed in image and save the PNG.', helpExtractTitle: 'Extract', helpExtract1: 'Switch to Extract and choose a PNG created by this tool.', helpExtract2: 'Run Extract file.', helpExtract3: 'Only a file whose SHA-256 matches can be saved.', helpPrivacyTitle: 'Privacy', helpPrivacyBody: 'Images and files are processed in the browser and are not sent outside by this app. File contents are not saved to browser storage.', helpNotesTitle: 'Notes', helpNoteImage: 'Resizing, cropping, editing, JPEG conversion, or recompressing the generated PNG can destroy the embedded data.', helpNoteCompression: 'GZIP is used only when it makes the data smaller, and fit is checked against the exact stored size.', helpNoteEncryption: 'v0.3.0 does not encrypt the payload. Anyone able to extract the data can read the embedded file.', helpNoteFormat: 'The v0.3.0 embedding format is a development format. The stable v1 compatibility format has not been frozen yet.', helpOffline: 'The app uses no runtime network connection and is designed to work as one local HTML file.',
-          buildInfo: 'Build information', appVersion: 'App version', builtAt: 'Built at', dependencies: 'Embedded dependencies', footer: 'Processed in your browser', errorImageType: 'Choose a PNG, JPEG, or WebP image.', errorImageTooLarge: 'This image exceeds the size supported by this version.', errorImageRead: 'The image could not be read. Check its format or whether the file is damaged.', errorPayloadTooLarge: 'Choose a payload file no larger than 32 MiB.', errorPayloadRead: 'The file could not be read.', errorCapacity: 'The file does not fit in this image.', errorNoOpaque: 'This image does not contain enough fully opaque pixels.', errorNotBkfi: 'No data created by this version of File in Image was found in the image.', errorUnsupportedDev: 'This image uses another embedding format and cannot be opened by this version.', errorCorrupt: 'The embedded data is damaged or the image has been modified.', errorHash: 'The file could not be recovered correctly. The image may have been modified.', errorMemory: 'Not enough memory is available to process this image. Try a smaller image.', errorCrypto: 'SHA-256 is not available in this browser.', errorCompression: 'The GZIP payload could not be decompressed. Check browser DecompressionStream support or whether the image was modified.', errorGeneric: 'The operation could not be completed. Try another file.'
+          embedTitle: 'Put a file inside an image', embedBody: 'Choose an image and a file to check whether the file fits.', carrierTitle: 'Choose an image', carrierBody: 'PNG / JPEG / WebP. Output is PNG.', dropImage: 'Drop an image here', orChoose: 'or click to choose', chooseCarrier: 'Choose carrier image', replace: 'Change', dimensions: 'Dimensions', opaquePixels: 'Usable pixels', capacity: 'Embedding capacity', payloadTitle: 'Choose the file to embed', payloadBody: 'Any file type. One file, up to 32 MiB.', dropFile: 'Drop a file here', choosePayload: 'Choose payload file', fitWaiting: 'Choose an image and a file to check capacity.', fitOk: 'This file fits in the image.', fitBad: 'This file does not fit. Choose a larger image or a smaller file.', payloadOriginalSize: 'Original file', storedBodySize: 'Embedded data', compression: 'Compression', gzipUsed: 'GZIP used', gzipSkipped: 'Not compressed', gzipUnavailable: 'Not compressed (API unavailable)', protectionTitle: 'Password protection', protectionBody: 'Encrypt the file before embedding only when you need password protection.', protectWithPassword: 'Protect with a password', protectionNote: 'When enabled, the embedded data including the filename is encrypted.', password: 'Password', passwordConfirm: 'Confirm password', passwordEmpty: 'Enter a password.', passwordMismatch: 'The confirmation password does not match.', passwordReady: 'The embedded data will be protected with AES-256-GCM.', derivingKey: 'Preparing encryption key…', encrypting: 'Encrypting file…', embedAction: 'Embed in image', packing: 'Preparing file…', compressingPayload: 'Compressing file…', embedding: 'Embedding file…', makingPng: 'Creating PNG…', embedDone: 'File embedded', embedDoneBody: 'Keep the generated PNG unchanged when you save or share it.', outputSize: 'Output size', payloadSize: 'File size', integrity: 'Recovery check', outputWarning: 'Resizing, cropping, JPEG conversion, image editing, or recompression by social/messaging services can make the embedded file unrecoverable.', outputFilename: 'Output filename', savePng: 'Save PNG', pngSaved: 'PNG saved',
+          extractTitle: 'Recover a file from an image', extractBody: 'Choose a PNG generated by this tool.', dropEncoded: 'Drop an encoded PNG here', chooseEncoded: 'Choose encoded PNG', passwordRequiredForImage: 'This image is password protected', extractPasswordNote: 'Enter the correct password to decrypt the data, including the original filename.', extractAction: 'Extract file', readingImage: 'Reading image…', extracting: 'Extracting file…', decrypting: 'Decrypting protected data…', decompressing: 'Decompressing embedded data…', verifying: 'Verifying file…', extractDone: 'File verified', extractDoneBody: 'The recovered bytes match the embedded SHA-256 digest.', originalName: 'Original filename', saveAs: 'Save filename', saveFile: 'Save file', fileSaved: 'File saved',
+          helpEmbedTitle: 'Embed', helpEmbed1: 'Choose a PNG, JPEG, or WebP image.', helpEmbed2: 'Choose one file and confirm that it fits the available capacity.', helpEmbed3: 'Run Embed in image and save the PNG.', helpExtractTitle: 'Extract', helpExtract1: 'Switch to Extract and choose a PNG created by this tool.', helpExtract2: 'Run Extract file.', helpExtract3: 'Only a file whose SHA-256 matches can be saved.', helpPrivacyTitle: 'Privacy', helpPrivacyBody: 'Images and files are processed in the browser and are not sent outside by this app. File contents are not saved to browser storage.', helpNotesTitle: 'Notes', helpNoteImage: 'Resizing, cropping, editing, JPEG conversion, or recompressing the generated PNG can destroy the embedded data.', helpNoteCompression: 'GZIP is used only when it makes the data smaller, and fit is checked against the exact stored size.', helpNoteEncryption: 'When password protection is enabled, AES-256-GCM encrypts the data including the filename. Without a password, the embedded data is not encrypted.', helpNoteFormat: 'The v0.4.0 embedding format is a development format. The stable v1 compatibility format has not been frozen yet.', helpOffline: 'The app uses no runtime network connection and is designed to work as one local HTML file.',
+          buildInfo: 'Build information', appVersion: 'App version', builtAt: 'Built at', dependencies: 'Embedded dependencies', footer: 'Processed in your browser', errorImageType: 'Choose a PNG, JPEG, or WebP image.', errorImageTooLarge: 'This image exceeds the size supported by this version.', errorImageRead: 'The image could not be read. Check its format or whether the file is damaged.', errorPayloadTooLarge: 'Choose a payload file no larger than 32 MiB.', errorPayloadRead: 'The file could not be read.', errorCapacity: 'The file does not fit in this image.', errorNoOpaque: 'This image does not contain enough fully opaque pixels.', errorNotBkfi: 'No data created by this version of File in Image was found in the image.', errorUnsupportedDev: 'This image uses another embedding format and cannot be opened by this version.', errorCorrupt: 'The embedded data is damaged or the image has been modified.', errorHash: 'The file could not be recovered correctly. The image may have been modified.', errorMemory: 'Not enough memory is available to process this image. Try a smaller image.', errorCrypto: 'Required Web Crypto features are not available in this browser.', errorPasswordRequired: 'Enter the password.', errorPasswordMismatch: 'The confirmation password does not match.', errorAuth: 'The password is incorrect or the image has been modified.', errorCompression: 'The GZIP payload could not be decompressed. Check browser DecompressionStream support or whether the image was modified.', errorGeneric: 'The operation could not be completed. Try another file.'
         }
       };
 
@@ -432,6 +472,42 @@
       function readAscii(bytes,offset,length) { let out=''; for (let i=0;i<length;i+=1) out+=String.fromCharCode(bytes[offset+i]); return out; }
       function bytesEqual(a,b) { if (a.length!==b.length) return false; let diff=0; for (let i=0;i<a.length;i+=1) diff|=a[i]^b[i]; return diff===0; }
       async function sha256(bytes) { if (!crypto?.subtle?.digest) throw new Error('CRYPTO_UNAVAILABLE'); return new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)); }
+      function randomBytes(length) { if (!crypto?.getRandomValues) throw new Error('CRYPTO_UNAVAILABLE'); const bytes=new Uint8Array(length); crypto.getRandomValues(bytes); return bytes; }
+
+      async function deriveAesKey(password,salt,iterations) {
+        if (!crypto?.subtle?.importKey || !crypto?.subtle?.deriveBits) throw new Error('CRYPTO_UNAVAILABLE');
+        const passwordBytes=encoder.encode(password);
+        let baseKey;
+        try { baseKey=await crypto.subtle.importKey('raw',passwordBytes,'PBKDF2',false,['deriveBits']); }
+        finally { passwordBytes.fill(0); }
+        const derived=new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations,hash:'SHA-256'},baseKey,512));
+        const aesBytes=derived.slice(0,32);
+        try { return await crypto.subtle.importKey('raw',aesBytes,{name:'AES-GCM'},false,['encrypt','decrypt']); }
+        finally { aesBytes.fill(0); derived.fill(0); }
+      }
+
+      async function encryptStoredBody(plain,password,compressed) {
+        if (!crypto?.subtle?.encrypt) throw new Error('CRYPTO_UNAVAILABLE');
+        const salt=randomBytes(KDF_SALT_BYTES);
+        const iv=randomBytes(AES_GCM_IV_BYTES);
+        const encryptedLength=plain.byteLength+AES_GCM_TAG_BYTES;
+        const header=buildOuter(encryptedLength,{compressed,encrypted:true,iterations:PBKDF2_ITERATIONS,salt,iv});
+        const key=await deriveAesKey(password,salt,PBKDF2_ITERATIONS);
+        const encrypted=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:header,tagLength:128},key,plain));
+        if (encrypted.byteLength!==encryptedLength) throw new Error('CRYPTO_UNAVAILABLE');
+        return { header, body:encrypted };
+      }
+
+      async function decryptStoredBody(cipher,password,outer) {
+        if (!crypto?.subtle?.decrypt) throw new Error('CRYPTO_UNAVAILABLE');
+        try {
+          const key=await deriveAesKey(password,outer.salt,outer.iterations);
+          return new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:outer.iv,additionalData:outer.header,tagLength:128},key,cipher));
+        } catch (error) {
+          if (error?.message==='CRYPTO_UNAVAILABLE') throw error;
+          throw new Error('AUTH_FAILED');
+        }
+      }
 
       async function gzipBytes(bytes) {
         if (typeof CompressionStream !== 'function') return null;
@@ -507,8 +583,35 @@
         const fileBytes=body.slice(offset,offset+fileLen); return { filename: filename||'recovered-file.bin', mime: mime||'application/octet-stream', expectedHash, fileBytes };
       }
 
-      function buildOuter(bodyLength, compressed = false) { const out=new Uint8Array(OUTER_HEADER_BYTES); const view=new DataView(out.buffer); writeAscii(out,0,'BKFI'); view.setUint8(4,DEV_FORMAT_VERSION); view.setUint8(5,DEV_EMBEDDING_MODE); view.setUint8(6,compressed ? FLAG_GZIP : 0); view.setUint8(7,0); view.setUint16(8,OUTER_HEADER_BYTES,false); view.setUint16(10,0,false); view.setUint32(12,bodyLength,false); return out; }
-      function parseOuter(bytes) { if (bytes.length!==OUTER_HEADER_BYTES || readAscii(bytes,0,4)!=='BKFI') throw new Error('NOT_BKFI'); const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength); const version=view.getUint8(4); const mode=view.getUint8(5); const flags=view.getUint8(6); const kdf=view.getUint8(7); const headerLen=view.getUint16(8,false); const bodyLength=view.getUint32(12,false); if (version!==DEV_FORMAT_VERSION || mode!==DEV_EMBEDDING_MODE) throw new Error('UNSUPPORTED_DEV'); if ((flags & ~FLAG_GZIP)!==0 || kdf!==0 || headerLen!==OUTER_HEADER_BYTES || bodyLength<1 || bodyLength>MAX_BODY_BYTES) throw new Error('CORRUPT'); return { bodyLength, compressed: Boolean(flags & FLAG_GZIP) }; }
+      function buildOuter(bodyLength,{ compressed=false, encrypted=false, iterations=0, salt=null, iv=null }={}) {
+        const out=new Uint8Array(OUTER_HEADER_BYTES); const view=new DataView(out.buffer);
+        writeAscii(out,0,'BKFI');
+        view.setUint8(4,DEV_FORMAT_VERSION); view.setUint8(5,DEV_EMBEDDING_MODE);
+        view.setUint8(6,(encrypted?FLAG_ENCRYPTED:0)|(compressed?FLAG_GZIP:0));
+        view.setUint8(7,encrypted?KDF_PBKDF2_SHA256:KDF_NONE);
+        view.setUint16(8,OUTER_HEADER_BYTES,false); view.setUint16(10,0,false); view.setUint32(12,bodyLength,false);
+        view.setUint32(16,encrypted?iterations:0,false);
+        if (encrypted) {
+          if (!(salt instanceof Uint8Array) || salt.byteLength!==KDF_SALT_BYTES || !(iv instanceof Uint8Array) || iv.byteLength!==AES_GCM_IV_BYTES) throw new Error('CRYPTO_UNAVAILABLE');
+          out.set(salt,20); out.set(iv,36);
+        }
+        return out;
+      }
+      function parseOuter(bytes) {
+        if (bytes.length!==OUTER_HEADER_BYTES || readAscii(bytes,0,4)!=='BKFI') throw new Error('NOT_BKFI');
+        const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+        const version=view.getUint8(4), mode=view.getUint8(5), flags=view.getUint8(6), kdf=view.getUint8(7);
+        const headerLen=view.getUint16(8,false), bodyLength=view.getUint32(12,false), iterations=view.getUint32(16,false);
+        if (version!==DEV_FORMAT_VERSION || mode!==DEV_EMBEDDING_MODE) throw new Error('UNSUPPORTED_DEV');
+        if ((flags & ~(FLAG_ENCRYPTED|FLAG_GZIP))!==0 || headerLen!==OUTER_HEADER_BYTES || bodyLength<1 || bodyLength>MAX_BODY_BYTES) throw new Error('CORRUPT');
+        const encrypted=Boolean(flags&FLAG_ENCRYPTED), compressed=Boolean(flags&FLAG_GZIP);
+        if (encrypted) {
+          if (kdf!==KDF_PBKDF2_SHA256 || iterations<PBKDF2_MIN_ITERATIONS || iterations>PBKDF2_MAX_ITERATIONS || bodyLength<AES_GCM_TAG_BYTES) throw new Error('CORRUPT');
+        } else if (kdf!==KDF_NONE || iterations!==0) {
+          throw new Error('CORRUPT');
+        }
+        return { bodyLength, compressed, encrypted, kdf, iterations, salt:bytes.slice(20,36), iv:bytes.slice(36,48), header:bytes.slice() };
+      }
       function getBit(bytes,bitIndex) { return (bytes[bitIndex>>3]>>(7-(bitIndex&7)))&1; }
       function setBit(bytes,bitIndex,bit) { if (bit) bytes[bitIndex>>3] |= 1<<(7-(bitIndex&7)); }
 
@@ -526,27 +629,73 @@
         if (headerBit!==HEADER_BITS || bodyBit!==bodyBits) throw new Error('CAPACITY'); return copy;
       }
 
-      function extractSequential(imageData) {
+      function extractOuterHeader(imageData) {
         const data=imageData.data; const header=new Uint8Array(OUTER_HEADER_BYTES); let opaqueIndex=0; let headerBit=0;
-        for (let px=0;px<data.length && headerBit<HEADER_BITS;px+=4) { if (data[px+3]!==255) continue; if (opaqueIndex<HEADER_PIXELS) { for (let channel=0;channel<3 && headerBit<HEADER_BITS;channel+=1) setBit(header,headerBit++,data[px+channel]&1); } opaqueIndex+=1; }
-        if (headerBit!==HEADER_BITS) throw new Error('NOT_BKFI'); const parsed=parseOuter(header); const capacity=bodyCapacityBytes(countOpaque(imageData)); if (parsed.bodyLength>capacity) throw new Error('CORRUPT');
-        const body=new Uint8Array(parsed.bodyLength); const bodyBits=parsed.bodyLength*8; let bodyBit=0; opaqueIndex=0;
-        for (let px=0;px<data.length && bodyBit<bodyBits;px+=4) { if (data[px+3]!==255) continue; if (opaqueIndex>=HEADER_PIXELS) { for (let channel=0;channel<3 && bodyBit<bodyBits;channel+=1) setBit(body,bodyBit++,data[px+channel]&1); } opaqueIndex+=1; }
-        if (bodyBit!==bodyBits) throw new Error('CORRUPT'); return { body, compressed: parsed.compressed };
+        for (let px=0;px<data.length && headerBit<HEADER_BITS;px+=4) {
+          if (data[px+3]!==255) continue;
+          if (opaqueIndex<HEADER_PIXELS) for (let channel=0;channel<3 && headerBit<HEADER_BITS;channel+=1) setBit(header,headerBit++,data[px+channel]&1);
+          opaqueIndex+=1;
+        }
+        if (headerBit!==HEADER_BITS) throw new Error('NOT_BKFI');
+        return parseOuter(header);
+      }
+
+      function extractSequential(imageData,outer=null) {
+        const parsed=outer||extractOuterHeader(imageData);
+        const capacity=bodyCapacityBytes(countOpaque(imageData)); if (parsed.bodyLength>capacity) throw new Error('CORRUPT');
+        const data=imageData.data; const body=new Uint8Array(parsed.bodyLength); const bodyBits=parsed.bodyLength*8; let bodyBit=0; let opaqueIndex=0;
+        for (let px=0;px<data.length && bodyBit<bodyBits;px+=4) {
+          if (data[px+3]!==255) continue;
+          if (opaqueIndex>=HEADER_PIXELS) for (let channel=0;channel<3 && bodyBit<bodyBits;channel+=1) setBit(body,bodyBit++,data[px+channel]&1);
+          opaqueIndex+=1;
+        }
+        if (bodyBit!==bodyBits) throw new Error('CORRUPT');
+        return { body, outer:parsed };
       }
 
       async function imageDataToPng(imageData) { const canvas=document.createElement('canvas'); canvas.width=imageData.width; canvas.height=imageData.height; const ctx=canvas.getContext('2d'); if (!ctx) throw new Error('MEMORY'); ctx.putImageData(imageData,0,0); return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('MEMORY')),'image/png')); }
       function downloadBlob(blob,filename) { const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); }
 
-      function friendlyError(error) { const code=error?.message||''; const map={ IMAGE_TYPE:'errorImageType', IMAGE_TOO_LARGE:'errorImageTooLarge', IMAGE_READ:'errorImageRead', PAYLOAD_TOO_LARGE:'errorPayloadTooLarge', PAYLOAD_READ:'errorPayloadRead', CAPACITY:'errorCapacity', NO_OPAQUE:'errorNoOpaque', NOT_BKFI:'errorNotBkfi', UNSUPPORTED_DEV:'errorUnsupportedDev', CORRUPT:'errorCorrupt', HASH_MISMATCH:'errorHash', MEMORY:'errorMemory', CRYPTO_UNAVAILABLE:'errorCrypto', COMPRESSION_UNAVAILABLE:'errorCompression', DECOMPRESS_FAILED:'errorCompression', DECOMPRESS_TOO_LARGE:'errorCompression' }; return t(map[code]||'errorGeneric'); }
+      function friendlyError(error) { const code=error?.message||''; const map={ IMAGE_TYPE:'errorImageType', IMAGE_TOO_LARGE:'errorImageTooLarge', IMAGE_READ:'errorImageRead', PAYLOAD_TOO_LARGE:'errorPayloadTooLarge', PAYLOAD_READ:'errorPayloadRead', CAPACITY:'errorCapacity', NO_OPAQUE:'errorNoOpaque', NOT_BKFI:'errorNotBkfi', UNSUPPORTED_DEV:'errorUnsupportedDev', CORRUPT:'errorCorrupt', HASH_MISMATCH:'errorHash', MEMORY:'errorMemory', CRYPTO_UNAVAILABLE:'errorCrypto', PASSWORD_REQUIRED:'errorPasswordRequired', PASSWORD_MISMATCH:'errorPasswordMismatch', AUTH_FAILED:'errorAuth', COMPRESSION_UNAVAILABLE:'errorCompression', DECOMPRESS_FAILED:'errorCompression', DECOMPRESS_TOO_LARGE:'errorCompression' }; return t(map[code]||'errorGeneric'); }
 
       function refreshCarrierUi() {
         const c=state.carrier; $('#carrierEmpty').hidden=Boolean(c); $('#carrierSummary').hidden=!c; $('#carrierMetrics').hidden=!c;
         if (c) { $('#carrierName').textContent=c.file.name; $('#carrierMeta').textContent=`${formatBytes(c.file.size)} · ${c.file.type||'image'}`; $('#carrierDimensions').textContent=`${formatNumber(c.width)} × ${formatNumber(c.height)}`; $('#opaquePixelCount').textContent=formatNumber(c.opaqueCount); $('#carrierCapacity').textContent=formatBytes(c.capacity); }
         refreshFit();
       }
-      function refreshPayloadUi() { const p=state.payload; $('#payloadEmpty').hidden=Boolean(p); $('#payloadSummary').hidden=!p; $('#payloadMetrics').hidden=!p; if (p) { $('#payloadName').textContent=p.file.name; $('#payloadMeta').textContent=`${formatBytes(p.file.size)} · ${p.file.type||'application/octet-stream'}`; $('#payloadOriginalSize').textContent=formatBytes(p.file.size); $('#payloadStoredSize').textContent=formatBytes(p.body.byteLength); $('#payloadCompression').textContent=p.compressed ? t('gzipUsed') : (p.compressionAvailable ? t('gzipSkipped') : t('gzipUnavailable')); } refreshFit(); }
-      function refreshFit() { const box=$('#fitStatus'); const c=state.carrier,p=state.payload; box.className='fit-status neutral'; if (!c||!p) { box.textContent=t('fitWaiting'); $('#embedButton').disabled=true; return; } const needed=p.body.byteLength; if (needed<=c.capacity) { box.className='fit-status ok'; box.textContent=`${t('fitOk')} ${formatBytes(needed)} / ${formatBytes(c.capacity)}`; $('#embedButton').disabled=false; } else { box.className='fit-status bad'; box.textContent=`${t('fitBad')} ${formatBytes(needed)} / ${formatBytes(c.capacity)}`; $('#embedButton').disabled=true; } }
+      function embedProtectionState() {
+        if (!$('#passwordProtectToggle').checked) return { enabled:false, valid:true, password:'' };
+        const password=$('#embedPassword').value, confirm=$('#embedPasswordConfirm').value;
+        if (!password) return { enabled:true, valid:false, password, reason:'empty' };
+        if (password!==confirm) return { enabled:true, valid:false, password, reason:'mismatch' };
+        return { enabled:true, valid:true, password };
+      }
+      function predictedStoredBodyLength() { return state.payload ? state.payload.body.byteLength + ($('#passwordProtectToggle').checked ? AES_GCM_TAG_BYTES : 0) : 0; }
+      function refreshProtectionUi() {
+        const enabled=$('#passwordProtectToggle').checked;
+        $('#embedPasswordFields').hidden=!enabled;
+        const status=$('#embedPasswordStatus');
+        status.className='password-status';
+        if (enabled) {
+          const protection=embedProtectionState();
+          if (!protection.valid) { status.textContent=t(protection.reason==='mismatch'?'passwordMismatch':'passwordEmpty'); status.classList.add('bad'); }
+          else { status.textContent=t('passwordReady'); status.classList.add('ok'); }
+        } else status.textContent='';
+        refreshPayloadUi();
+      }
+      function refreshPayloadUi() { const p=state.payload; $('#payloadEmpty').hidden=Boolean(p); $('#payloadSummary').hidden=!p; $('#payloadMetrics').hidden=!p; if (p) { $('#payloadName').textContent=p.file.name; $('#payloadMeta').textContent=`${formatBytes(p.file.size)} · ${p.file.type||'application/octet-stream'}`; $('#payloadOriginalSize').textContent=formatBytes(p.file.size); $('#payloadStoredSize').textContent=formatBytes(predictedStoredBodyLength()); $('#payloadCompression').textContent=p.compressed ? t('gzipUsed') : (p.compressionAvailable ? t('gzipSkipped') : t('gzipUnavailable')); } refreshFit(); }
+      function refreshFit() {
+        const box=$('#fitStatus'), c=state.carrier, p=state.payload, protection=embedProtectionState();
+        box.className='fit-status neutral';
+        if (!c||!p) { box.textContent=t('fitWaiting'); $('#embedButton').disabled=true; return; }
+        const needed=predictedStoredBodyLength();
+        if (needed<=c.capacity) { box.className='fit-status ok'; box.textContent=`${t('fitOk')} ${formatBytes(needed)} / ${formatBytes(c.capacity)}`; $('#embedButton').disabled=!protection.valid; }
+        else { box.className='fit-status bad'; box.textContent=`${t('fitBad')} ${formatBytes(needed)} / ${formatBytes(c.capacity)}`; $('#embedButton').disabled=true; }
+      }
+      function refreshExtractReady() {
+        const image=state.extractImage;
+        $('#extractButton').disabled=!image || (image.outer.encrypted && !$('#extractPassword').value);
+      }
 
       async function selectCarrier(file) {
         const token=nextGeneration(); setError('#embedError'); state.carrier=null; state.encodedBlob=null; $('#embedResult').hidden=true; refreshCarrierUi();
@@ -575,30 +724,86 @@
       }
 
       async function runEmbed() {
-        if (!state.carrier||!state.payload) return; const token=generation; setError('#embedError'); $('#embedButton').disabled=true; $('#embedResult').hidden=true;
-        try { const body=state.payload.body; if (body.length>state.carrier.capacity) throw new Error('CAPACITY'); const header=buildOuter(body.length,state.payload.compressed); $('#embedStatus').textContent=t('embedding'); await new Promise(resolve=>setTimeout(resolve,0)); const modified=embedSequential(state.carrier.imageData,header,body); if (!isCurrent(token)) return; $('#embedStatus').textContent=t('makingPng'); const blob=await imageDataToPng(modified); if (!isCurrent(token)) return; state.encodedBlob=blob; $('#encodedBlobSize').textContent=formatBytes(blob.size); $('#encodedPayloadSize').textContent=formatBytes(state.payload.file.size); $('#encodedStoredSize').textContent=`${formatBytes(body.byteLength)}${state.payload.compressed ? ' · GZIP' : ''}`; $('#embedResult').hidden=false; $('#embedStatus').textContent=''; $('#savePngButton').focus({preventScroll:true}); }
+        if (!state.carrier||!state.payload) return; const token=generation; const protection=embedProtectionState(); setError('#embedError'); $('#embedButton').disabled=true; $('#embedResult').hidden=true;
+        try {
+          if (!protection.valid) throw new Error(protection.reason==='mismatch'?'PASSWORD_MISMATCH':'PASSWORD_REQUIRED');
+          let body=state.payload.body, header;
+          if (protection.enabled) {
+            if (body.byteLength+AES_GCM_TAG_BYTES>state.carrier.capacity) throw new Error('CAPACITY');
+            $('#embedStatus').textContent=t('derivingKey'); await new Promise(resolve=>setTimeout(resolve,0));
+            if (!isCurrent(token)) return;
+            $('#embedStatus').textContent=t('encrypting');
+            const encrypted=await encryptStoredBody(body,protection.password,state.payload.compressed);
+            if (!isCurrent(token)) return;
+            header=encrypted.header; body=encrypted.body;
+          } else {
+            if (body.byteLength>state.carrier.capacity) throw new Error('CAPACITY');
+            header=buildOuter(body.byteLength,{compressed:state.payload.compressed});
+          }
+          $('#embedStatus').textContent=t('embedding'); await new Promise(resolve=>setTimeout(resolve,0));
+          const modified=embedSequential(state.carrier.imageData,header,body); if (!isCurrent(token)) return;
+          $('#embedStatus').textContent=t('makingPng'); const blob=await imageDataToPng(modified); if (!isCurrent(token)) return;
+          state.encodedBlob=blob;
+          $('#encodedBlobSize').textContent=formatBytes(blob.size);
+          $('#encodedPayloadSize').textContent=formatBytes(state.payload.file.size);
+          $('#encodedStoredSize').textContent=`${formatBytes(body.byteLength)}${state.payload.compressed?' · GZIP':''}${protection.enabled?' · AES-256-GCM':''}`;
+          $('#embedResult').hidden=false; $('#embedStatus').textContent=''; $('#savePngButton').focus({preventScroll:true});
+        }
         catch (error) { if (isCurrent(token)) { $('#embedStatus').textContent=''; setError('#embedError',friendlyError(error)); } }
         finally { refreshFit(); }
       }
 
       async function selectExtractImage(file) {
-        const token=nextGeneration(); setError('#extractError'); state.extractImage=null; state.recovered=null; $('#extractResult').hidden=true; $('#extractButton').disabled=true;
-        try { if (!file || file.type!=='image/png') throw new Error('IMAGE_TYPE'); $('#extractStatus').textContent=t('readingImage'); const decoded=await decodeImage(file); if (!isCurrent(token)) return; const opaqueCount=countOpaque(decoded.imageData); if (opaqueCount<HEADER_PIXELS) throw new Error('NOT_BKFI'); state.extractImage={file,...decoded,opaqueCount}; revokePreview('extract'); extractPreviewUrl=URL.createObjectURL(file); $('#extractThumb').src=extractPreviewUrl; $('#extractEmpty').hidden=true; $('#extractSummary').hidden=false; $('#extractImageName').textContent=file.name; $('#extractImageMeta').textContent=`${formatBytes(file.size)} · ${formatNumber(decoded.width)} × ${formatNumber(decoded.height)}`; $('#extractStatus').textContent=''; $('#extractButton').disabled=false; }
-        catch (error) { if (isCurrent(token)) { $('#extractStatus').textContent=''; setError('#extractError',friendlyError(error)); } }
+        const token=nextGeneration(); setError('#extractError'); state.extractImage=null; state.recovered=null; $('#extractResult').hidden=true; $('#extractButton').disabled=true; $('#extractPasswordBox').hidden=true; $('#extractPassword').value='';
+        try {
+          if (!file || file.type!=='image/png') throw new Error('IMAGE_TYPE');
+          $('#extractStatus').textContent=t('readingImage');
+          const decoded=await decodeImage(file); if (!isCurrent(token)) return;
+          const opaqueCount=countOpaque(decoded.imageData); if (opaqueCount<HEADER_PIXELS) throw new Error('NOT_BKFI');
+          const outer=extractOuterHeader(decoded.imageData);
+          state.extractImage={file,...decoded,opaqueCount,outer};
+          revokePreview('extract'); extractPreviewUrl=URL.createObjectURL(file); $('#extractThumb').src=extractPreviewUrl;
+          $('#extractEmpty').hidden=true; $('#extractSummary').hidden=false; $('#extractImageName').textContent=file.name; $('#extractImageMeta').textContent=`${formatBytes(file.size)} · ${formatNumber(decoded.width)} × ${formatNumber(decoded.height)}`;
+          $('#extractPasswordBox').hidden=!outer.encrypted;
+          $('#extractStatus').textContent=''; refreshExtractReady();
+          if (outer.encrypted) $('#extractPassword').focus({preventScroll:true});
+        }
+        catch (error) { if (isCurrent(token)) { $('#extractStatus').textContent=''; setError('#extractError',friendlyError(error)); refreshExtractReady(); } }
       }
 
       async function runExtract() {
         if (!state.extractImage) return; const token=generation; setError('#extractError'); $('#extractButton').disabled=true; $('#extractResult').hidden=true;
-        try { $('#extractStatus').textContent=t('extracting'); await new Promise(resolve=>setTimeout(resolve,0)); const extracted=extractSequential(state.extractImage.imageData); if (!isCurrent(token)) return; let body=extracted.body; if (extracted.compressed) { $('#extractStatus').textContent=t('decompressing'); body=await gunzipBytesLimited(body); if (!isCurrent(token)) return; } const parsed=parseInner(body); $('#extractStatus').textContent=t('verifying'); const actualHash=await sha256(parsed.fileBytes); if (!isCurrent(token)) return; if (!bytesEqual(actualHash,parsed.expectedHash)) throw new Error('HASH_MISMATCH'); state.recovered=parsed; $('#recoveredOriginalName').textContent=parsed.filename; $('#recoveredSize').textContent=formatBytes(parsed.fileBytes.length); $('#recoveredFilename').value=sanitizeFullFilename(parsed.filename,'recovered-file.bin'); $('#extractResult').hidden=false; $('#extractStatus').textContent=''; $('#saveRecoveredButton').focus({preventScroll:true}); }
-        catch (error) { if (isCurrent(token)) { $('#extractStatus').textContent=''; setError('#extractError',friendlyError(error)); } }
-        finally { $('#extractButton').disabled=!state.extractImage; }
+        try {
+          const outer=state.extractImage.outer;
+          $('#extractStatus').textContent=t('extracting'); await new Promise(resolve=>setTimeout(resolve,0));
+          const extracted=extractSequential(state.extractImage.imageData,outer); if (!isCurrent(token)) return;
+          let body=extracted.body;
+          if (outer.encrypted) {
+            const password=$('#extractPassword').value; if (!password) throw new Error('PASSWORD_REQUIRED');
+            $('#extractStatus').textContent=t('derivingKey'); await new Promise(resolve=>setTimeout(resolve,0));
+            if (!isCurrent(token)) return;
+            $('#extractStatus').textContent=t('decrypting'); body=await decryptStoredBody(body,password,outer); if (!isCurrent(token)) return;
+          }
+          if (outer.compressed) { $('#extractStatus').textContent=t('decompressing'); body=await gunzipBytesLimited(body); if (!isCurrent(token)) return; }
+          const parsed=parseInner(body); $('#extractStatus').textContent=t('verifying');
+          const actualHash=await sha256(parsed.fileBytes); if (!isCurrent(token)) return;
+          if (!bytesEqual(actualHash,parsed.expectedHash)) throw new Error('HASH_MISMATCH');
+          state.recovered=parsed; $('#recoveredOriginalName').textContent=parsed.filename; $('#recoveredSize').textContent=formatBytes(parsed.fileBytes.length); $('#recoveredFilename').value=sanitizeFullFilename(parsed.filename,'recovered-file.bin'); $('#hashResult').textContent=outer.encrypted?'AES-GCM + SHA-256 ✓':'SHA-256 ✓'; $('#extractResult').hidden=false; $('#extractStatus').textContent=''; $('#saveRecoveredButton').focus({preventScroll:true});
+        }
+        catch (error) {
+          if (isCurrent(token)) {
+            $('#extractStatus').textContent=''; setError('#extractError',friendlyError(error));
+            if (error?.message==='AUTH_FAILED') { $('#extractPassword').focus({preventScroll:true}); $('#extractPassword').select(); }
+          }
+        }
+        finally { refreshExtractReady(); }
       }
 
       function setMode(mode) { const embed=mode==='embed'; $('#embedTab').setAttribute('aria-selected',String(embed)); $('#extractTab').setAttribute('aria-selected',String(!embed)); $('#embedPanel').hidden=!embed; $('#extractPanel').hidden=embed; }
       function bindDropZone(zoneId,inputId,handler) { const zone=$(zoneId),input=$(inputId); zone.addEventListener('click',e=>{ if (e.target.closest('button')) return; input.click(); }); zone.addEventListener('keydown',e=>{ if (e.key==='Enter'||e.key===' ') { e.preventDefault(); input.click(); } }); input.addEventListener('change',()=>{ const file=input.files?.[0]; if (file) handler(file); input.value=''; }); ['dragenter','dragover'].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.add('is-dragover');})); ['dragleave','drop'].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.remove('is-dragover');})); zone.addEventListener('drop',e=>{ const file=e.dataTransfer?.files?.[0]; if (file) handler(file); }); }
 
       function applyLanguage() {
-        document.documentElement.lang=language; document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);}); document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);}); document.querySelectorAll('[data-i18n-aria-label]').forEach(el=>el.setAttribute('aria-label',t(el.dataset.i18nAriaLabel))); $('#languageButton').textContent=language==='ja'?'EN':'日本語'; $('#languageButton').setAttribute('aria-label',language==='ja'?'英語に切り替え':'Switch to Japanese'); document.title=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; $('#brandName').textContent=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; $('#footerName').textContent=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; refreshCarrierUi(); refreshPayloadUi();
+        document.documentElement.lang=language; document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);}); document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);}); document.querySelectorAll('[data-i18n-aria-label]').forEach(el=>el.setAttribute('aria-label',t(el.dataset.i18nAriaLabel))); $('#languageButton').textContent=language==='ja'?'EN':'日本語'; $('#languageButton').setAttribute('aria-label',language==='ja'?'英語に切り替え':'Switch to Japanese'); document.title=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; $('#brandName').textContent=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; $('#footerName').textContent=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; refreshCarrierUi(); refreshProtectionUi(); refreshExtractReady();
       }
 
       $('#embedTab').addEventListener('click',()=>setMode('embed')); $('#extractTab').addEventListener('click',()=>setMode('extract'));
@@ -606,6 +811,10 @@
       const helpDialog=$('#helpDialog'); $('#helpButton').addEventListener('click',()=>helpDialog.showModal()); $('#closeHelpButton').addEventListener('click',()=>helpDialog.close()); helpDialog.addEventListener('click',event=>{const rect=helpDialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)helpDialog.close();});
       bindDropZone('#carrierDropZone','#carrierInput',selectCarrier); bindDropZone('#payloadDropZone','#payloadInput',selectPayload); bindDropZone('#extractDropZone','#extractInput',selectExtractImage);
       $('#replaceCarrierButton').addEventListener('click',e=>{e.stopPropagation();$('#carrierInput').click();}); $('#replacePayloadButton').addEventListener('click',e=>{e.stopPropagation();$('#payloadInput').click();}); $('#replaceExtractButton').addEventListener('click',e=>{e.stopPropagation();$('#extractInput').click();});
+      $('#passwordProtectToggle').addEventListener('change',()=>{ if (!$('#passwordProtectToggle').checked) { $('#embedPassword').value=''; $('#embedPasswordConfirm').value=''; } state.encodedBlob=null; $('#embedResult').hidden=true; refreshProtectionUi(); });
+      $('#embedPassword').addEventListener('input',()=>{ state.encodedBlob=null; $('#embedResult').hidden=true; refreshProtectionUi(); });
+      $('#embedPasswordConfirm').addEventListener('input',()=>{ state.encodedBlob=null; $('#embedResult').hidden=true; refreshProtectionUi(); });
+      $('#extractPassword').addEventListener('input',()=>{ state.recovered=null; $('#extractResult').hidden=true; setError('#extractError'); refreshExtractReady(); });
       $('#embedButton').addEventListener('click',runEmbed); $('#extractButton').addEventListener('click',runExtract);
       $('#savePngButton').addEventListener('click',()=>{ if (!state.encodedBlob) return; const base=sanitizeBase($('#outputFilename').value,'file-in-image'); $('#outputFilename').value=base; downloadBlob(state.encodedBlob,`${base}.png`); showToast(t('pngSaved'),'success'); });
       $('#saveRecoveredButton').addEventListener('click',()=>{ if (!state.recovered) return; const name=sanitizeFullFilename($('#recoveredFilename').value,state.recovered.filename||'recovered-file.bin'); $('#recoveredFilename').value=name; downloadBlob(new Blob([state.recovered.fileBytes],{type:state.recovered.mime}),name); showToast(t('fileSaved'),'success'); });
