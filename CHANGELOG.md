@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.0 - 2026-10-02
+
+- Release the first stable File in Image version.
+- Adopt BKFI format version 1 and BKFC container version 1 unchanged from the v0.9.0 release candidate.
+- Keep version 0 decoding for v0.2.0-v0.8.0 compatibility.
+- Keep adaptive placement, GZIP, PBKDF2-HMAC-SHA-256, AES-256-GCM, Worker processing, cancellation, and generated-PNG verification unchanged from the RC.
+- Rewrite Japanese and English README files using the PDF Organizer release-documentation structure.
+- Pin Node.js 24 in the GitHub Pages deployment workflow before repository verification.
+- Refresh desktop/mobile Japanese and English screenshots for the stable release.
+- Keep runtime dependencies at zero and runtime network access blocked.
+
 ## 0.9.0 - 2026-10-02
 
 - Promote new BKFI output to compatibility-format version 1.

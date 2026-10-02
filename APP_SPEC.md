@@ -5,52 +5,47 @@
 - **Name:** File in Image
 - **Japanese name:** 画像にファイルを埋め込む
 - **Slug:** `file-in-image`
-- **Current version:** v0.9.0
+- **Current version:** v1.0.0
 - **Repository:** `ttomohisa/htmlapps-file-in-image`
 - **Purpose:** Hide one arbitrary file inside image pixels and recover the original bytes later without uploading either file.
-- **Release artifacts:** `dist/index.html`, `dist/index.self-extract.html`, and the generated repository-root `file-in-image.html`.
+- **Release artifacts:** `dist/index.html`, `dist/index.self-extract.html`, and generated repository-root `file-in-image.html`.
 
-## 2. Release-candidate scope
+## 2. Stable release
 
-v0.9.0 is the release candidate for the stable v1 line.
+v1.0.0 is the first stable release.
 
-No new user-facing feature scope is added here. The release focuses on:
-
-- freezing the compatibility-format candidate;
-- preserving version 0 decode compatibility;
-- rejecting malformed or unsupported stable headers more strictly;
-- automated format regression in CI;
-- manual cross-browser / device regression before v1.0.
-
-If a blocker is found after this release that requires changing binary semantics, the format version must be bumped instead of silently reinterpreting version 1.
-
-## 3. Compatibility-format versioning
-
-### New output
-
-v0.9.0 writes:
+The compatibility format frozen during v0.9.0 is adopted unchanged:
 
 - BKFI outer format version: **1**
 - BKFC inner container version: **1**
-- embedding mode: **1** (adaptive)
-- outer header length: 80 bytes
-- inner fixed header length: 48 bytes
+- current embedding mode: **1** (adaptive)
+- BKFI outer header: **80 bytes**
+- BKFC fixed inner header: **48 bytes**
 
-### Backward compatibility
+Version 0 images produced by v0.2.0–v0.8.0 remain readable.
 
-Decoder support remains:
+Future binary changes that alter version 1 semantics require a new format version.
 
-- BKFI version 0 + embedding mode 0
-- BKFI version 0 + embedding mode 1
-- BKFI version 1 + embedding mode 1
-- BKFC version 0
-- BKFC version 1
+## 3. Supported input and output
 
-Stable BKFI version 1 with embedding mode 0 is invalid.
+Carrier image input:
 
-Versions greater than 1 are rejected as unsupported.
+- PNG
+- JPEG
+- WebP
 
-## 4. BKFI outer header — stable candidate
+Output:
+
+- PNG only
+
+Payload:
+
+- one arbitrary file
+- maximum 32 MiB
+
+The output PNG must be preserved byte-for-byte at the image-content level. Resizing, cropping, filters, screenshots, JPEG/lossy WebP conversion, or social/messaging recompression can destroy the embedded data.
+
+## 4. Stable BKFI outer header
 
 All multi-byte integers are big-endian.
 
@@ -70,18 +65,17 @@ All multi-byte integers are big-endian.
 | 48 | 16 | placement salt |
 | 64 | 16 | reserved |
 
-Stable version 1 rules:
+Version 1 requirements:
 
 - format version = `1`
 - embedding mode = `1`
 - header length = `80`
-- offset 10..11 = zero
+- offsets 10..11 = zero
 - offsets 64..79 = zero
 - unknown flag bits are rejected
-- if unencrypted, KDF ID / iterations / salt / IV must be zero
-- if encrypted, KDF ID = PBKDF2-HMAC-SHA-256 and iterations must remain within parser bounds
-- placement salt remains 16 bytes
-- complete BKFI header remains AES-GCM AAD when encrypted
+- unencrypted output requires KDF ID, iteration count, salt, and IV to remain zero
+- encrypted output uses PBKDF2-HMAC-SHA-256
+- full BKFI header is AES-GCM AAD
 
 Flags:
 
@@ -93,7 +87,15 @@ KDF IDs:
 - 0: none
 - 1: PBKDF2-HMAC-SHA-256
 
-## 5. BKFC inner container — stable candidate
+Decoder compatibility:
+
+- BKFI v0 + mode 0
+- BKFI v0 + mode 1
+- BKFI v1 + mode 1
+
+BKFI v1 + mode 0 is invalid.
+
+## 5. Stable BKFC inner container
 
 | Offset | Size | Field |
 | ---: | ---: | --- |
@@ -107,169 +109,144 @@ KDF IDs:
 | 16 | 32 | SHA-256 of original bytes |
 | 48 | variable | filename, MIME, original bytes |
 
-Stable version 1 rules:
+Version 1 requirements:
 
 - version = `1`
 - reserved byte = zero
 - fixed header length = `48`
-- payload must remain within the 32 MiB application limit
-- exact total length must match the encoded metadata + file length
-- filename and MIME must decode as valid UTF-8
+- original payload ≤ 32 MiB
+- exact encoded length must match
+- filename and MIME must be valid UTF-8
 
-Version 0 remains readable for compatibility.
+BKFC version 0 remains readable.
 
-## 6. Frozen adaptive placement semantics
+## 6. Adaptive embedding
 
-Stable version 1 continues the v0.5.0 adaptive algorithm unchanged.
+The stable placement semantics are unchanged from the v0.5.0 implementation:
 
 - 8×8 blocks
 - only fully opaque pixels are body-eligible
-- first 214 fully opaque pixels remain reserved for the BKFI header
-- RGB least-significant bits are masked before detail analysis
+- first 214 fully opaque pixels store the BKFI header
+- RGB LSB is masked before detail analysis
 - luminance: `(77R + 150G + 29B) >> 8`
-- integer Sobel score
-- deterministic average-score comparison
-- lower block index breaks exact score ties
+- integer Sobel scoring
+- deterministic score comparison with lower block index tie-break
 - candidate capacity grows to approximately 2× body bits when possible
-- deterministic xoshiro128** ordering
-- maximum 192 per-block RGB slot entries
+- xoshiro128** deterministic ordering
+- maximum 192 RGB slots buffered per block
 - one LSB per RGB channel
 - alpha is never modified
 
-The placement-domain string remains exactly:
+The placement-domain string remains:
 
 ```text
 BKFI-placement-v0.5
 ```
 
-The historical name is retained because changing it would change placement compatibility.
+Its historical name is intentionally retained because changing it would break compatibility.
 
-## 7. Compression and encryption
+## 7. Compression
 
-Processing order remains:
+The complete BKFC container is passed through native GZIP only when the compressed result is smaller.
 
-```text
-BKFC
-→ GZIP only when smaller
-→ AES-256-GCM when password protection is enabled
-→ adaptive placement
-→ PNG
-→ mandatory generated-PNG recovery verification
-```
+If `CompressionStream('gzip')` is unavailable, new output remains uncompressed.
 
-New encrypted output remains:
+Extraction of GZIP data requires `DecompressionStream('gzip')`.
+
+Decompression is size-limited to prevent unbounded expansion.
+
+## 8. Password protection
+
+Optional password protection uses:
 
 - PBKDF2-HMAC-SHA-256
-- 600,000 iterations
-- random 16-byte salt
+- 600,000 iterations for new output
+- random 16-byte KDF salt
 - AES-256-GCM
 - random 12-byte IV
-- 128-bit GCM tag
-- full BKFI header as AAD
+- 128-bit authentication tag
+- complete BKFI header as AAD
 
-Passwords remain exact UTF-8 input and are not trimmed, normalized, logged, or persisted.
+Password text is encoded exactly as entered in UTF-8. It is not trimmed or Unicode-normalized.
 
-## 8. Generated-PNG verification
+Passwords are not persisted in localStorage or IndexedDB.
 
-Save remains blocked until the actual Canvas-generated PNG Blob is:
+## 9. Generated-PNG verification
 
-1. decoded again;
-2. parsed for BKFI;
-3. re-extracted through the normal Worker;
-4. decrypted/authenticated when needed;
-5. decompressed when needed;
-6. parsed as BKFC;
-7. checked against SHA-256, filename, MIME, and source byte length.
+Save remains disabled until the actual generated PNG Blob passes the normal recovery pipeline:
 
-This behavior is unchanged from v0.7.0.
+1. decode the PNG Blob again;
+2. parse BKFI from decoded pixels;
+3. re-extract through the Worker;
+4. derive/decrypt again if password protected;
+5. GZIP-decompress when required;
+6. parse BKFC;
+7. verify SHA-256;
+8. verify filename, MIME, and byte length.
 
-## 9. Runtime architecture
+A failed self-check leaves no saveable generated Blob in application state.
 
-Unchanged from v0.8.0:
+## 10. Worker and cancellation
 
-- adaptive analysis/embed/extract in an embedded Blob Worker
-- legacy mode 0 extraction in the same Worker
-- cancellable Worker lifecycle
-- generation-token stale-result protection
-- transferred pixel buffers
+CPU-heavy adaptive image analysis, embedding, and extraction run in an embedded Blob Worker.
+
+- source image buffers are transferred rather than structured-cloned where appropriate
+- embed mutates the transferred pixel buffer in place
 - no full-image RGB-slot list
-- no runtime third-party dependency
-- `connect-src 'none'`
-- `worker-src 'self' blob:`
+- active Worker can be terminated on Cancel
+- generation tokens suppress stale results from non-abortable browser-native operations
+- changing source/password state invalidates older output
 
-## 10. v0.9.0 automated regression
+## 11. Mobile and accessibility
+
+Stable UI requirements include:
+
+- no horizontal scrolling at narrow smartphone widths
+- approximately 44 px primary touch targets
+- safe-area-aware header/footer/dialog layout
+- 16 px mobile password/filename inputs
+- long filename handling
+- compact selected-file drop zones with replacement Drag & Drop
+- password show/hide controls
+- accessible tabs with roving tabindex and Arrow/Home/End support
+- `aria-busy`, status, progress labels, and result focus
+
+## 12. Privacy and runtime network policy
+
+- selected images, payloads, passwords, generated PNGs, and recovered bytes remain on the device
+- runtime dependencies: zero
+- no CDN/API/analytics/telemetry
+- no user file upload
+- `connect-src 'none'`
+- Blob Worker permitted with `worker-src 'self' blob:`
+- only language preference may be stored locally
+
+## 13. Automated regression
 
 `scripts/check-format-regression.mjs` is part of `scripts/check-repository.ps1`.
 
-The regression verifies:
+It verifies:
 
-- new BKFI output writes version 1;
-- new BKFC output writes version 1;
-- BKFI/BKFC version 0 remains readable;
-- unsupported future versions are rejected;
-- stable version 1 + mode 0 is rejected;
-- unknown flags are rejected;
-- reserved stable fields are rejected when non-zero;
-- unexpected unencrypted KDF material is rejected;
-- PBKDF2 lower-bound validation remains enforced;
-- adaptive mode 1 Worker round-trip restores body bytes exactly;
-- legacy mode 0 Worker extraction remains readable.
+- BKFI/BKFC version 1 output
+- version 0 decode compatibility
+- future-version rejection
+- reserved-field validation
+- adaptive mode 1 Worker round-trip
+- legacy mode 0 Worker decode
 
-CI explicitly sets up Node.js 24 before running repository checks.
+GitHub validation and Pages deployment pin Node.js 24 before repository checks.
 
-## 11. Manual release-candidate regression
+## 14. Release acceptance
 
-Automated CI does not replace real browser/device testing.
+v1.0.0 release artifacts must satisfy:
 
-Before v1.0, manually verify at minimum:
-
-- Chrome desktop
-- Edge desktop
-- Firefox desktop
-- Safari desktop
-- Android Chrome
-- iOS Safari
-
-Also verify:
-
-- Japanese / English
-- direct `file://` use
-- standalone readable HTML
-- self-extract HTML
-- unencrypted output
-- GZIP-compressible and incompressible payloads
-- password-protected output
-- wrong password
-- v0 legacy image recovery
-- cancellation / stale-result behavior
-- long filenames
-- mobile file picker/drop-zone compact state
-- password show/hide controls
-- generated-PNG self-verification
-- no runtime network request
-- modified/recompressed image failure states
-
-Detailed manual checklist is stored in `docs/RELEASE_CANDIDATE_CHECKLIST.ja.md` and `docs/RELEASE_CANDIDATE_CHECKLIST.md`.
-
-## 12. Privacy
-
-- files, images, passwords, generated PNGs, and recovered bytes remain local;
-- no user-data upload;
-- no runtime CDN/API/analytics/telemetry;
-- file/password bytes are not persisted in browser storage;
-- language preference may be stored locally;
-- runtime network access remains blocked by CSP.
-
-## 13. v0.9.0 acceptance criteria
-
-- new output uses BKFI/BKFC version 1;
-- version 0 decode compatibility remains;
-- stable version 1 semantics are not changed after RC except for blocker fixes;
-- automated format regression is mandatory in repository checks;
-- standalone and self-extract verification remain green;
-- app UI remains v0.8 UX plus the PR #9 file-picker/password fixes;
-- manual browser/device checklist exists and is completed before v1.0.
-
-## 14. Next milestone
-
-- **v1.0.0:** complete RC manual regression, fix blockers only, refresh README/screenshots/version/release artifacts, then release.
+- repository check passes
+- format regression passes
+- readable standalone verification passes
+- self-extract verification passes
+- CSP blocks runtime network access
+- favicon and app icon use the canonical `assets/favicon.svg`
+- Japanese / English README are current
+- desktop / mobile screenshots are current
+- no new external runtime dependency
+- no binary-format semantic change from v0.9.0 RC

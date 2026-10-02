@@ -43,6 +43,20 @@ jobs:
         shell: pwsh
         run: ./scripts/check-repository.ps1
 
+      - name: Capture release screenshots
+        if: startsWith(github.head_ref, 'release/')
+        shell: pwsh
+        run: node ./scripts/capture-release-screenshots.mjs
+
+      - name: Upload release screenshots
+        if: startsWith(github.head_ref, 'release/')
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-screenshots-${{ github.event.pull_request.head.sha || github.sha }}
+          path: artifacts/release-screenshots/*.png
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload standalone artifact
         uses: actions/upload-artifact@v7
         with:
