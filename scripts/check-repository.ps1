@@ -38,6 +38,7 @@ $required = @(
   "scripts\update-dependency.ps1",
   "scripts\verify-standalone.ps1",
   "scripts\verify-self-extract.ps1",
+  "scripts\check-format-regression.mjs",
   "README.md",
   "README.ja.md",
   "LICENSE",
@@ -53,6 +54,16 @@ foreach ($relative in $required) {
 }
 
 & (Join-Path $Root "scripts\check-powershell-syntax.ps1") -RootPath $Root
+
+$nodeCommand = Get-Command node -ErrorAction SilentlyContinue
+if ($null -eq $nodeCommand) {
+  throw "Node.js is required for File in Image format regression checks."
+}
+& node (Join-Path $Root "scripts\check-format-regression.mjs")
+if ($LASTEXITCODE -ne 0) {
+  throw "File in Image format regression failed with exit code $LASTEXITCODE."
+}
+Write-Host "[OK] File in Image format regression passed." -ForegroundColor Green
 
 $mobileBottomBarPath = Join-Path $Root "components\mobile-bottom-bar.html"
 $mobileBottomBarText = Get-Content -Raw -Encoding UTF8 $mobileBottomBarPath
