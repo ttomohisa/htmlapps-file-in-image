@@ -3,7 +3,7 @@
   "name": "File in Image",
   "nameJa": "画像にファイルを埋め込む",
   "slug": "file-in-image",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "description": "Hide one file inside an image and recover it later, entirely in the browser.",
   "descriptionJa": "任意の1ファイルを画像に埋め込み、あとからブラウザー内だけで取り出します。",
   "defaultLanguage": "auto",
