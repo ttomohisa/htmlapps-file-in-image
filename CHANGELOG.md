@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Add localized Clear selection controls for the carrier and payload, including pending loads, while retaining the other input and password settings.
+- Fix overlapping carrier/payload preparation silently discarding an independently selected input. Keep same-input latest-wins behavior and invalidate stale generated output.
+- Preserve input loading/error feedback, release cleared carrier previews, and restore keyboard focus to Choose.
+- Add deterministic synthetic selection/cancellation and recovery regressions to the repository check. Binary formats, crypto, compression, placement, and local-only processing are unchanged.
+
 ## 1.0.0 - 2026-10-02
 
 - Release the first stable File in Image version.

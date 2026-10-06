@@ -197,6 +197,17 @@ CPU-heavy adaptive image analysis, embedding, and extraction run in an embedded 
 - generation tokens suppress stale results from non-abortable browser-native operations
 - changing source/password state invalidates older output
 
+### Independent Embed inputs and Clear selection
+
+- Carrier and payload loads have independent monotonically increasing generations. Overlapping selection keeps both current inputs; replacing or clearing one rejects only that input's late result.
+- Each input transitions from `empty` to `loading` to `ready` or `error`. Clear returns the input to `empty`; replacement enters `loading` immediately and drops its old preview, metadata, and selection.
+- Each card has a localized **Clear selection** button, enabled while selected or loading and disabled while empty. It does not delete a disk file and is not secure memory erasure.
+- Clear retains the other input, including its pending load, and all password settings. The custom PNG name is retained when the carrier remains selected; carrier replacement or removal resets it.
+- Source selection and Clear advance the existing operation generation, terminate obsolete Worker work, invalidate generated PNG verification, and disable Save immediately. Late native/Worker results cannot restore stale Save.
+- Clearing the carrier revokes its preview URL and removes its thumbnail reference. Clearing payload drops the selected payload/file/container references.
+- Input-local loading labels and the shared loading summary remain accurate while either input is pending. An independent completion does not dismiss the other input's current error.
+- Clear returns keyboard focus to that input's Choose button. Existing approximately 44 px button targets apply.
+
 ## 11. Mobile and accessibility
 
 Stable UI requirements include:
@@ -223,7 +234,7 @@ Stable UI requirements include:
 
 ## 13. Automated regression
 
-`scripts/check-format-regression.mjs` is part of `scripts/check-repository.ps1`.
+`scripts/check-format-regression.mjs` and `scripts/check-selection-regression.mjs` are part of `scripts/check-repository.ps1`.
 
 It verifies:
 
@@ -233,6 +244,8 @@ It verifies:
 - reserved-field validation
 - adaptive mode 1 Worker round-trip
 - legacy mode 0 Worker decode
+
+Selection regression runs the production application script with synthetic DOM, image/canvas, and Worker scheduling doubles. It covers independent overlaps, same-input replacement, Clear while selected/loading, error ownership, focus/localization, capacity/password validation, stale embedding/self-verification, and encrypted/unencrypted recovery. Native Web Crypto, GZIP, and unchanged Worker placement code run in these tests. They are source-level tests, not browser or native-PNG QA.
 
 GitHub validation and Pages deployment pin Node.js 24 before repository checks.
 

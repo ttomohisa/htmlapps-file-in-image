@@ -19,6 +19,7 @@ GitHub Pages delivers the initial HTML. After it loads, image decoding, GZIP, en
 ## Features
 
 - **Hide one arbitrary file inside an image** — Use a PNG, JPEG, or WebP carrier and save the result as PNG.
+- **Clear either selected input** — Remove the image or payload while keeping the other input and password settings, even during loading.
 - **Check real capacity before embedding** — Capacity is calculated from fully opaque RGB pixels and the actual prepared payload size.
 - **Compress only when it helps** — The complete inner container is GZIP-compressed only when that makes it smaller.
 - **Optional password protection** — Protect the embedded data, including the original filename, with PBKDF2-HMAC-SHA-256 and AES-256-GCM.
@@ -55,6 +56,8 @@ The application has no third-party runtime package to download. The normal build
 7. Edit the suggested PNG filename if needed, then save it.
 
 After a file is selected, the picker becomes compact. You can still replace it with the **Change** button or by dropping another file onto the same area.
+
+Use **Clear selection** below either picker to remove only that input, including while it is loading. The other input and password settings stay in place. Clearing or replacing either input invalidates the previous generated PNG, so embed again before saving. No original file is deleted. You can choose the image and payload in quick succession; their loading is independent.
 
 ### Recover a file
 

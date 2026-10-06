@@ -39,6 +39,7 @@ $required = @(
   "scripts\verify-standalone.ps1",
   "scripts\verify-self-extract.ps1",
   "scripts\check-format-regression.mjs",
+  "scripts\check-selection-regression.mjs",
   "README.md",
   "README.ja.md",
   "LICENSE",
@@ -64,6 +65,11 @@ if ($LASTEXITCODE -ne 0) {
   throw "File in Image format regression failed with exit code $LASTEXITCODE."
 }
 Write-Host "[OK] File in Image format regression passed." -ForegroundColor Green
+& node (Join-Path $Root "scripts\check-selection-regression.mjs")
+if ($LASTEXITCODE -ne 0) {
+  throw "File in Image selection regression failed with exit code $LASTEXITCODE."
+}
+Write-Host "[OK] File in Image selection regression passed." -ForegroundColor Green
 
 $mobileBottomBarPath = Join-Path $Root "components\mobile-bottom-bar.html"
 $mobileBottomBarText = Get-Content -Raw -Encoding UTF8 $mobileBottomBarPath
