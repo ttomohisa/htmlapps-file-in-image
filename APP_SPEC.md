@@ -5,7 +5,7 @@
 - **Name:** File in Image
 - **Japanese name:** 画像にファイルを埋め込む
 - **Slug:** `file-in-image`
-- **Current version:** v1.0.0
+- **Current version:** v1.0.1
 - **Repository:** `ttomohisa/htmlapps-file-in-image`
 - **Purpose:** Hide one arbitrary file inside image pixels and recover the original bytes later without uploading either file.
 - **Release artifacts:** `dist/index.html`, `dist/index.self-extract.html`, and generated repository-root `file-in-image.html`.
@@ -213,6 +213,8 @@ CPU-heavy adaptive image analysis, embedding, and extraction run in an embedded 
 Stable UI requirements include:
 
 - no horizontal scrolling at narrow smartphone widths
+- The header language button shows the target language: `EN` in Japanese and `JA` in English. Its accessible name and matching tooltip are `英語に切り替え` / `Switch to Japanese`.
+- The header version is `v` followed by the numeric `app.config.json` version (`vx.x.x`). Preserve existing responsive visibility and the `完全ローカル処理` / `Fully local processing` badge.
 - approximately 44 px primary touch targets
 - safe-area-aware header/footer/dialog layout
 - 16 px mobile password/filename inputs
@@ -247,11 +249,13 @@ It verifies:
 
 Selection regression runs the production application script with synthetic DOM, image/canvas, and Worker scheduling doubles. It covers independent overlaps, same-input replacement, Clear while selected/loading, error ownership, focus/localization, capacity/password validation, stale embedding/self-verification, and encrypted/unencrypted recovery. Native Web Crypto, GZIP, and unchanged Worker placement code run in these tests. They are source-level tests, not browser or native-PNG QA.
 
+`scripts/check-header-regression.mjs` executes the complete production script against a synthetic DOM boundary. It checks the EN / JA action target, matching localized accessible name and tooltip, repeated real clicks, saved-language reload, denied storage, canonical patch version, and unchanged local-processing badge. Run it directly, optionally passing either generated HTML variant. It does not claim browser layout coverage.
+
 GitHub validation and Pages deployment pin Node.js 24 before repository checks.
 
 ## 14. Release acceptance
 
-v1.0.0 release artifacts must satisfy:
+v1.0.1 release artifacts must satisfy:
 
 - repository check passes
 - format regression passes
