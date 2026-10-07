@@ -7,6 +7,12 @@
 - Preserve input loading/error feedback, release cleared carrier previews, and restore keyboard focus to Choose.
 - Add deterministic synthetic selection/cancellation and recovery regressions to the repository check. Binary formats, crypto, compression, placement, and local-only processing are unchanged.
 
+## 1.0.1 - 2026-10-06
+
+- Standardize the header language action as EN / JA and match its tooltip to the localized accessible name.
+- Keep the existing responsive layout, canonical vx.x.x version badge, and fully local processing copy; bump the app patch version once.
+- Add runtime regressions for both languages, repeated toggles, persisted-language reload, denied storage, and both standalone artifacts.
+
 ## 1.0.0 - 2026-10-02
 
 - Release the first stable File in Image version.

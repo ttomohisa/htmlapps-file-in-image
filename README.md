@@ -18,6 +18,8 @@ GitHub Pages delivers the initial HTML. After it loads, image decoding, GZIP, en
 
 ## Features
 
+The header language button shows its target (`EN` / `JA`) with a localized accessible name and tooltip. The version is displayed as `v1.0.1`, and the privacy badge reads “Fully local processing”.
+
 - **Hide one arbitrary file inside an image** — Use a PNG, JPEG, or WebP carrier and save the result as PNG.
 - **Clear either selected input** — Remove the image or payload while keeping the other input and password settings, even during loading.
 - **Check real capacity before embedding** — Capacity is calculated from fully opaque RGB pixels and the actual prepared payload size.
@@ -25,7 +27,7 @@ GitHub Pages delivers the initial HTML. After it loads, image decoding, GZIP, en
 - **Optional password protection** — Protect the embedded data, including the original filename, with PBKDF2-HMAC-SHA-256 and AES-256-GCM.
 - **Prefer higher-detail image areas** — Adaptive 8×8 analysis prioritizes visually busy regions while keeping deterministic recovery.
 - **Verify before Save** — The generated PNG is decoded again and the original file must be recovered and SHA-256 verified before Save is enabled.
-- **Recover older File in Image output** — Stable format version 1 is written by v1.0.0 while version 0 output from v0.2.0–v0.8.0 remains readable.
+- **Recover older File in Image output** — Stable format version 1 is written by v1.0.1 while version 0 output from v0.2.0–v0.8.0 remains readable.
 - **Private single-HTML operation** — Runtime dependencies are zero, `connect-src 'none'` blocks runtime network access, and Japanese/English UI is included.
 
 ## Quick start
@@ -80,7 +82,7 @@ This is intended to make one-bit RGB changes less visually obvious. It is **not*
 
 ## Format compatibility
 
-v1.0.0 writes the stable compatibility candidate frozen in v0.9.0:
+v1.0.1 writes the stable compatibility candidate frozen in v0.9.0:
 
 - BKFI outer format version 1
 - BKFC inner container version 1
@@ -101,6 +103,8 @@ This repository includes a workflow that rebuilds and verifies the standalone HT
 3. The workflow runs PowerShell checks, Node.js 24 format regression, standalone/self-extract verification, and then deploys the verified `dist`.
 
 ## Development and build layout
+
+Run `node scripts/check-header-regression.mjs` with Node.js to exercise the real app script for language detection, repeated toggles, saved-language reload, denied storage, version, and local-processing copy. Pass `dist/index.html` or `dist/index.self-extract.html` to check generated artifacts too. This source-level DOM-boundary test does not replace browser layout checks.
 
 ```text
 .
