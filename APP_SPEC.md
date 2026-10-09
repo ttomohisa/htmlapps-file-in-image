@@ -5,7 +5,7 @@
 - **Name:** File in Image
 - **Japanese name:** 画像にファイルを埋め込む
 - **Slug:** `file-in-image`
-- **Current version:** v1.0.1
+- **Current version:** v1.0.2
 - **Repository:** `ttomohisa/htmlapps-file-in-image`
 - **Purpose:** Hide one arbitrary file inside image pixels and recover the original bytes later without uploading either file.
 - **Release artifacts:** `dist/index.html`, `dist/index.self-extract.html`, and generated repository-root `file-in-image.html`.
@@ -267,3 +267,9 @@ v1.0.1 release artifacts must satisfy:
 - desktop / mobile screenshots are current
 - no new external runtime dependency
 - no binary-format semantic change from v0.9.0 RC
+
+## v1.0.2 icon consistency
+
+- The canonical icon background and matching green details use `#16624f`.
+- Background corner radii are exactly 25% of their corresponding width and height; existing bounds, padding, and foreground artwork are preserved.
+- Header, favicon, and self-extract loader inherit the canonical `assets/favicon.svg`.
