@@ -18,7 +18,7 @@ GitHub Pages delivers the initial HTML. After it loads, image decoding, GZIP, en
 
 ## Features
 
-The header language button shows its target (`EN` / `JA`) with a localized accessible name and tooltip. The version is displayed as `v1.0.1`, and the privacy badge reads “Fully local processing”.
+The header language button shows its target (`EN` / `JA`) with a localized accessible name and tooltip. The version is displayed as `v1.0.3`, and the privacy badge reads “Fully local processing”.
 
 - **Hide one arbitrary file inside an image** — Use a PNG, JPEG, or WebP carrier and save the result as PNG.
 - **Clear either selected input** — Remove the image or payload while keeping the other input and password settings, even during loading.
@@ -74,6 +74,10 @@ Use **Clear selection** below either picker to remove only that input, including
 
 Each password field has a show/hide button. Turning password protection off, or choosing another protected PNG on the Extract side, returns the field to masked display.
 
+### Help and narrow screens
+
+Open Help with the question-mark button beside the language switcher. While it is open, the background page stays still; scroll inside Help to reach all the notes. Close it with the close button, Esc, or a click on the backdrop. At widths up to 420 px, the app name and version can wrap while the language and Help buttons keep their existing size.
+
 ## What “adaptive embedding” means
 
 File in Image scores 8×8 image blocks using LSB-independent luminance and an integer Sobel detail measure. Higher-detail blocks are preferred, then pixel/channel positions are deterministically shuffled.
@@ -105,6 +109,8 @@ This repository includes a workflow that rebuilds and verifies the standalone HT
 ## Development and build layout
 
 Run `node scripts/check-header-regression.mjs` with Node.js to exercise the real app script for language detection, repeated toggles, saved-language reload, denied storage, version, and local-processing copy. Pass `dist/index.html` or `dist/index.self-extract.html` to check generated artifacts too. This source-level DOM-boundary test does not replace browser layout checks.
+
+Run `node scripts/check-layout-regression.mjs` to check the Help-only document lock, narrow header rules, existing dialog scroll shell, touch targets, and privacy badge. It accepts either generated HTML variant, decoding the self-extract payload before checking its source. The standard repository check runs both header and layout regressions on source, the repository-root HTML, and both generated variants. These contracts do not establish native geometry, scrolling, focus, or loaded-file behavior; verify those separately in a browser.
 
 ```text
 .

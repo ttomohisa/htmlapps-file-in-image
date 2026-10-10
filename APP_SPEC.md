@@ -5,7 +5,7 @@
 - **Name:** File in Image
 - **Japanese name:** 画像にファイルを埋め込む
 - **Slug:** `file-in-image`
-- **Current version:** v1.0.2
+- **Current version:** v1.0.3
 - **Repository:** `ttomohisa/htmlapps-file-in-image`
 - **Purpose:** Hide one arbitrary file inside image pixels and recover the original bytes later without uploading either file.
 - **Release artifacts:** `dist/index.html`, `dist/index.self-extract.html`, and generated repository-root `file-in-image.html`.
@@ -215,6 +215,8 @@ Stable UI requirements include:
 - no horizontal scrolling at narrow smartphone widths
 - The header language button shows the target language: `EN` in Japanese and `JA` in English. Its accessible name and matching tooltip are `英語に切り替え` / `Switch to Japanese`.
 - The header version is `v` followed by the numeric `app.config.json` version (`vx.x.x`). Preserve existing responsive visibility and the `完全ローカル処理` / `Fully local processing` badge.
+- At widths up to 420 px, the app name and version may wrap without clipping. The existing language and Help controls must not shrink; wider-screen header styling is retained.
+- Only a native-modal Help dialog locks both document scrolling elements; a non-modal dialog does not activate the lock. Its existing flex shell keeps the header separate from the internally scrolling body, including short viewports and bottom safe areas. Close, Esc, and backdrop dismissal restore normal page scrolling through the dialog state.
 - approximately 44 px primary touch targets
 - safe-area-aware header/footer/dialog layout
 - 16 px mobile password/filename inputs
@@ -236,7 +238,7 @@ Stable UI requirements include:
 
 ## 13. Automated regression
 
-`scripts/check-format-regression.mjs` and `scripts/check-selection-regression.mjs` are part of `scripts/check-repository.ps1`.
+`scripts/check-format-regression.mjs`, `scripts/check-selection-regression.mjs`, `scripts/check-header-regression.mjs`, and `scripts/check-layout-regression.mjs` are part of `scripts/check-repository.ps1`.
 
 It verifies:
 
@@ -251,14 +253,18 @@ Selection regression runs the production application script with synthetic DOM, 
 
 `scripts/check-header-regression.mjs` executes the complete production script against a synthetic DOM boundary. It checks the EN / JA action target, matching localized accessible name and tooltip, repeated real clicks, saved-language reload, denied storage, canonical patch version, and unchanged local-processing badge. Run it directly, optionally passing either generated HTML variant. It does not claim browser layout coverage.
 
+`scripts/check-layout-regression.mjs` checks CSS/markup contracts for the Help-only document lock, <=420 px title/version wrapping and nonshrinking controls, the existing bounded Help flex shell, 44 px controls, and unchanged shield/check privacy badge. Header regression also checks the bilingual Help scrolling explanation. Both scripts accept readable HTML or a self-extract wrapper and inspect the decoded application; the repository check runs them on source and, after building, root/readable/self-extract artifacts. These are not native geometry, wheel/touch, focus, or loaded-file acceptance tests.
+
 GitHub validation and Pages deployment pin Node.js 24 before repository checks.
 
 ## 14. Release acceptance
 
-v1.0.1 release artifacts must satisfy:
+v1.0.3 release artifacts must satisfy:
 
 - repository check passes
-- format regression passes
+- format, selection, header, and layout regressions pass
+- native desktop/narrow/short-viewport Help checks cover outside-wheel page locking, internal last-item reachability, close/Esc/backdrop behavior, and focus return; verify both languages and unclipped title/version at 320 px
+- main file flows and generated-file integrity remain separate release checks, not implied by empty-state/Help/header audit coverage
 - readable standalone verification passes
 - self-extract verification passes
 - CSP blocks runtime network access

@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.3] - 2026-10-10
+
+### Fixed
+- Lock background page scrolling while Help is open, preserving its existing fixed header and internally scrolling body.
+- Wrap the app name/version at widths up to 420 px and retain the language/Help controls at their existing size.
+- Explain Help scrolling and dismissal in Japanese and English; synchronize the current header version.
+
+### Tests
+- Add source/CSS layout regressions and run header/layout checks against source and root/readable/self-extract artifacts in the standard repository check. Native browser layout and loaded-file acceptance remain separate checks.
+- Preserve the shield/check privacy badge, file formats, Worker, crypto, and file processing.
+
 ## [1.0.2] - 2026-10-09
 
 ### Fixed
