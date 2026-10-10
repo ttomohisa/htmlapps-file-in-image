@@ -13,7 +13,26 @@ const script = source.match(/<script>\s*\(\(\) => \{([\s\S]*?)\}\)\(\);\s*<\/scr
   .replace('__BUILD_MANIFEST_JSON__', '{}').replace('__EMBEDDED_ASSET_BUNDLE_JSON__', '{}');
 const deferred = () => { let resolve, reject; const promise = new Promise((a,b) => {resolve=a;reject=b;}); return {promise,resolve,reject}; };
 const tick = () => new Promise(resolve => setImmediate(resolve));
-async function until(predicate) { for(let i=0;i<200;i++) { if(predicate()) return; await tick(); } assert.fail('Expected asynchronous boundary was not reached'); }
+async function until(predicate,timeoutMs=2000) {
+  const deadline=performance.now()+timeoutMs;
+  while(performance.now()<deadline) {
+    if(predicate()) return;
+    await new Promise(resolve=>setTimeout(resolve,1));
+  }
+  assert.ok(predicate(),'Expected asynchronous boundary was not reached');
+}
+// Host crypto/compression completions may arrive after many immediate turns.
+test('asynchronous boundary wait permits a delayed host completion', async()=>{
+  let reached=false;
+  const timer=setTimeout(()=>{reached=true;},25);
+  try { await until(()=>reached); assert.equal(reached,true); }
+  finally { clearTimeout(timer); }
+});
+test('asynchronous boundary wait fails within its explicit deadline', async()=>{
+  const start=performance.now();
+  await assert.rejects(until(()=>false,20),/Expected asynchronous boundary was not reached/);
+  assert.ok(performance.now()-start>=20,'The deadline, not an immediate-turn count, bounds the wait');
+});
 function pixels(width=64,height=64,opaque=true) {
   const data=new Uint8ClampedArray(width*height*4);
   for(let i=0;i<data.length;i+=4) { data[i]=(i*7)&255;data[i+1]=(i*13)&255;data[i+2]=(i*23)&255;data[i+3]=opaque?255:0; }

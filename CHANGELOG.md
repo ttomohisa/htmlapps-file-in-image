@@ -8,6 +8,7 @@
 - Explain Help scrolling and dismissal in Japanese and English; synchronize the current header version.
 
 ### Tests
+- Use a bounded wall-clock wait in asynchronous selection tests, with delayed-success and timeout regressions, instead of a CPU-speed-dependent immediate-turn count.
 - Add source/CSS layout regressions and run header/layout checks against source and root/readable/self-extract artifacts in the standard repository check. Native browser layout and loaded-file acceptance remain separate checks.
 - Preserve the shield/check privacy badge, file formats, Worker, crypto, and file processing.
 
