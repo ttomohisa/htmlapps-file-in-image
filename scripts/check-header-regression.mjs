@@ -70,6 +70,11 @@ function checkHeader(app, language) {
   const badge = app.attributed.find(el => el.dataset.i18n === 'localBadge');
   assert.ok(badge, 'local-processing badge exists');
   assert.equal(badge.textContent, language === 'ja' ? '完全ローカル処理' : 'Fully local processing');
+  const help = app.attributed.find(el => el.dataset.i18n === 'helpReading');
+  assert.ok(help, 'Help explains its scroll and close behavior');
+  assert.equal(help.textContent, language === 'ja'
+    ? 'ヘルプを開いている間、背景ページはスクロールしません。内容が長い場合はヘルプ内をスクロールしてください。閉じるボタン、Escキー、または背景のクリックで閉じます。'
+    : 'While Help is open, the background page stays still. Scroll inside Help to read the rest. Close it with the close button, Esc, or a click on the backdrop.');
 }
 for (const language of ['ja', 'en']) {
   test(`${language} fresh load, repeated real clicks, and saved-language reload`, () => {
@@ -91,6 +96,6 @@ for (const language of ['ja', 'en']) {
   });
 }
 test('header and release config use the requested one-step patch version', () => {
-  assert.equal(config.version, '1.0.2');
-  assert.match(source, /id="versionBadge">v1\.0\.2<\/span>/);
+  assert.equal(config.version, '1.0.3');
+  assert.match(source, /id="versionBadge">v1\.0\.3<\/span>/);
 });
