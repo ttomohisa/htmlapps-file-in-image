@@ -202,6 +202,7 @@
       .build-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 520px) {
+      footer { display: none; }
       :root { --header-height: 58px; }
       .header-inner { padding-block: 8px; }
       .brand-mark { width: 34px; height: 34px; border-radius: 10px; }
@@ -377,10 +378,6 @@
       </section>
     </section>
     <!-- APP:END -->
-
-    <section class="info-section">
-      <details><summary data-i18n="buildInfo">ビルド情報</summary><div class="build-grid"><div class="build-item"><span data-i18n="appVersion">アプリバージョン</span><strong id="buildVersion">—</strong></div><div class="build-item"><span data-i18n="builtAt">生成日時</span><strong id="builtAt">—</strong></div><div class="build-item"><span data-i18n="dependencies">内包依存数</span><strong id="dependencyCount">0</strong></div></div></details>
-    </section>
   </main>
 
   <footer><span id="footerName">File in Image</span> · MIT License · <span data-i18n="footer">ブラウザー内で処理</span></footer>
@@ -397,6 +394,9 @@
       <h3 data-i18n="helpNotesTitle">注意事項</h3><ul><li data-i18n="helpNoteImage">生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。</li><li data-i18n="helpNoteCompression">GZIPで小さくなる場合だけ圧縮し、収まるかどうかは実際の圧縮後サイズで判定します。</li><li data-i18n="helpNoteAdaptive">画像の変化が目立ちにくいよう、ディテールが多い領域を優先して埋め込みます。画像編集への耐性を高める機能ではありません。</li><li data-i18n="helpNoteVerification">生成したPNGは保存前に自動で読み直し、元ファイルを正常に復元できることを確認します。</li><li data-i18n="helpNoteEncryption">パスワード保護を有効にすると、ファイル名を含むデータをAES-256-GCMで暗号化します。パスワードを設定しない場合は暗号化されません。</li><li data-i18n="helpNoteFormat">v1.0.2の新規出力は互換形式version 1を使用します。v0.2.0〜v0.8.0のversion 0画像も引き続き読み込めます。</li></ul>
       <p data-i18n="helpReading">閉じるボタン、Escキー、または背景のクリックで閉じます。</p>
       <p class="dialog-note" data-i18n="helpOffline">実行時の外部通信を使わず、単一HTMLとしてローカルからも利用できる構成です。</p>
+      <section class="info-section">
+        <details><summary data-i18n="buildInfo">ビルド情報</summary><div class="build-grid"><div class="build-item"><span data-i18n="appVersion">アプリバージョン</span><strong id="buildVersion">—</strong></div><div class="build-item"><span data-i18n="builtAt">生成日時</span><strong id="builtAt">—</strong></div><div class="build-item"><span data-i18n="dependencies">内包依存数</span><strong id="dependencyCount">0</strong></div></div></details>
+      </section>
       <!-- APP:HELP:END -->
     </div>
   </dialog>
@@ -1328,7 +1328,7 @@
       $('#embedTab').addEventListener('click',()=>activateMode('embed')); $('#extractTab').addEventListener('click',()=>activateMode('extract'));
       $('#modeTabs').addEventListener('keydown',event=>{ const key=event.key; if (!['ArrowLeft','ArrowRight','Home','End'].includes(key)) return; event.preventDefault(); const current=$('#embedTab').getAttribute('aria-selected')==='true'?'embed':'extract'; let next=current; if (key==='ArrowLeft'||key==='ArrowRight') next=current==='embed'?'extract':'embed'; else if (key==='Home') next='embed'; else if (key==='End') next='extract'; activateMode(next,{focusTab:true}); });
       $('#languageButton').addEventListener('click',()=>{language=language==='ja'?'en':'ja';writeStorage(`${APP_CONFIG.slug}:language`,language);applyLanguage();});
-      const helpDialog=$('#helpDialog'); $('#helpButton').addEventListener('click',()=>helpDialog.showModal()); $('#closeHelpButton').addEventListener('click',()=>helpDialog.close()); helpDialog.addEventListener('click',event=>{const rect=helpDialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)helpDialog.close();});
+      const helpDialog=$('#helpDialog'); $('#helpButton').addEventListener('click',()=>helpDialog.showModal()); $('#closeHelpButton').addEventListener('click',()=>helpDialog.close()); helpDialog.addEventListener('click',event=>{if(event.target!==helpDialog)return;const rect=helpDialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)helpDialog.close();});
       bindDropZone('#carrierDropZone','#carrierInput',selectCarrier); bindDropZone('#payloadDropZone','#payloadInput',selectPayload); bindDropZone('#extractDropZone','#extractInput',selectExtractImage);
       $('#clearCarrierButton').addEventListener('click',()=>clearEmbedSource('carrier')); $('#clearPayloadButton').addEventListener('click',()=>clearEmbedSource('payload'));
       $('#replaceCarrierButton').addEventListener('click',e=>{e.stopPropagation();$('#carrierInput').click();}); $('#replacePayloadButton').addEventListener('click',e=>{e.stopPropagation();$('#payloadInput').click();}); $('#replaceExtractButton').addEventListener('click',e=>{e.stopPropagation();$('#extractInput').click();});
