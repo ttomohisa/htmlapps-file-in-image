@@ -210,6 +210,10 @@ CPU-heavy adaptive image analysis, embedding, and extraction run in an embedded 
 
 ## 11. Mobile and accessibility
 
+- Hide only the informational page footer at the existing smartphone breakpoint (520px and below). Functional actions remain unchanged.
+- Build information is the last item inside Help’s scrollable body and remains available at every width. Preserve its native details/summary, unique build-value IDs, and Japanese/English labels. Keyboard activation inside Help is not a backdrop click.
+- Keep the existing “Fully local processing” translation of 完全ローカル処理; unrelated privacy/footer wording is unchanged.
+
 Stable UI requirements include:
 
 - no horizontal scrolling at narrow smartphone widths
@@ -279,3 +283,7 @@ v1.0.3 release artifacts must satisfy:
 - The canonical icon background and matching green details use `#16624f`.
 - Background corner radii are exactly 25% of their corresponding width and height; existing bounds, padding, and foreground artwork are preserved.
 - Header, favicon, and self-extract loader inherit the canonical `assets/favicon.svg`.
+
+### Focused browser layout regression
+
+The existing unprivileged PR preview job installs pinned test-only Playwright 1.58.2 outside the repository and runs Chromium against readable, decoded self-extract, and root-download pages in Japanese and English. Cover desktop, the 520px boundary, narrow/short Help, keyboard disclosure and dismissal, final build-field reachability, badge/page overflow, console errors, and unexpected runtime network requests. Preserve four bounded screenshots and failure evidence. These targeted layout checks do not replace the separate main-flow release acceptance tests.

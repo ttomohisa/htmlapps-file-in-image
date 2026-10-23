@@ -103,3 +103,28 @@ test('local-only privacy badge keeps its shield/check artwork and network policy
   assert.match(badge, /data-i18n="localBadge"/);
   assert.match(html, /connect-src 'none'/);
 });
+
+test('page footer is hidden only at the existing 520px phone breakpoint', () => {
+  assert.equal(rule('footer', block('@media (max-width: 520px)')).display, 'none');
+  assert.notEqual(rule('footer').display, 'none');
+});
+
+test('build information is the final Help body item with unique native disclosure values', () => {
+  const main = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1] || '';
+  const help = html.match(/<dialog id="helpDialog"[^>]*>([\s\S]*?)<\/dialog>/)?.[1] || '';
+  assert.doesNotMatch(main, /data-i18n="buildInfo"/);
+  assert.match(help, /<section class="info-section">\s*<details><summary data-i18n="buildInfo">[\s\S]*?<\/details>\s*<\/section>\s*<!-- APP:HELP:END -->\s*<\/div>\s*$/);
+  for (const id of ['buildVersion', 'builtAt', 'dependencyCount']) assert.equal(html.split(`id="${id}"`).length, 2, id);
+  assert.doesNotMatch(css, /\.info-section\s*\{[^}]*display:\s*none/, 'build details remain available on phones');
+});
+
+test('keyboard activation inside Help stays open while backdrop clicks still dismiss', () => {
+  const body = html.match(/helpDialog\.addEventListener\('click',event=>\{([^\n]+)\}\);/)?.[1];
+  assert.ok(body, 'production Help click handler exists');
+  const dialog = { open: true, getBoundingClientRect: () => ({left:100,top:100,right:740,bottom:700}), close() { this.open = false; } };
+  const click = new Function('helpDialog', 'event', body);
+  click(dialog, {target:{},clientX:0,clientY:0});
+  assert.equal(dialog.open, true, 'native summary keyboard click is not a backdrop click');
+  click(dialog, {target:dialog,clientX:0,clientY:0});
+  assert.equal(dialog.open, false, 'real backdrop remains dismissible');
+});
