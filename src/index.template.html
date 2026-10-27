@@ -540,12 +540,12 @@ fileScope:"Save the one recovered file whose SHA-256 matches this image’s payl
       function renderCommonUi(){
         BrowserKittyUI.setSaveStatus($('#workRetention'),{mode:'session',language});$('#languageStatus').textContent=languageFailure?BrowserKittyUI.text('languageSessionOnly',language):'';
         for(const [id,error]of domainErrors){const el=$(id);el.textContent=error.key?t(error.key):error.raw;el.hidden=!el.textContent;}
-        for(const kind of ['embed','extract']){const progress=operationProgress[kind];if(progress.stage){const status=$(kind==='embed'?'#embedStatus':'#extractStatus'),bar=$(kind==='embed'?'#embedProgress':'#extractProgress');status.textContent=t(progress.stage);bar.setAttribute('aria-valuetext',t(progress.stage)+' '+progress.percent+'%');}else if(progress.message)$(kind==='embed'?'#embedStatus':'#extractStatus').textContent=t(progress.message);
+        for(const kind of ['embed','extract']){const progress=operationProgress[kind];if(progress.stage){const status=$(kind==='embed'?'#embedStatus':'#extractStatus'),bar=$(kind==='embed'?'#embedProgress':'#extractProgress');status.textContent=t(progress.stage);bar.setAttribute('aria-valuetext',t(progress.stage)+' '+progress.percent+'%');}else if(progress.message&&(progress.generation===undefined||progress.generation===generation))$(kind==='embed'?'#embedStatus':'#extractStatus').textContent=t(progress.message);
           const delivery=downloadState[kind];$(kind==='embed'?'#embedDownloadStatus':'#extractDownloadStatus').textContent=delivery.error?t('downloadFailed'):delivery.name?BrowserKittyUI.text('downloadStarted',language)+': '+delivery.name:'';
         }
       }
 
-      function nextGeneration() { generation += 1; terminateActiveImageTask('STALE'); return generation; }
+      function nextGeneration() { if(operationProgress.extract.message==='readingImage')clearOperationProgress('extract'); generation += 1; terminateActiveImageTask('STALE'); return generation; }
       function isCurrent(token) { return token === generation; }
       function revokePreview(kind) { const key=kind==='carrier'?'carrierPreviewUrl':'extractPreviewUrl'; const url=kind==='carrier'?carrierPreviewUrl:extractPreviewUrl; if (url) URL.revokeObjectURL(url); if (key==='carrierPreviewUrl') carrierPreviewUrl=''; else extractPreviewUrl=''; }
       function supportedImage(file) { return ['image/png','image/jpeg','image/webp'].includes(file.type); }
@@ -995,7 +995,7 @@ fileScope:"Save the one recovered file whose SHA-256 matches this image’s payl
       }
 
       async function imageDataToPng(imageData) { const canvas=document.createElement('canvas'); canvas.width=imageData.width; canvas.height=imageData.height; const ctx=canvas.getContext('2d'); if (!ctx) throw new Error('MEMORY'); ctx.putImageData(imageData,0,0); return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('MEMORY')),'image/png')); }
-      function downloadBlob(blob,filename){const url=URL.createObjectURL(blob);let a=null;try{a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();}finally{if(a)a.remove();URL.revokeObjectURL(url);}}
+      function downloadBlob(blob,filename){const url=URL.createObjectURL(blob);let a=null,handedOff=false;try{a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();handedOff=true;}finally{if(a)a.remove();if(handedOff)setTimeout(()=>URL.revokeObjectURL(url),1000);else URL.revokeObjectURL(url);}}
 
       function friendlyError(error) { const code=error?.message||''; const map={ IMAGE_TYPE:'errorImageType', IMAGE_TOO_LARGE:'errorImageTooLarge', IMAGE_READ:'errorImageRead', PAYLOAD_TOO_LARGE:'errorPayloadTooLarge', PAYLOAD_READ:'errorPayloadRead', CAPACITY:'errorCapacity', NO_OPAQUE:'errorNoOpaque', NOT_BKFI:'errorNotBkfi', UNSUPPORTED_FORMAT:'errorUnsupportedFormat', CORRUPT:'errorCorrupt', HASH_MISMATCH:'errorHash', MEMORY:'errorMemory', CRYPTO_UNAVAILABLE:'errorCrypto', PASSWORD_REQUIRED:'errorPasswordRequired', PASSWORD_MISMATCH:'errorPasswordMismatch', AUTH_FAILED:'errorAuth', COMPRESSION_UNAVAILABLE:'errorCompression', DECOMPRESS_FAILED:'errorCompression', DECOMPRESS_TOO_LARGE:'errorCompression', WORKER_UNAVAILABLE:'errorWorker', WORKER_FAILED:'errorWorker', SELF_VERIFY_FAILED:'errorSelfVerify' }; return t(map[code]||'errorGeneric'); }
 
@@ -1252,7 +1252,7 @@ fileScope:"Save the one recovered file whose SHA-256 matches this image’s payl
         downloadState.extract={error:false,name:''};renderCommonUi();const token=nextGeneration(); setOperationBusy('extract',false); clearOperationProgress('extract'); setError('#extractError'); state.extractImage=null; state.recovered=null; $('#extractDropZone').classList.remove('has-file'); $('#extractEmpty').hidden=false; $('#extractSummary').hidden=true; $('#extractResult').hidden=true; $('#extractButton').disabled=true; $('#extractPasswordBox').hidden=true; $('#extractPassword').value=''; resetPasswordVisibility('extractPassword');
         try {
           if (!file || file.type!=='image/png') throw new Error('IMAGE_TYPE');
-          $('#extractStatus').textContent=t('readingImage');
+          operationProgress.extract={stage:'',percent:0,message:'readingImage',generation:token};renderCommonUi();
           const decoded=await decodeImage(file); if (!isCurrent(token)) return;
           const opaqueCount=countOpaque(decoded.imageData); if (opaqueCount<HEADER_PIXELS) throw new Error('NOT_BKFI');
           const outer=extractOuterHeader(decoded.imageData);
@@ -1260,10 +1260,10 @@ fileScope:"Save the one recovered file whose SHA-256 matches this image’s payl
           revokePreview('extract'); extractPreviewUrl=URL.createObjectURL(file); $('#extractThumb').src=extractPreviewUrl;
           $('#extractEmpty').hidden=true; $('#extractSummary').hidden=false; $('#extractImageName').textContent=file.name; $('#extractImageName').title=file.name; $('#extractThumb').alt=file.name; $('#extractDropZone').classList.add('has-file'); $('#extractImageMeta').textContent=`${formatBytes(file.size)} · ${formatNumber(decoded.width)} × ${formatNumber(decoded.height)}`;
           $('#extractPasswordBox').hidden=!outer.encrypted;
-          $('#extractStatus').textContent=''; refreshExtractReady();
+          clearOperationProgress('extract'); refreshExtractReady();
           if (outer.encrypted) $('#extractPassword').focus({preventScroll:true});
         }
-        catch (error) { if (isCurrent(token)) { $('#extractStatus').textContent=''; setError('#extractError',friendlyError(error)); refreshExtractReady(); } }
+        catch (error) { if (isCurrent(token)) { clearOperationProgress('extract'); setError('#extractError',friendlyError(error)); refreshExtractReady(); } }
       }
 
       async function runExtract() {

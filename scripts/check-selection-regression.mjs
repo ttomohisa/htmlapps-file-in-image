@@ -6,10 +6,12 @@ const sharedUI=createRequire(import.meta.url)('../components/ui-conventions.js')
 // This does not replace browser, visual, native-PNG, or network QA.
 import { readFileSync } from 'node:fs';
 import { webcrypto } from 'node:crypto';
+import { gunzipSync } from 'node:zlib';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-const source = readFileSync(process.argv[2] || new URL('../src/index.template.html', import.meta.url), 'utf8');
+let source = readFileSync(process.argv[2] || new URL('../src/index.template.html', import.meta.url), 'utf8');
+if(source.includes('id="self-extract-payload"')){const payload=source.match(/id="self-extract-payload"[^>]*>([\s\S]*?)<\/script>/);assert.ok(payload);source=gunzipSync(Buffer.from(payload[1].replace(/\s/g,''),'base64')).toString('utf8');}
 const script = source.match(/<script>\s*\(\(\) => \{([\s\S]*?)\}\)\(\);\s*<\/script>/)[1]
   .replace('__APP_CONFIG_JSON__', JSON.stringify({ slug:'test', name:'Test', nameJa:'テスト', version:'1', defaultLanguage:'en' }))
   .replace('__BUILD_MANIFEST_JSON__', '{}').replace('__EMBEDDED_ASSET_BUNDLE_JSON__', '{}');
@@ -44,7 +46,7 @@ const carrier = (name='carrier.png',gate=null,extra={}) => ({name,size:900,type:
 const payload = (name='payload.bin',gate=null,bytes=Uint8Array.of(11,22,33),extra={}) => ({name,size:bytes.length,type:'application/octet-stream',arrayBuffer:async()=>{await gate?.promise;return bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.length);},...extra});
 function harness() {
   const elements=new Map(),urls=new Map(),revoked=[],downloads=[],workers=[];
-  const controls={pngGate:null,verifyGate:null,workerGate:null,verifyStarted:false,pngStarted:false};
+  const controls={timers:[],pngGate:null,verifyGate:null,workerGate:null,verifyStarted:false,pngStarted:false};
   let nextUrl=0,focus=null;
   function element(selector) {
     if(elements.has(selector)) return elements.get(selector);
@@ -94,7 +96,7 @@ function harness() {
     return {state,selectCarrier,selectPayload,runEmbed,selectExtractImage,runExtract,element:$,t,applyLanguage,
       clear:kind=>{const button=$('#clear'+(kind==='carrier'?'Carrier':'Payload')+'Button');button.click();},
       generation:()=>generation};`);
-  const api=factory({...sharedUI,resolveLanguage:o=>sharedUI.resolveLanguage({...o,storage:null,languages:['en']})},document,URL,Image,ImageData,Worker,webcrypto,{addEventListener(){}},{getItem(){return null;},setItem(){}},{language:'en'},()=>0,()=>{});
+  const api=factory({...sharedUI,resolveLanguage:o=>sharedUI.resolveLanguage({...o,storage:null,languages:['en']})},document,URL,Image,ImageData,Worker,webcrypto,{addEventListener(){}},{getItem(){return null;},setItem(){}},{language:'en'},(fn,delay)=>{controls.timers.push({fn,delay});return controls.timers.length;},()=>{});
   return {...api,controls,urls,revoked,downloads,workers,focus:()=>focus};
 }
 async function ready(api) {await api.selectCarrier(carrier());await api.selectPayload(payload());}
@@ -180,3 +182,15 @@ test('PNG and recovered-file failed downloads retain data, cleanup anchors/URLs 
 test('persistent extraction errors translate while changing language without replacing current work',async()=>{
  const a=harness();await a.selectExtractImage(carrier('invalid.jpg',null,{type:'image/jpeg'}));assert.equal(a.element('#extractError').textContent,a.t('errorImageType'));a.element('#languageButton').click();assert.equal(a.element('#extractError').textContent,a.t('errorImageType'));assert.match(a.element('#extractError').textContent,/選択/);assert.equal(a.state.extractImage,null);
 });
+
+test('pending extract image decode stays translated until current completion and stale loads cannot replace it',async()=>{
+ const a=harness();await ready(a);await a.runEmbed();const blob=a.state.encodedBlob;blob.name='encoded.png';const first=deferred();blob.decodeGate=first.promise;const pending=a.selectExtractImage(blob);assert.equal(a.element('#extractStatus').textContent,a.t('readingImage'));a.element('#languageButton').click();assert.equal(a.element('#extractStatus').textContent,a.t('readingImage'));assert.match(a.element('#extractStatus').textContent,/読み込/);const second=deferred();const replacement=Object.assign(new Blob(['replacement'],{type:'image/png'}),{name:'replacement.png',generated:true,imageData:blob.imageData,decodeGate:second.promise});const next=a.selectExtractImage(replacement);first.resolve();await pending;assert.equal(a.element('#extractStatus').textContent,a.t('readingImage'));assert.equal(a.state.extractImage,null);second.resolve();await next;assert.equal(a.element('#extractStatus').textContent,'');assert.equal(a.state.extractImage.file.name,'replacement.png');a.element('#languageButton').click();assert.equal(a.element('#extractStatus').textContent,'');
+});
+test('failed pending extraction decode clears loading ownership and keeps translated error',async()=>{
+ const a=harness(),gate=deferred(),pending=a.selectExtractImage(carrier('bad.png',gate,{bad:true}));a.element('#languageButton').click();assert.equal(a.element('#extractStatus').textContent,a.t('readingImage'));gate.resolve();await pending;assert.equal(a.element('#extractStatus').textContent,'');const error=a.element('#extractError').textContent;assert.notEqual(error,'');a.element('#languageButton').click();assert.equal(a.element('#extractStatus').textContent,'');assert.notEqual(a.element('#extractError').textContent,'');
+});
+test('successful download removes anchor immediately and preserves URL for the existing one-second handoff',async()=>{
+ const a=harness();await ready(a);await a.runEmbed();const count=a.revoked.length;a.element('#savePngButton').click();assert.equal(a.controls.anchorCount,0);assert.equal(a.revoked.length,count);const download=a.downloads.at(-1),timer=a.controls.timers.find(x=>x.delay===1000);assert.ok(timer);assert.ok([...a.urls.values()].includes(download.blob));timer.fn();assert.equal(a.revoked.length,count+1);
+});
+
+test('cancel invalidates a pending extraction decode and its translated loading status',async()=>{const a=harness(),gate=deferred(),pending=a.selectExtractImage(carrier('cancelled.png',gate));a.element('#languageButton').click();assert.equal(a.element('#extractStatus').textContent,a.t('readingImage'));a.element('#cancelExtractButton').click();const status=a.element('#extractStatus').textContent;assert.equal(status,a.t('cancelled'));gate.resolve();await pending;assert.equal(a.state.extractImage,null);assert.equal(a.element('#extractStatus').textContent,status);a.element('#languageButton').click();assert.equal(a.element('#extractStatus').textContent,a.t('cancelled'));});
