@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module';
+const sharedUI=createRequire(import.meta.url)('../components/ui-conventions.js');
 // Execute the complete production application script with a small DOM boundary.
 // This verifies header state, real click handlers, and persistence, not browser layout.
 import assert from 'node:assert/strict';
@@ -19,8 +21,8 @@ for (const [placeholder, file] of [['__BK_SUBSET_WORKER_CORE_BASE64__', 'vendor/
   if (script.includes(placeholder)) script = script.replace(placeholder, readFileSync(new URL(file, root)).toString('base64'));
 }
 
-function boot({ browser = 'en-US', storage = new Map(), blocked = false } = {}) {
-  const elements = new Map(), attributed = [];
+function boot({ browser = 'en-US', storage = new Map(), blocked = false,url='',languages=[browser] } = {}) {
+  const writes=[],elements = new Map(), attributed = [];
   function element(key) {
     if (elements.has(key)) return elements.get(key);
     const attrs = new Map(), classes = new Set(), listeners = new Map();
@@ -54,9 +56,9 @@ function boot({ browser = 'en-US', storage = new Map(), blocked = false } = {}) 
       return key ? attributed.filter(el => Object.hasOwn(el.dataset, key)) : [];
     }, createElement: name => element(`created-${name}-${elements.size}`), createDocumentFragment: () => element(`fragment-${elements.size}`),
   };
-  const localStorage = { getItem(key) { if (blocked) throw Error('Storage denied'); return storage.get(key) ?? null; }, setItem(key, value) { if (blocked) throw Error('Storage denied'); storage.set(key, value); } };
-  new Function('document', 'window', 'navigator', 'localStorage', 'crypto', 'matchMedia', script)(document, { addEventListener() {} }, { language: browser }, localStorage, webcrypto, () => ({ matches: false, addEventListener() {} }));
-  return { document, element, attributed };
+  const localStorage = { getItem(key) { if (blocked) throw Error('Storage denied'); return storage.get(key) ?? null; }, setItem(key, value) {writes.push([key,value]); if (blocked) throw Error('Storage denied'); storage.set(key, value); } };
+  new Function('BrowserKittyUI','document', 'window', 'navigator', 'localStorage', 'crypto', 'matchMedia', script)({...sharedUI,resolveLanguage:o=>sharedUI.resolveLanguage({...o,storage:localStorage,languages,url}),chooseLanguage:lang=>sharedUI.chooseLanguage(lang,{storage:localStorage})},document, { addEventListener() {} }, { language: browser }, localStorage, webcrypto, () => ({ matches: false, addEventListener() {} }));
+  return { writes,document, element, attributed };
 }
 function checkHeader(app, language) {
   const button = app.element('#languageButton');
@@ -84,7 +86,7 @@ for (const language of ['ja', 'en']) {
       app.element('#languageButton').click();
       const expected = n % 2 ? (language === 'ja' ? 'en' : 'ja') : language;
       checkHeader(app, expected);
-      assert.equal(storage.get(`${config.slug}:language`), expected);
+      assert.equal(storage.get(sharedUI.languageKey), expected);
       checkHeader(boot({ browser: expected === 'ja' ? 'en-US' : 'ja-JP', storage }), expected);
     }
   });
@@ -98,4 +100,9 @@ for (const language of ['ja', 'en']) {
 test('header and release config use the requested one-step patch version', () => {
   assert.equal(config.version, '1.0.3');
   assert.match(source, /id="versionBadge">v1\.0\.3<\/span>/);
+});
+
+test('shared language startup priority is read-only and explicit failure remains screen-only',()=>{
+ const legacy=config.slug+':language',storage=new Map([[legacy,'ja'],[sharedUI.languageKey,'en']]);const url=boot({storage,url:'https://example.test/app?lang=ja'});checkHeader(url,'ja');assert.equal(url.writes.length,0);checkHeader(boot({storage,browser:'ja'}),'en');storage.delete(sharedUI.languageKey);checkHeader(boot({storage,browser:'en'}),'ja');storage.clear();checkHeader(boot({storage,languages:['fr-FR','ja-JP','en-US']}),'ja');
+ const denied=boot({blocked:true});denied.element('#languageButton').click();assert.match(denied.element('#languageStatus').textContent,/この画面/);
 });

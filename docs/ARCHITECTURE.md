@@ -111,3 +111,6 @@ Keep source in one HTML while it remains understandable. When an app grows subst
 - No runtime external resource.
 - Clear state ownership.
 - A build that fails on missing input.
+
+## Common UI v1
+Fixed shared JS/CSS are hash-checked and embedded at build time. Domain error keys, saved progress keys and per-result delivery states allow language rendering without persistence or operation restart. Source generations remain authoritative; extraction-password edits now join that boundary. Edited output-name ownership is reset at carrier replacement and retained through that source's async completion. Binary packing, compression, placement, crypto and verification code are unchanged.

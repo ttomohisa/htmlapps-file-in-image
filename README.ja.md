@@ -176,3 +176,6 @@ repositoryのnotice方針は [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) �
 Copyright © 2026 ttomohisa
 
 このプロジェクトは [MIT License](LICENSE) で公開されています。
+
+### 保存と保持
+作業はこのタブ内だけに保持します。PNG保存と復元ファイル保存は検証済みの1件を対象に、編集した名前で保存を開始します。失敗時は結果を保持し、再試行の案内を表示し続けます。言語切替は作業と進捗を保持し、言語設定だけを保存します。入力・パスワードの変更では案内どおり前回の出力を無効にします。

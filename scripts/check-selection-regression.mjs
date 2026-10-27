@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module';
+const sharedUI=createRequire(import.meta.url)('../components/ui-conventions.js');
 // Deterministic source-level regression using synthetic inputs only.
 // DOM, image decode, PNG canvas, and Worker scheduling are controlled doubles;
 // production selection, crypto, compression, placement, and verification code runs unchanged.
@@ -64,11 +66,11 @@ function harness() {
     for(const m of tag.matchAll(/\bdata-([a-z0-9-]+)="([^"]+)"/g))el.dataset[m[1].replace(/-([a-z])/g,(_,x)=>x.toUpperCase())]=m[2];
     el.hidden=/\shidden(?:\s|>)/.test(tag);el.disabled=/\sdisabled(?:\s|>)/.test(tag);attributed.push(el);
   }
-  const document={documentElement:{lang:''},querySelector:element,querySelectorAll(selector){
+  const document={body:{append(){controls.anchorCount=(controls.anchorCount||0)+1;}},documentElement:{lang:''},querySelector:element,querySelectorAll(selector){
     const key=selector.match(/^\[data-([a-z0-9-]+)\]$/)?.[1]?.replace(/-([a-z])/g,(_,x)=>x.toUpperCase());
     return key?attributed.filter(el=>Object.hasOwn(el.dataset,key)):[];
   },createElement(type){
-    if(type==='a')return {click(){downloads.push({filename:this.download,blob:urls.get(this.href)});}};
+    if(type==='a')return {remove(){controls.anchorCount--;},click(){if(controls.downloadFailure)throw Error('click denied');downloads.push({filename:this.download,blob:urls.get(this.href)});}};
     assert.equal(type,'canvas');let current;
     return {getContext:()=>({drawImage(img){current=img.imageData;},getImageData(){return structuredClone(current);},putImageData(data){current=data;}}),async toBlob(callback){controls.pngStarted=true;await controls.pngGate?.promise;const blob=new Blob(['synthetic PNG boundary'],{type:'image/png'});blob.imageData=structuredClone(current);blob.generated=true;callback(blob);}};
   }};
@@ -88,11 +90,11 @@ function harness() {
       new Function('self',workerSource)(self);self.onmessage({data:copied});
     }
   }
-  const factory=new Function('document','URL','Image','ImageData','Worker','crypto','window','localStorage','navigator','setTimeout','clearTimeout',script+`
+  const factory=new Function('BrowserKittyUI','document','URL','Image','ImageData','Worker','crypto','window','localStorage','navigator','setTimeout','clearTimeout',script+`
     return {state,selectCarrier,selectPayload,runEmbed,selectExtractImage,runExtract,element:$,t,applyLanguage,
       clear:kind=>{const button=$('#clear'+(kind==='carrier'?'Carrier':'Payload')+'Button');button.click();},
       generation:()=>generation};`);
-  const api=factory(document,URL,Image,ImageData,Worker,webcrypto,{addEventListener(){}},{getItem(){return null;},setItem(){}},{language:'en'},()=>0,()=>{});
+  const api=factory({...sharedUI,resolveLanguage:o=>sharedUI.resolveLanguage({...o,storage:null,languages:['en']})},document,URL,Image,ImageData,Worker,webcrypto,{addEventListener(){}},{getItem(){return null;},setItem(){}},{language:'en'},()=>0,()=>{});
   return {...api,controls,urls,revoked,downloads,workers,focus:()=>focus};
 }
 async function ready(api) {await api.selectCarrier(carrier());await api.selectPayload(payload());}
@@ -156,4 +158,25 @@ for(const encrypted of [false,true])test(`${encrypted?'encrypted':'plain'} round
   const a=harness();await ready(a);a.clear('payload');await a.selectPayload(payload('message.bin'));a.element('#outputFilename').value='my custom name';if(encrypted){a.element('#passwordProtectToggle').checked=true;a.element('#embedPassword').value='test password';a.element('#embedPasswordConfirm').value='test password';}
   await a.runEmbed();assert.equal(a.state.encodedVerified,true);a.element('#savePngButton').click();assert.equal(a.downloads[0].filename,'my custom name.png');
   const blob=a.state.encodedBlob;blob.name='encoded.png';await a.selectExtractImage(blob);if(encrypted)a.element('#extractPassword').value='test password';await a.runExtract();assert.deepEqual(Array.from(a.state.recovered.fileBytes),[11,22,33]);assert.equal(a.state.recovered.filename,'message.bin');
+});
+
+test('editing the extraction password during a pending job prevents stale recovered Save',async()=>{
+ const a=harness();await ready(a);a.element('#passwordProtectToggle').checked=true;a.element('#embedPassword').value='before';a.element('#embedPasswordConfirm').value='before';await a.runEmbed();const blob=a.state.encodedBlob;blob.name='encoded.png';await a.selectExtractImage(blob);a.element('#extractPassword').value='before';const gate=deferred();a.controls.workerGate=gate;const workerCount=a.workers.length,pending=a.runExtract();await until(()=>a.workers.length>workerCount);a.element('#extractPassword').value='after';a.element('#extractPassword').dispatch('input');gate.resolve();await pending;assert.equal(a.state.recovered,null);assert.equal(a.element('#extractResult').hidden,true);
+});
+test('a filename edited during carrier decoding survives that current source completion',async()=>{
+ const a=harness(),gate=deferred(),pending=a.selectCarrier(carrier('new-carrier.png',gate));a.element('#outputFilename').value='edited while loading';a.element('#outputFilename').dispatch('input');gate.resolve();await pending;assert.equal(a.element('#outputFilename').value,'edited while loading');
+});
+
+test('duplicate embedding is ignored while the existing verified-output job is pending',async()=>{
+ const a=harness();await ready(a);const gate=deferred();a.controls.workerGate=gate;const pending=a.runEmbed();await until(()=>a.workers.length>0);const count=a.workers.length;await a.runEmbed();assert.equal(a.workers.length,count);assert.equal(a.element('#embedButton').disabled,true);gate.resolve();await pending;assert.equal(a.state.encodedVerified,true);
+});
+test('language switching preserves current processing stage, passwords, payload and filename without restarting',async()=>{
+ const a=harness();await ready(a);a.element('#outputFilename').value='private name';const gate=deferred();a.controls.pngGate=gate;const pending=a.runEmbed();await until(()=>a.controls.pngStarted);const count=a.workers.length,original=a.state.payload;a.element('#languageButton').click();assert.equal(a.element('#embedStatus').textContent,a.t('makingPng'));assert.equal(a.element('#outputFilename').value,'private name');assert.strictEqual(a.state.payload,original);assert.equal(a.workers.length,count);gate.resolve();await pending;assert.equal(a.state.encodedVerified,true);
+});
+test('PNG and recovered-file failed downloads retain data, cleanup anchors/URLs and provide translated retry',async()=>{
+ const a=harness();await ready(a);await a.runEmbed();const blob=a.state.encodedBlob;a.controls.downloadFailure=true;const count=a.revoked.length;a.element('#savePngButton').click();assert.equal(a.controls.anchorCount,0);assert.equal(a.revoked.length,count+1);assert.strictEqual(a.state.encodedBlob,blob);assert.match(a.element('#embedDownloadStatus').textContent,/Could not start/);a.element('#languageButton').click();assert.match(a.element('#embedDownloadStatus').textContent,/保存を開始できません/);
+ blob.name='output.png';await a.selectExtractImage(blob);await a.runExtract();const recovered=a.state.recovered;a.element('#saveRecoveredButton').click();assert.equal(a.controls.anchorCount,0);assert.strictEqual(a.state.recovered,recovered);assert.match(a.element('#extractDownloadStatus').textContent,/保存を開始できません/);a.controls.downloadFailure=false;a.element('#saveRecoveredButton').click();assert.match(a.element('#extractDownloadStatus').textContent,/保存を開始しました/);assert.deepEqual(Array.from(new Uint8Array(await a.downloads.at(-1).blob.arrayBuffer())),[11,22,33]);
+});
+test('persistent extraction errors translate while changing language without replacing current work',async()=>{
+ const a=harness();await a.selectExtractImage(carrier('invalid.jpg',null,{type:'image/jpeg'}));assert.equal(a.element('#extractError').textContent,a.t('errorImageType'));a.element('#languageButton').click();assert.equal(a.element('#extractError').textContent,a.t('errorImageType'));assert.match(a.element('#extractError').textContent,/選択/);assert.equal(a.state.extractImage,null);
 });

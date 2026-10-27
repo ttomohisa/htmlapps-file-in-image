@@ -239,6 +239,118 @@
     }
     @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto!important; transition-duration: .01ms!important; animation-duration: .01ms!important; } }
   </style>
+  <style>/* Browser Kitty shared UI conventions 1.0.0. Explicit opt-in only. */
+[data-bk-button] { min-height: 44px; border: 1px solid #BFC1BA; background: #FFFFFF; color: #202823; cursor: pointer; opacity: 1; }
+[data-bk-button][data-bk-variant="primary"] { background: #16624F; border-color: #16624F; color: #FFFFFF; }
+[data-bk-button][data-bk-variant="primary"]:hover:not(:disabled) { background: #0E503F; border-color: #0E503F; }
+[data-bk-button][data-bk-variant="secondary"] { background: #FFFFFF; color: #202823; border-color: #BFC1BA; }
+[data-bk-button][data-bk-variant="secondary"]:hover:not(:disabled) { background: #FFFFFF; color: #202823; border-color: #BFC1BA; }
+[data-bk-button][data-bk-variant="danger"] { background: #B3261E; border-color: #B3261E; color: #FFFFFF; }
+[data-bk-button][data-bk-variant="danger"]:hover:not(:disabled) { background: #8C1D18; border-color: #8C1D18; color: #FFFFFF; }
+[data-bk-button]:focus-visible, [data-bk-header-action]:focus-visible { outline: 2px solid #16624F; outline-offset: 2px; }
+[data-bk-button]:disabled, [data-bk-button]:disabled:hover, [data-bk-button]:disabled:active { background: #E7EBE7; color: #59635C; border-color: #E7EBE7; cursor: not-allowed; opacity: 1; transform: none; }
+[data-bk-button][data-bk-state="busy"], [data-bk-button][data-bk-state="stopping"], [data-bk-button][data-bk-state="busy"]:hover, [data-bk-button][data-bk-state="stopping"]:hover { background: #E1F0EA; color: #16624F; border-color: #E1F0EA; cursor: wait; opacity: 1; }
+[data-bk-button][data-bk-state="busy"]::before, [data-bk-button][data-bk-state="stopping"]::before { content: ''; display: inline-block; width: .85em; height: .85em; margin-inline-end: .45em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: -.1em; animation: bk-ui-spin .85s linear infinite; }
+[data-bk-header-action] { min-width: 44px; min-height: 44px; }
+[data-bk-save-status] { display: block; font-size: .85rem; color: #59635C; overflow-wrap: anywhere; }
+[data-bk-save-status="error"] { color: #B3261E; }
+@keyframes bk-ui-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { [data-bk-button] { transition: none; } [data-bk-button]::before { animation: none !important; } }
+</style>
+  <script data-bk-ui-version="1.0.0">/* Browser Kitty shared UI conventions 1.0.0. Build-time embed only; no network. */
+(function (root) {
+  'use strict';
+  const version = '1.0.0';
+  const languageKey = 'browser-kitty:ui-language:v1';
+  const validLanguage = value => value === 'ja' || value === 'en';
+  function safely(read, fallback) { try { return read(); } catch (_) { return fallback; } }
+  function dependency(options, key, readDefault, fallback) {
+    return safely(() => Object.prototype.hasOwnProperty.call(options, key) ? options[key] : readDefault(), fallback);
+  }
+  function storageFrom(options) { return dependency(options, 'storage', () => root.localStorage, null); }
+  function urlFrom(options) { return dependency(options, 'url', () => root.location.href, ''); }
+  function parseUrl(value) { return safely(() => new URL(String(value), 'https://browser-kitty.invalid/'), null); }
+  function readLanguage(storage, key) { return safely(() => storage && storage.getItem(key), null); }
+  function resolveLanguage(options = {}) {
+    const url = parseUrl(urlFrom(options));
+    const query = url && url.searchParams.get('lang');
+    if (validLanguage(query)) return query;
+    const storage = storageFrom(options);
+    const shared = readLanguage(storage, languageKey);
+    if (validLanguage(shared)) return shared;
+    for (const key of options.legacyKeys || []) {
+      const legacy = readLanguage(storage, key);
+      if (validLanguage(legacy)) return legacy;
+    }
+    const languages = dependency(options, 'languages', () => root.navigator.languages || [root.navigator.language], []);
+    for (const value of languages || []) {
+      const language = String(value).toLowerCase().split('-')[0];
+      if (validLanguage(language)) return language;
+    }
+    return 'en';
+  }
+  function chooseLanguage(language, options = {}) {
+    if (!validLanguage(language)) throw new TypeError('Unsupported language: ' + language);
+    const storage = storageFrom(options);
+    const persisted = safely(() => { if (!storage) return false; storage.setItem(languageKey, language); return true; }, false);
+    const url = parseUrl(urlFrom(options));
+    const history = dependency(options, 'history', () => root.history, null);
+    const urlUpdated = safely(() => {
+      if (!url || !url.searchParams.has('lang') || !history) return false;
+      url.searchParams.set('lang', language);
+      history.replaceState(history.state, '', url.href);
+      return true;
+    }, false);
+    return { language, persisted, urlUpdated };
+  }
+  const copy = {
+    en: {
+      sessionOnly: 'Your work will be lost when this tab closes',
+      manualSave: 'Your work is not saved automatically. Save a project file to continue editing later.',
+      dirty: 'Unsaved changes', saving: 'Saving…', saved: 'Saved in this browser',
+      saveFailed: 'Could not save in this browser', downloadStarted: 'Download started',
+      previousResult: 'Previous result', stopping: 'Stopping…', stopProcessing: 'Stop processing', cancel: 'Cancel',
+      languageSessionOnly: 'Language applies to this screen only'
+    },
+    ja: {
+      sessionOnly: '作業内容はこのタブを閉じると消えます',
+      manualSave: '自動保存されません。続きの編集には作業ファイルを保存してください',
+      dirty: '未保存の変更があります', saving: '保存しています…', saved: 'このブラウザーに保存済み',
+      saveFailed: 'このブラウザーに保存できませんでした', downloadStarted: '保存を開始しました',
+      previousResult: '前回の結果', stopping: '中止しています…', stopProcessing: '処理を中止', cancel: 'キャンセル',
+      languageSessionOnly: '言語はこの画面だけに適用されます'
+    }
+  };
+  function text(key, language = 'en', values = {}) {
+    const locale = validLanguage(language) ? language : 'en';
+    let value = copy[locale][key] || copy.en[key] || String(key);
+    if (key === 'saved' && values.time) value += (locale === 'ja' ? '・' : ' · ') + String(values.time);
+    return value.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, name) => Object.prototype.hasOwnProperty.call(values, name) ? String(values[name]) : match);
+  }
+  function setButtonState(button, state) {
+    if (!['ready', 'unavailable', 'busy', 'stopping'].includes(state)) throw new TypeError('Unsupported button state: ' + state);
+    button.disabled = state !== 'ready';
+    button.setAttribute('data-bk-state', state);
+    if (state === 'busy' || state === 'stopping') button.setAttribute('aria-busy', 'true');
+    else button.removeAttribute('aria-busy');
+  }
+  function setSaveStatus(element, options = {}) {
+    const mode = options.mode || 'session';
+    const state = options.state || 'dirty';
+    if (!['session', 'manual', 'autosave'].includes(mode)) throw new TypeError('Unsupported save mode: ' + mode);
+    if (!['dirty', 'saving', 'saved', 'error'].includes(state)) throw new TypeError('Unsupported save state: ' + state);
+    const key = mode === 'session' ? 'sessionOnly' : mode === 'manual' ? 'manualSave' : state === 'error' ? 'saveFailed' : state;
+    element.textContent = text(key, options.language, { time: options.time });
+    element.setAttribute('role', 'status');
+    element.setAttribute('aria-live', 'polite');
+    element.setAttribute('data-bk-save-status', state);
+    element.setAttribute('data-bk-save-mode', mode);
+  }
+  const api = Object.freeze({ version, languageKey, resolveLanguage, chooseLanguage, text, setButtonState, setSaveStatus });
+  root.BrowserKittyUI = api;
+  if (typeof module === 'object' && module.exports) module.exports = api;
+})(typeof globalThis === 'object' ? globalThis : window);
+</script>
 </head>
 <body>
   <header class="app-header">
@@ -251,8 +363,8 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="language-button" id="languageButton" type="button" aria-label="英語に切り替え" title="英語に切り替え">EN</button>
-        <button class="icon-button header-icon-button" id="helpButton" type="button" data-i18n-title="helpTitle" data-i18n-aria-label="helpTitle" title="使い方と注意事項" aria-label="使い方と注意事項">
+        <button class="language-button" data-bk-header-action id="languageButton" type="button" aria-label="英語に切り替え" title="英語に切り替え">EN</button>
+        <button class="icon-button header-icon-button" data-bk-header-action id="helpButton" type="button" data-i18n-title="helpTitle" data-i18n-aria-label="helpTitle" title="使い方と注意事項" aria-label="使い方と注意事項">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.35 2.35 0 1 1 3.72 1.9c-.92.67-1.52 1.12-1.52 2.1"/><path d="M12 17h.01"/></svg>
         </button>
       </div>
@@ -277,7 +389,7 @@
       <button class="mode-tab" id="extractTab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="extractPanel" data-i18n="extractTab">取り出す</button>
     </div>
 
-    <section class="workspace workflow-panel" id="embedPanel" role="tabpanel" aria-labelledby="embedTab">
+    <p id="workRetention" data-bk-save-status></p><p id="languageStatus" role="status" aria-live="polite"></p><p data-i18n="previousResultNotice"></p><section class="workspace workflow-panel" id="embedPanel" role="tabpanel" aria-labelledby="embedTab">
       <div class="workspace-head">
         <div>
           <h2 data-i18n="embedTitle">画像の中にファイルを入れる</h2>
@@ -291,14 +403,14 @@
             <input class="file-picker" id="carrierInput" type="file" accept="image/png,image/jpeg,image/webp">
             <div class="drop-empty" id="carrierEmpty">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m5 17 5-5 4 4 2-2 3 3"/></svg>
-              <strong data-i18n="dropImage">画像をここにドロップ</strong><span data-i18n="orChoose">または</span><button class="button subtle drop-choose-button" id="chooseCarrierButton" type="button" data-file-picker-button data-i18n="chooseCarrier">画像を選択</button>
+              <strong data-i18n="dropImage">画像をここにドロップ</strong><span data-i18n="orChoose">または</span><button class="button subtle drop-choose-button" data-bk-button data-bk-variant="secondary" id="chooseCarrierButton" type="button" data-file-picker-button data-i18n="chooseCarrier">画像を選択</button>
             </div>
             <div class="file-summary" id="carrierSummary" hidden>
               <div class="file-summary-main"><img class="thumb" id="carrierThumb" alt=""><div class="file-copy"><span class="file-name" id="carrierName"></span><div class="file-meta" id="carrierMeta"></div></div></div>
-              <button class="button subtle" id="replaceCarrierButton" type="button" data-i18n="replace">変更</button>
+              <button class="button subtle" data-bk-button data-bk-variant="secondary" id="replaceCarrierButton" type="button" data-i18n="replace">変更</button>
             </div>
           </div>
-          <div class="source-actions"><span class="source-status" id="carrierLoadStatus" role="status"></span><button class="button subtle" id="clearCarrierButton" type="button" data-i18n="clearSelection" data-i18n-aria-label="clearCarrier" disabled>選択を解除</button></div>
+          <div class="source-actions"><span class="source-status" id="carrierLoadStatus" role="status"></span><button class="button subtle" data-bk-button data-bk-variant="secondary" id="clearCarrierButton" type="button" data-i18n="clearSelection" data-i18n-aria-label="clearCarrier" disabled>選択を解除</button></div>
           <div class="capacity-box" id="carrierMetrics" hidden>
             <div class="metric"><span data-i18n="dimensions">画像サイズ</span><strong id="carrierDimensions">—</strong></div>
             <div class="metric"><span data-i18n="opaquePixels">使用できる画素</span><strong id="opaquePixelCount">—</strong></div>
@@ -312,14 +424,14 @@
             <input class="file-picker" id="payloadInput" type="file">
             <div class="drop-empty" id="payloadEmpty">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5"/><path d="M9 13h6M9 17h4"/></svg>
-              <strong data-i18n="dropFile">ファイルをここにドロップ</strong><span data-i18n="orChoose">または</span><button class="button subtle drop-choose-button" id="choosePayloadButton" type="button" data-file-picker-button data-i18n="choosePayload">埋め込むファイルを選択</button>
+              <strong data-i18n="dropFile">ファイルをここにドロップ</strong><span data-i18n="orChoose">または</span><button class="button subtle drop-choose-button" data-bk-button data-bk-variant="secondary" id="choosePayloadButton" type="button" data-file-picker-button data-i18n="choosePayload">埋め込むファイルを選択</button>
             </div>
             <div class="file-summary" id="payloadSummary" hidden>
               <div class="file-summary-main"><div class="file-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5"/></svg></div><div class="file-copy"><span class="file-name" id="payloadName"></span><div class="file-meta" id="payloadMeta"></div></div></div>
-              <button class="button subtle" id="replacePayloadButton" type="button" data-i18n="replace">変更</button>
+              <button class="button subtle" data-bk-button data-bk-variant="secondary" id="replacePayloadButton" type="button" data-i18n="replace">変更</button>
             </div>
           </div>
-          <div class="source-actions"><span class="source-status" id="payloadLoadStatus" role="status"></span><button class="button subtle" id="clearPayloadButton" type="button" data-i18n="clearSelection" data-i18n-aria-label="clearPayload" disabled>選択を解除</button></div>
+          <div class="source-actions"><span class="source-status" id="payloadLoadStatus" role="status"></span><button class="button subtle" data-bk-button data-bk-variant="secondary" id="clearPayloadButton" type="button" data-i18n="clearSelection" data-i18n-aria-label="clearPayload" disabled>選択を解除</button></div>
           <div class="capacity-box" id="payloadMetrics" hidden>
             <div class="metric"><span data-i18n="payloadOriginalSize">元ファイル</span><strong id="payloadOriginalSize">—</strong></div>
             <div class="metric"><span data-i18n="storedBodySize">埋め込みデータ</span><strong id="payloadStoredSize">—</strong></div>
@@ -347,14 +459,14 @@
       <div class="error-box" id="embedError" role="alert" aria-atomic="true" hidden></div>
       <div class="action-row">
         <div class="processing-area"><span class="processing-status" id="embedStatus" role="status" aria-live="polite" aria-atomic="true"></span><progress class="processing-progress" id="embedProgress" max="100" value="0" hidden data-i18n-aria-label="processingProgress" aria-label="処理の進捗"></progress></div>
-        <div class="action-buttons"><button class="button cancel-button" id="cancelEmbedButton" type="button" hidden data-i18n="cancel">キャンセル</button><button class="button primary" id="embedButton" type="button" disabled data-i18n="embedAction">画像に埋め込む</button></div>
+        <div class="action-buttons"><button class="button cancel-button" data-bk-button data-bk-variant="secondary" id="cancelEmbedButton" type="button" hidden data-i18n="cancel">キャンセル</button><button class="button primary" data-bk-button data-bk-variant="primary" id="embedButton" type="button" disabled data-i18n="embedAction">画像に埋め込む</button></div>
       </div>
 
       <section class="result-card" id="embedResult" tabindex="-1" aria-live="polite" aria-atomic="true" hidden>
         <div class="result-head"><span class="result-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 12 4 4 8-9"/></svg></span><div><h3 data-i18n="embedDone">ファイルを埋め込みました</h3><p data-i18n="embedDoneBody">生成したPNGは編集・変換せず、そのまま保存してください。</p></div></div>
         <div class="result-grid"><div class="metric"><span data-i18n="outputSize">出力サイズ</span><strong id="encodedBlobSize">—</strong></div><div class="metric"><span data-i18n="payloadSize">ファイルサイズ</span><strong id="encodedPayloadSize">—</strong></div><div class="metric"><span data-i18n="storedBodySize">埋め込みデータ</span><strong id="encodedStoredSize">—</strong></div><div class="metric"><span data-i18n="selfVerification">自動復元確認</span><strong id="selfVerifyResult">—</strong></div></div>
         <div class="warning-box" data-i18n="outputWarning">リサイズ、トリミング、JPEG変換、画像編集、SNS等での再圧縮を行うと、ファイルを取り出せなくなる場合があります。</div>
-        <div class="export-row"><label class="export-field" for="outputFilename"><span class="export-label" data-i18n="outputFilename">出力ファイル名</span><span class="filename-control"><input class="filename-input" id="outputFilename" type="text" maxlength="120" autocomplete="off" spellcheck="false"><span class="filename-extension" aria-hidden="true">.png</span></span></label><button class="button primary" id="savePngButton" type="button" disabled data-i18n="savePng">PNGを保存</button></div>
+        <p id="embedDownloadStatus" role="status" aria-live="polite"></p><p data-i18n="pngScope"></p><div class="export-row"><label class="export-field" for="outputFilename"><span class="export-label" data-i18n="outputFilename">出力ファイル名</span><span class="filename-control"><input class="filename-input" id="outputFilename" type="text" maxlength="120" autocomplete="off" spellcheck="false"><span class="filename-extension" aria-hidden="true">.png</span></span></label><button class="button primary" data-bk-button data-bk-variant="primary" id="savePngButton" type="button" disabled data-i18n="savePng">PNGを保存</button></div>
       </section>
     </section>
 
@@ -362,19 +474,19 @@
       <div class="workspace-head"><div><h2 data-i18n="extractTitle">画像からファイルを取り出す</h2><p data-i18n="extractBody">このツールで生成したPNGを選択します。</p></div></div>
       <div class="drop-zone" id="extractDropZone">
         <input class="file-picker" id="extractInput" type="file" accept="image/png">
-        <div class="drop-empty" id="extractEmpty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9h8M8 13h5"/><path d="m14 16 2 2 4-5"/></svg><strong data-i18n="dropEncoded">埋め込み済みPNGをここにドロップ</strong><span data-i18n="orChoose">または</span><button class="button subtle drop-choose-button" type="button" data-file-picker-button data-i18n="chooseEncoded">埋め込み済みPNGを選択</button></div>
-        <div class="file-summary" id="extractSummary" hidden><div class="file-summary-main"><img class="thumb" id="extractThumb" alt=""><div class="file-copy"><span class="file-name" id="extractImageName"></span><div class="file-meta" id="extractImageMeta"></div></div></div><button class="button subtle" id="replaceExtractButton" type="button" data-i18n="replace">変更</button></div>
+        <div class="drop-empty" id="extractEmpty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9h8M8 13h5"/><path d="m14 16 2 2 4-5"/></svg><strong data-i18n="dropEncoded">埋め込み済みPNGをここにドロップ</strong><span data-i18n="orChoose">または</span><button class="button subtle drop-choose-button" data-bk-button data-bk-variant="secondary" type="button" data-file-picker-button data-i18n="chooseEncoded">埋め込み済みPNGを選択</button></div>
+        <div class="file-summary" id="extractSummary" hidden><div class="file-summary-main"><img class="thumb" id="extractThumb" alt=""><div class="file-copy"><span class="file-name" id="extractImageName"></span><div class="file-meta" id="extractImageMeta"></div></div></div><button class="button subtle" data-bk-button data-bk-variant="secondary" id="replaceExtractButton" type="button" data-i18n="replace">変更</button></div>
       </div>
       <div class="protection-box" id="extractPasswordBox" hidden>
         <div class="password-field"><label for="extractPassword" data-i18n="passwordRequiredForImage">この画像はパスワードで保護されています</label><div class="password-control"><input class="password-input" id="extractPassword" type="password" maxlength="1024" autocomplete="current-password" spellcheck="false" aria-describedby="extractPasswordNote"><button class="password-visibility-toggle" type="button" data-password-toggle="extractPassword" aria-pressed="false" aria-label="パスワードを表示" title="パスワードを表示"><svg data-eye-open viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/></svg><svg data-eye-off viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="m3 3 18 18"/><path d="M10.6 6.1A9.8 9.8 0 0 1 12 6c6.1 0 9.5 6 9.5 6a15.7 15.7 0 0 1-2.7 3.5M6.2 6.2C3.8 8 2.5 12 2.5 12s3.4 6 9.5 6c1.1 0 2.1-.2 3-.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg></button></div></div>
         <p class="protection-note" id="extractPasswordNote" data-i18n="extractPasswordNote">正しいパスワードを入力すると、ファイル名を含むデータを復号できます。</p>
       </div>
       <div class="error-box" id="extractError" role="alert" aria-atomic="true" hidden></div>
-      <div class="action-row"><div class="processing-area"><span class="processing-status" id="extractStatus" role="status" aria-live="polite" aria-atomic="true"></span><progress class="processing-progress" id="extractProgress" max="100" value="0" hidden data-i18n-aria-label="processingProgress" aria-label="処理の進捗"></progress></div><div class="action-buttons"><button class="button cancel-button" id="cancelExtractButton" type="button" hidden data-i18n="cancel">キャンセル</button><button class="button primary" id="extractButton" type="button" disabled data-i18n="extractAction">ファイルを取り出す</button></div></div>
+      <div class="action-row"><div class="processing-area"><span class="processing-status" id="extractStatus" role="status" aria-live="polite" aria-atomic="true"></span><progress class="processing-progress" id="extractProgress" max="100" value="0" hidden data-i18n-aria-label="processingProgress" aria-label="処理の進捗"></progress></div><div class="action-buttons"><button class="button cancel-button" data-bk-button data-bk-variant="secondary" id="cancelExtractButton" type="button" hidden data-i18n="cancel">キャンセル</button><button class="button primary" data-bk-button data-bk-variant="primary" id="extractButton" type="button" disabled data-i18n="extractAction">ファイルを取り出す</button></div></div>
       <section class="result-card" id="extractResult" tabindex="-1" aria-live="polite" aria-atomic="true" hidden>
         <div class="result-head"><span class="result-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 12 4 4 8-9"/></svg></span><div><h3 data-i18n="extractDone">ファイルを確認しました</h3><p data-i18n="extractDoneBody">埋め込み時のSHA-256と一致しました。</p></div></div>
         <div class="result-grid"><div class="metric"><span data-i18n="originalName">元のファイル名</span><strong id="recoveredOriginalName">—</strong></div><div class="metric"><span data-i18n="payloadSize">ファイルサイズ</span><strong id="recoveredSize">—</strong></div><div class="metric"><span data-i18n="integrity">復元時の確認</span><strong id="hashResult">SHA-256 ✓</strong></div></div>
-        <div class="export-row"><label class="export-field" for="recoveredFilename"><span class="export-label" data-i18n="saveAs">保存ファイル名</span><span class="filename-control"><input class="filename-input" id="recoveredFilename" type="text" maxlength="220" autocomplete="off" spellcheck="false"></span></label><button class="button primary" id="saveRecoveredButton" type="button" data-i18n="saveFile">ファイルを保存</button></div>
+        <p id="extractDownloadStatus" role="status" aria-live="polite"></p><p data-i18n="fileScope"></p><div class="export-row"><label class="export-field" for="recoveredFilename"><span class="export-label" data-i18n="saveAs">保存ファイル名</span><span class="filename-control"><input class="filename-input" id="recoveredFilename" type="text" maxlength="220" autocomplete="off" spellcheck="false"></span></label><button class="button primary" data-bk-button data-bk-variant="primary" id="saveRecoveredButton" type="button" data-i18n="saveFile">ファイルを保存</button></div>
       </section>
     </section>
     <!-- APP:END -->
@@ -394,7 +506,7 @@
       <h3 data-i18n="helpNotesTitle">注意事項</h3><ul><li data-i18n="helpNoteImage">生成PNGをリサイズ、トリミング、画像編集、JPEG変換、再圧縮すると埋め込みデータが壊れる場合があります。</li><li data-i18n="helpNoteCompression">GZIPで小さくなる場合だけ圧縮し、収まるかどうかは実際の圧縮後サイズで判定します。</li><li data-i18n="helpNoteAdaptive">画像の変化が目立ちにくいよう、ディテールが多い領域を優先して埋め込みます。画像編集への耐性を高める機能ではありません。</li><li data-i18n="helpNoteVerification">生成したPNGは保存前に自動で読み直し、元ファイルを正常に復元できることを確認します。</li><li data-i18n="helpNoteEncryption">パスワード保護を有効にすると、ファイル名を含むデータをAES-256-GCMで暗号化します。パスワードを設定しない場合は暗号化されません。</li><li data-i18n="helpNoteFormat">v1.0.2の新規出力は互換形式version 1を使用します。v0.2.0〜v0.8.0のversion 0画像も引き続き読み込めます。</li></ul>
       <p data-i18n="helpReading">閉じるボタン、Escキー、または背景のクリックで閉じます。</p>
       <p class="dialog-note" data-i18n="helpOffline">実行時の外部通信を使わず、単一HTMLとしてローカルからも利用できる構成です。</p>
-      <section class="info-section">
+      <p data-i18n="previousResultNotice"></p><section class="info-section">
         <details><summary data-i18n="buildInfo">ビルド情報</summary><div class="build-grid"><div class="build-item"><span data-i18n="appVersion">アプリバージョン</span><strong id="buildVersion">—</strong></div><div class="build-item"><span data-i18n="builtAt">生成日時</span><strong id="builtAt">—</strong></div><div class="build-item"><span data-i18n="dependencies">内包依存数</span><strong id="dependencyCount">0</strong></div></div></details>
       </section>
       <!-- APP:HELP:END -->
@@ -405,7 +517,7 @@
     (() => {
       'use strict';
       const APP_CONFIG = {"$schema":"./schemas/app-config.schema.json","name":"File in Image","nameJa":"画像にファイルを埋め込む","slug":"file-in-image","version":"1.0.3","description":"Hide one file inside an image and recover it later, entirely in the browser.","descriptionJa":"任意の1ファイルを画像に埋め込み、あとからブラウザー内だけで取り出します。","defaultLanguage":"auto","repository":{"owner":"ttomohisa","name":"htmlapps-file-in-image"},"build":{"output":"dist/index.html","blockRuntimeNetwork":true,"selfExtract":{"enabled":true,"output":"dist/index.self-extract.html"},"sizeBudget":{"readableWarningMb":25,"selfExtractWarningMb":12}}};
-      const BUILD_MANIFEST = {"schemaVersion":2,"builder":"single-html-app-template/1.3","generatedAtUtc":"2026-10-23T09:07:06.9829829Z","app":{"name":"File in Image","slug":"file-in-image","version":"1.0.3"},"dependencies":[]};
+      const BUILD_MANIFEST = {"schemaVersion":2,"builder":"single-html-app-template/1.3","generatedAtUtc":"2026-10-27T12:42:38.6792632Z","app":{"name":"File in Image","slug":"file-in-image","version":"1.0.3"},"dependencies":[]};
       // Keep the current htmlapps-template embedded-asset API even though this app has no third-party dependencies yet.
       const assetBundle = {"schemaVersion":2,"dependencies":{}};
       const blobUrls = new Set();
@@ -477,6 +589,10 @@
 
       const translations = {
         ja: {
+downloadFailed:"保存を開始できませんでした。作成済みの結果は保持しています。同じ保存ボタンで再試行してください。",
+previousResultNotice:"入力・パスワードの変更や再作成で前回の結果を破棄します。作業はこのタブ内だけに保持します。",
+pngScope:"選択した1ファイルを埋め込み、復元確認済みのPNG画像1枚を保存します。",
+fileScope:"この画像からSHA-256一致を確認して復元した1ファイルを保存します。",
           brandMeta: '画像にファイルを埋めて、あとから取り出す', helpTitle: '使い方と注意事項', close: '閉じる', introTitle: '画像にファイルを埋め込む', lead: '任意の1ファイルを画像の画素へ埋め込み、生成したPNGから元のファイルを取り出せます。', localBadge: '完全ローカル処理', modeSelection: '操作モード', processingProgress: '処理の進捗', embedTab: '埋め込む', extractTab: '取り出す',
           embedTitle: '画像の中にファイルを入れる', embedBody: '画像とファイルを選ぶと、埋め込める容量を確認できます。', carrierTitle: '画像を選択', carrierBody: 'PNG / JPEG / WebP。出力はPNGになります。', dropImage: '画像をここにドロップ', orChoose: 'または', chooseCarrier: '画像を選択', replace: '変更', clearSelection: '選択を解除', clearCarrier: '画像の選択を解除', clearPayload: '埋め込むファイルの選択を解除', dimensions: '画像サイズ', opaquePixels: '使用できる画素', capacity: '埋め込み容量', payloadTitle: '埋め込むファイルを選択', payloadBody: '形式は問いません。1ファイル、最大32 MiBです。', dropFile: 'ファイルをここにドロップ', choosePayload: '埋め込むファイルを選択', fitWaiting: '画像とファイルを選ぶと容量を確認できます。', fitOk: 'このファイルを埋め込めます。', fitBad: 'この画像にはファイルが収まりません。より大きな画像か小さなファイルを選んでください。', payloadOriginalSize: '元ファイル', storedBodySize: '埋め込みデータ', compression: '圧縮', gzipUsed: 'GZIPを使用', gzipSkipped: '圧縮なし', gzipUnavailable: '圧縮なし（API非対応）', cancel: 'キャンセル', cancelled: '処理をキャンセルしました。', protectionTitle: 'パスワード保護', protectionBody: '必要な場合だけ、ファイルを暗号化してから画像へ埋め込みます。', protectWithPassword: 'パスワードで保護する', protectionNote: '有効にすると、ファイル名を含む埋め込みデータを暗号化します。', password: 'パスワード', passwordConfirm: 'パスワード（確認）', showPassword: 'パスワードを表示', hidePassword: 'パスワードを隠す', passwordEmpty: 'パスワードを入力してください。', passwordMismatch: '確認用パスワードが一致していません。', passwordReady: 'AES-256-GCMで保護します。', derivingKey: 'パスワードから鍵を準備しています…', encrypting: 'ファイルを暗号化しています…', embedAction: '画像に埋め込む', packing: 'ファイルを準備しています…', compressingPayload: 'ファイルを圧縮しています…', analyzingImage: '画像のディテールを解析しています…', embedding: '画像に埋め込んでいます…', makingPng: 'PNGを作成しています…', verifyingGenerated: '生成したPNGを復元確認しています…', embedDone: 'ファイルを埋め込みました', embedDoneBody: '生成PNGから元ファイルを復元できることを確認しました。', outputSize: '出力サイズ', payloadSize: 'ファイルサイズ', integrity: '復元時の確認', selfVerification: '自動復元確認', selfVerifyPassed: '成功 · SHA-256一致', outputWarning: 'リサイズ、トリミング、JPEG変換、画像編集、SNS等での再圧縮を行うと、ファイルを取り出せなくなる場合があります。', outputFilename: '出力ファイル名', savePng: 'PNGを保存', pngSaved: 'PNGを保存しました',
           extractTitle: '画像からファイルを取り出す', extractBody: 'このツールで生成したPNGを選択します。', dropEncoded: '埋め込み済みPNGをここにドロップ', chooseEncoded: '埋め込み済みPNGを選択', passwordRequiredForImage: 'この画像はパスワードで保護されています', extractPasswordNote: '正しいパスワードを入力すると、ファイル名を含むデータを復号できます。', extractAction: 'ファイルを取り出す', readingImage: '画像を読み込んでいます…', extracting: 'ファイルを取り出しています…', decrypting: '暗号化されたデータを復号しています…', decompressing: '圧縮データを展開しています…', verifying: 'ファイルを確認しています…', extractDone: 'ファイルを確認しました', extractDoneBody: '埋め込み時のSHA-256と一致しました。', originalName: '元のファイル名', saveAs: '保存ファイル名', saveFile: 'ファイルを保存', fileSaved: 'ファイルを保存しました',
@@ -485,6 +601,10 @@
           buildInfo: 'ビルド情報', appVersion: 'アプリバージョン', builtAt: '生成日時', dependencies: '内包依存数', footer: 'ブラウザー内で処理', errorImageType: 'PNG、JPEG、WebP画像を選択してください。', errorImageTooLarge: 'この画像はこのバージョンで扱えるサイズを超えています。', errorImageRead: '画像を読み込めませんでした。対応形式か、ファイルが破損していないか確認してください。', errorPayloadTooLarge: '埋め込むファイルは32 MiB以下にしてください。', errorPayloadRead: 'ファイルを読み込めませんでした。', errorCapacity: 'この画像にはファイルが収まりません。', errorNoOpaque: 'この画像は完全に不透明な画素が少ないため使用できません。', errorNotBkfi: 'この画像には、このバージョンのFile in Imageで埋め込まれたデータを確認できませんでした。', errorUnsupportedFormat: 'この画像は、このバージョンで対応していないFile in Image形式です。', errorCorrupt: '埋め込みデータが壊れているか、画像が変更されています。', errorHash: 'ファイルを正常に復元できませんでした。画像が変更されている可能性があります。', errorMemory: '画像を処理するためのメモリを確保できませんでした。より小さな画像を試してください。', errorCrypto: 'このブラウザーでは必要なWeb Crypto機能を利用できません。', errorPasswordRequired: 'パスワードを入力してください。', errorPasswordMismatch: '確認用パスワードが一致していません。', errorAuth: 'パスワードが違うか、画像が変更されています。', errorCompression: 'この画像のGZIPデータを展開できません。このブラウザーがDecompressionStreamに対応しているか、画像が変更されていないか確認してください。', errorWorker: 'このブラウザーでは画像処理を開始できません。Web Workerが利用できるか確認してください。', errorSelfVerify: '生成したPNGの自動復元確認に失敗しました。安全のため保存できません。別の画像で試してください。', errorGeneric: '処理できませんでした。別のファイルで試してください。'
         },
         en: {
+downloadFailed:"Could not start the download. The completed result is retained. Retry the same Save action.",
+previousResultNotice:"Changing inputs/passwords or running again discards the previous result. Work stays in this tab only.",
+pngScope:"Save one verified PNG containing the selected payload file.",
+fileScope:"Save the one recovered file whose SHA-256 matches this image’s payload.",
           brandMeta: 'Hide and recover a file inside an image', helpTitle: 'How to use & notes', close: 'Close', introTitle: 'File in Image', lead: 'Hide one arbitrary file in image pixels and recover the original file from the generated PNG.', localBadge: 'Fully local processing', modeSelection: 'Operation mode', processingProgress: 'Processing progress', embedTab: 'Embed', extractTab: 'Extract',
           embedTitle: 'Put a file inside an image', embedBody: 'Choose an image and a file to check whether the file fits.', carrierTitle: 'Choose an image', carrierBody: 'PNG / JPEG / WebP. Output is PNG.', dropImage: 'Drop an image here', orChoose: 'or', chooseCarrier: 'Choose carrier image', replace: 'Change', clearSelection: 'Clear selection', clearCarrier: 'Clear carrier image selection', clearPayload: 'Clear payload file selection', dimensions: 'Dimensions', opaquePixels: 'Usable pixels', capacity: 'Embedding capacity', payloadTitle: 'Choose the file to embed', payloadBody: 'Any file type. One file, up to 32 MiB.', dropFile: 'Drop a file here', choosePayload: 'Choose payload file', fitWaiting: 'Choose an image and a file to check capacity.', fitOk: 'This file fits in the image.', fitBad: 'This file does not fit. Choose a larger image or a smaller file.', payloadOriginalSize: 'Original file', storedBodySize: 'Embedded data', compression: 'Compression', gzipUsed: 'GZIP used', gzipSkipped: 'Not compressed', gzipUnavailable: 'Not compressed (API unavailable)', cancel: 'Cancel', cancelled: 'Processing cancelled.', protectionTitle: 'Password protection', protectionBody: 'Encrypt the file before embedding only when you need password protection.', protectWithPassword: 'Protect with a password', protectionNote: 'When enabled, the embedded data including the filename is encrypted.', password: 'Password', passwordConfirm: 'Confirm password', showPassword: 'Show password', hidePassword: 'Hide password', passwordEmpty: 'Enter a password.', passwordMismatch: 'The confirmation password does not match.', passwordReady: 'The embedded data will be protected with AES-256-GCM.', derivingKey: 'Preparing encryption key…', encrypting: 'Encrypting file…', embedAction: 'Embed in image', packing: 'Preparing file…', compressingPayload: 'Compressing file…', analyzingImage: 'Analyzing image detail…', embedding: 'Embedding file…', makingPng: 'Creating PNG…', verifyingGenerated: 'Verifying the generated PNG…', embedDone: 'File embedded', embedDoneBody: 'The generated PNG was decoded and the original file was recovered successfully.', outputSize: 'Output size', payloadSize: 'File size', integrity: 'Recovery check', selfVerification: 'Automatic recovery check', selfVerifyPassed: 'Passed · SHA-256 matched', outputWarning: 'Resizing, cropping, JPEG conversion, image editing, or recompression by social/messaging services can make the embedded file unrecoverable.', outputFilename: 'Output filename', savePng: 'Save PNG', pngSaved: 'PNG saved',
           extractTitle: 'Recover a file from an image', extractBody: 'Choose a PNG generated by this tool.', dropEncoded: 'Drop an encoded PNG here', chooseEncoded: 'Choose encoded PNG', passwordRequiredForImage: 'This image is password protected', extractPasswordNote: 'Enter the correct password to decrypt the data, including the original filename.', extractAction: 'Extract file', readingImage: 'Reading image…', extracting: 'Extracting file…', decrypting: 'Decrypting protected data…', decompressing: 'Decompressing embedded data…', verifying: 'Verifying file…', extractDone: 'File verified', extractDoneBody: 'The recovered bytes match the embedded SHA-256 digest.', originalName: 'Original filename', saveAs: 'Save filename', saveFile: 'Save file', fileSaved: 'File saved',
@@ -494,7 +614,8 @@
         }
       };
 
-      let language = readStorage(`${APP_CONFIG.slug}:language`) || detectLanguage();
+      let language=BrowserKittyUI.resolveLanguage({legacyKeys:[`${APP_CONFIG.slug}:language`]});let languageFailure=false,outputNameEdited=false;
+      const domainErrors=new Map(),operationProgress={embed:{stage:'',percent:0,message:''},extract:{stage:'',percent:0,message:''}},downloadState={embed:{error:false,name:''},extract:{error:false,name:''}};
       let generation = 0;
       const state = { carrier: null, payload: null, encodedBlob: null, encodedVerified: false, extractImage: null, recovered: null };
       const operationBusy = { embed:false, extract:false };
@@ -525,7 +646,15 @@
       });
       window.AppToast = AppToast;
       function showToast(message,tone='default') { AppToast.show({ message, tone }); }
-      function setError(id,message='') { const el=$(id); el.textContent=message; el.hidden=!message; }
+      function setError(id,message='') {const key=Object.keys(translations[language]).find(key=>key.startsWith('error')&&translations[language][key]===message)||Object.keys(translations[language]).find(key=>translations[language][key]===message);domainErrors.set(id,{key,raw:message});const el=$(id);el.textContent=message;el.hidden=!message;}
+      function renderCommonUi(){
+        BrowserKittyUI.setSaveStatus($('#workRetention'),{mode:'session',language});$('#languageStatus').textContent=languageFailure?BrowserKittyUI.text('languageSessionOnly',language):'';
+        for(const [id,error]of domainErrors){const el=$(id);el.textContent=error.key?t(error.key):error.raw;el.hidden=!el.textContent;}
+        for(const kind of ['embed','extract']){const progress=operationProgress[kind];if(progress.stage){const status=$(kind==='embed'?'#embedStatus':'#extractStatus'),bar=$(kind==='embed'?'#embedProgress':'#extractProgress');status.textContent=t(progress.stage);bar.setAttribute('aria-valuetext',t(progress.stage)+' '+progress.percent+'%');}else if(progress.message)$(kind==='embed'?'#embedStatus':'#extractStatus').textContent=t(progress.message);
+          const delivery=downloadState[kind];$(kind==='embed'?'#embedDownloadStatus':'#extractDownloadStatus').textContent=delivery.error?t('downloadFailed'):delivery.name?BrowserKittyUI.text('downloadStarted',language)+': '+delivery.name:'';
+        }
+      }
+
       function nextGeneration() { generation += 1; terminateActiveImageTask('STALE'); return generation; }
       function isCurrent(token) { return token === generation; }
       function revokePreview(kind) { const key=kind==='carrier'?'carrierPreviewUrl':'extractPreviewUrl'; const url=kind==='carrier'?carrierPreviewUrl:extractPreviewUrl; if (url) URL.revokeObjectURL(url); if (key==='carrierPreviewUrl') carrierPreviewUrl=''; else extractPreviewUrl=''; }
@@ -916,7 +1045,7 @@
       function setOperationProgress(kind,stageKey,percent) {
         const status=$(kind==='embed'?'#embedStatus':'#extractStatus');
         const progress=$(kind==='embed'?'#embedProgress':'#extractProgress');
-        status.textContent=t(stageKey);
+        operationProgress[kind]={stage:stageKey,percent:Math.round(percent),message:''};status.textContent=t(stageKey);
         progress.hidden=false;
         progress.value=Math.max(0,Math.min(100,Math.round(percent)));
         progress.setAttribute('aria-valuetext',`${t(stageKey)} ${progress.value}%`);
@@ -924,11 +1053,11 @@
       function clearOperationProgress(kind,{message=''}={}) {
         const status=$(kind==='embed'?'#embedStatus':'#extractStatus');
         const progress=$(kind==='embed'?'#embedProgress':'#extractProgress');
-        status.textContent=message;
+        operationProgress[kind]={stage:'',percent:0,message:message===t('cancelled')?'cancelled':''};status.textContent=message;
         progress.hidden=true; progress.value=0; progress.removeAttribute('aria-valuetext');
       }
       function setOperationBusy(kind,busy) {
-        operationBusy[kind]=busy;
+        operationBusy[kind]=busy;BrowserKittyUI.setButtonState($(kind==='embed'?'#embedButton':'#extractButton'),busy?'busy':'ready');
         const panel=$(kind==='embed'?'#embedPanel':'#extractPanel');
         panel.setAttribute('aria-busy',String(busy));
         $(kind==='embed'?'#cancelEmbedButton':'#cancelExtractButton').hidden=!busy;
@@ -976,11 +1105,12 @@
       }
 
       async function imageDataToPng(imageData) { const canvas=document.createElement('canvas'); canvas.width=imageData.width; canvas.height=imageData.height; const ctx=canvas.getContext('2d'); if (!ctx) throw new Error('MEMORY'); ctx.putImageData(imageData,0,0); return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('MEMORY')),'image/png')); }
-      function downloadBlob(blob,filename) { const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); }
+      function downloadBlob(blob,filename){const url=URL.createObjectURL(blob);let a=null;try{a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();}finally{if(a)a.remove();URL.revokeObjectURL(url);}}
 
       function friendlyError(error) { const code=error?.message||''; const map={ IMAGE_TYPE:'errorImageType', IMAGE_TOO_LARGE:'errorImageTooLarge', IMAGE_READ:'errorImageRead', PAYLOAD_TOO_LARGE:'errorPayloadTooLarge', PAYLOAD_READ:'errorPayloadRead', CAPACITY:'errorCapacity', NO_OPAQUE:'errorNoOpaque', NOT_BKFI:'errorNotBkfi', UNSUPPORTED_FORMAT:'errorUnsupportedFormat', CORRUPT:'errorCorrupt', HASH_MISMATCH:'errorHash', MEMORY:'errorMemory', CRYPTO_UNAVAILABLE:'errorCrypto', PASSWORD_REQUIRED:'errorPasswordRequired', PASSWORD_MISMATCH:'errorPasswordMismatch', AUTH_FAILED:'errorAuth', COMPRESSION_UNAVAILABLE:'errorCompression', DECOMPRESS_FAILED:'errorCompression', DECOMPRESS_TOO_LARGE:'errorCompression', WORKER_UNAVAILABLE:'errorWorker', WORKER_FAILED:'errorWorker', SELF_VERIFY_FAILED:'errorSelfVerify' }; return t(map[code]||'errorGeneric'); }
 
       function invalidateEncodedResult({cancelActive=false}={}) {
+        downloadState.embed={error:false,name:''};renderCommonUi();
         if (cancelActive && operationBusy.embed) {
           generation+=1;
           terminateActiveImageTask('STALE');
@@ -1030,7 +1160,7 @@
         else { box.className='fit-status bad'; box.textContent=`${t('fitBad')} ${formatBytes(needed)} / ${formatBytes(c.capacity)}`; $('#embedButton').disabled=true; }
       }
       function refreshExtractReady() {
-        const image=state.extractImage;
+        BrowserKittyUI.setButtonState($('#saveRecoveredButton'),state.recovered&&!operationBusy.extract?'ready':'unavailable');const image=state.extractImage;
         $('#extractButton').disabled=operationBusy.extract || !image || (image.outer.encrypted && !$('#extractPassword').value);
       }
 
@@ -1055,7 +1185,7 @@
         $(`#${kind}Name`).textContent=''; $(`#${kind}Name`).title=''; $(`#${kind}Meta`).textContent='';
         if (kind==='carrier') {
           revokePreview('carrier'); $('#carrierThumb').removeAttribute('src'); $('#carrierThumb').alt='';
-          $('#outputFilename').value='file-in-image';
+          outputNameEdited=false;$('#outputFilename').value='file-in-image';
         }
         invalidateEncodedResult(); setOperationBusy('embed',false); clearOperationProgress('embed');
         if (kind==='carrier') refreshCarrierUi(); else refreshPayloadUi();
@@ -1076,7 +1206,7 @@
           if (opaqueCount<HEADER_PIXELS) throw new Error('NO_OPAQUE');
           state.carrier={file,...decoded,opaqueCount,capacity:bodyCapacityBytes(opaqueCount)};
           carrierPreviewUrl=URL.createObjectURL(file); $('#carrierThumb').src=carrierPreviewUrl;
-          $('#outputFilename').value=sanitizeBase(`${baseFromName(file.name)}-with-file`,'file-in-image');
+          if(!outputNameEdited)$('#outputFilename').value=sanitizeBase(`${baseFromName(file.name)}-with-file`,'file-in-image');
         } catch (error) { if (token===load.generation) load.error=error?.message||'IMAGE_READ'; }
         finally {
           if (token===load.generation) { load.stage=''; refreshCarrierUi(); refreshSourceLoads(); refreshSourceErrors(); }
@@ -1173,7 +1303,7 @@
       }
 
       async function runEmbed() {
-        if (!state.carrier||!state.payload) return;
+        if (operationBusy.embed||operationBusy.extract||!state.carrier||!state.payload) return;
         const token=generation,protection=embedProtectionState();
         setError('#embedError'); invalidateEncodedResult(); setOperationBusy('embed',true); setOperationProgress('embed','packing',2);
         try {
@@ -1229,7 +1359,7 @@
       }
 
       async function selectExtractImage(file) {
-        const token=nextGeneration(); setOperationBusy('extract',false); clearOperationProgress('extract'); setError('#extractError'); state.extractImage=null; state.recovered=null; $('#extractDropZone').classList.remove('has-file'); $('#extractEmpty').hidden=false; $('#extractSummary').hidden=true; $('#extractResult').hidden=true; $('#extractButton').disabled=true; $('#extractPasswordBox').hidden=true; $('#extractPassword').value=''; resetPasswordVisibility('extractPassword');
+        downloadState.extract={error:false,name:''};renderCommonUi();const token=nextGeneration(); setOperationBusy('extract',false); clearOperationProgress('extract'); setError('#extractError'); state.extractImage=null; state.recovered=null; $('#extractDropZone').classList.remove('has-file'); $('#extractEmpty').hidden=false; $('#extractSummary').hidden=true; $('#extractResult').hidden=true; $('#extractButton').disabled=true; $('#extractPasswordBox').hidden=true; $('#extractPassword').value=''; resetPasswordVisibility('extractPassword');
         try {
           if (!file || file.type!=='image/png') throw new Error('IMAGE_TYPE');
           $('#extractStatus').textContent=t('readingImage');
@@ -1247,8 +1377,8 @@
       }
 
       async function runExtract() {
-        if (!state.extractImage) return;
-        const token=generation; setError('#extractError'); $('#extractResult').hidden=true; setOperationBusy('extract',true); setOperationProgress('extract','extracting',2);
+        if (operationBusy.extract||operationBusy.embed||!state.extractImage) return;
+        const token=generation;state.recovered=null; setError('#extractError'); $('#extractResult').hidden=true; setOperationBusy('extract',true); setOperationProgress('extract','extracting',2);
         let cryptoMaterial=null;
         try {
           const outer=state.extractImage.outer;
@@ -1322,12 +1452,12 @@
       function resetPasswordVisibility(...inputIds) { inputIds.forEach(id=>setPasswordVisible(id,false)); }
 
       function applyLanguage() {
-        document.documentElement.lang=language; document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);}); document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);}); document.querySelectorAll('[data-i18n-aria-label]').forEach(el=>el.setAttribute('aria-label',t(el.dataset.i18nAriaLabel))); $('#languageButton').textContent=language==='ja'?'EN':'JA'; $('#languageButton').setAttribute('aria-label',language==='ja'?'英語に切り替え':'Switch to Japanese');$('#languageButton').title=$('#languageButton').getAttribute('aria-label'); document.title=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; $('#brandName').textContent=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; $('#footerName').textContent=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; document.querySelectorAll('[data-password-toggle]').forEach(syncPasswordVisibilityToggle); refreshCarrierUi(); refreshProtectionUi(); refreshExtractReady(); refreshSourceLoads(); if (Object.values(sourceLoads).some(load=>load.error)) refreshSourceErrors();
+        document.documentElement.lang=language; document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);}); document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);}); document.querySelectorAll('[data-i18n-aria-label]').forEach(el=>el.setAttribute('aria-label',t(el.dataset.i18nAriaLabel))); $('#languageButton').textContent=language==='ja'?'EN':'JA'; $('#languageButton').setAttribute('aria-label',language==='ja'?'英語に切り替え':'Switch to Japanese');$('#languageButton').title=$('#languageButton').getAttribute('aria-label'); document.title=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; $('#brandName').textContent=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; $('#footerName').textContent=language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name; document.querySelectorAll('[data-password-toggle]').forEach(syncPasswordVisibilityToggle); refreshCarrierUi(); refreshProtectionUi(); refreshExtractReady(); refreshSourceLoads(); if (Object.values(sourceLoads).some(load=>load.error)) refreshSourceErrors();renderCommonUi();
       }
 
       $('#embedTab').addEventListener('click',()=>activateMode('embed')); $('#extractTab').addEventListener('click',()=>activateMode('extract'));
       $('#modeTabs').addEventListener('keydown',event=>{ const key=event.key; if (!['ArrowLeft','ArrowRight','Home','End'].includes(key)) return; event.preventDefault(); const current=$('#embedTab').getAttribute('aria-selected')==='true'?'embed':'extract'; let next=current; if (key==='ArrowLeft'||key==='ArrowRight') next=current==='embed'?'extract':'embed'; else if (key==='Home') next='embed'; else if (key==='End') next='extract'; activateMode(next,{focusTab:true}); });
-      $('#languageButton').addEventListener('click',()=>{language=language==='ja'?'en':'ja';writeStorage(`${APP_CONFIG.slug}:language`,language);applyLanguage();});
+      $('#languageButton').addEventListener('click',()=>{language=language==='ja'?'en':'ja';languageFailure=!BrowserKittyUI.chooseLanguage(language).persisted;applyLanguage();});
       const helpDialog=$('#helpDialog'); $('#helpButton').addEventListener('click',()=>helpDialog.showModal()); $('#closeHelpButton').addEventListener('click',()=>helpDialog.close()); helpDialog.addEventListener('click',event=>{if(event.target!==helpDialog)return;const rect=helpDialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)helpDialog.close();});
       bindDropZone('#carrierDropZone','#carrierInput',selectCarrier); bindDropZone('#payloadDropZone','#payloadInput',selectPayload); bindDropZone('#extractDropZone','#extractInput',selectExtractImage);
       $('#clearCarrierButton').addEventListener('click',()=>clearEmbedSource('carrier')); $('#clearPayloadButton').addEventListener('click',()=>clearEmbedSource('payload'));
@@ -1336,11 +1466,12 @@
       $('#passwordProtectToggle').addEventListener('change',()=>{ if (!$('#passwordProtectToggle').checked) { $('#embedPassword').value=''; $('#embedPasswordConfirm').value=''; resetPasswordVisibility('embedPassword','embedPasswordConfirm'); } invalidateEncodedResult({cancelActive:true}); refreshProtectionUi(); });
       $('#embedPassword').addEventListener('input',()=>{ invalidateEncodedResult({cancelActive:true}); refreshProtectionUi(); });
       $('#embedPasswordConfirm').addEventListener('input',()=>{ invalidateEncodedResult({cancelActive:true}); refreshProtectionUi(); });
-      $('#extractPassword').addEventListener('input',()=>{ state.recovered=null; $('#extractResult').hidden=true; setError('#extractError'); refreshExtractReady(); });
+      $('#extractPassword').addEventListener('input',()=>{nextGeneration();setOperationBusy('extract',false);clearOperationProgress('extract');downloadState.extract={error:false,name:''};renderCommonUi();state.recovered=null; $('#extractResult').hidden=true; setError('#extractError'); refreshExtractReady(); });
       $('#cancelEmbedButton').addEventListener('click',()=>cancelOperation('embed')); $('#cancelExtractButton').addEventListener('click',()=>cancelOperation('extract'));
       $('#embedButton').addEventListener('click',runEmbed); $('#extractButton').addEventListener('click',runExtract);
-      $('#savePngButton').addEventListener('click',()=>{ if (!state.encodedBlob || !state.encodedVerified) return; const base=sanitizeBase($('#outputFilename').value,'file-in-image'); $('#outputFilename').value=base; downloadBlob(state.encodedBlob,`${base}.png`); showToast(t('pngSaved'),'success'); });
-      $('#saveRecoveredButton').addEventListener('click',()=>{ if (!state.recovered) return; const name=sanitizeFullFilename($('#recoveredFilename').value,state.recovered.filename||'recovered-file.bin'); $('#recoveredFilename').value=name; downloadBlob(new Blob([state.recovered.fileBytes],{type:state.recovered.mime}),name); showToast(t('fileSaved'),'success'); });
+      $('#savePngButton').addEventListener('click',()=>{if(!state.encodedBlob||!state.encodedVerified)return;const blob=state.encodedBlob,base=sanitizeBase($('#outputFilename').value,'file-in-image'),name=base+'.png';$('#outputFilename').value=base;try{downloadBlob(blob,name);downloadState.embed={error:false,name};showToast(BrowserKittyUI.text('downloadStarted',language)+': '+name,'success');}catch{downloadState.embed={error:true,name:''};}renderCommonUi();});
+      $('#saveRecoveredButton').addEventListener('click',()=>{if(!state.recovered)return;const recovered=state.recovered,name=sanitizeFullFilename($('#recoveredFilename').value,recovered.filename||'recovered-file.bin');$('#recoveredFilename').value=name;try{downloadBlob(new Blob([recovered.fileBytes],{type:recovered.mime}),name);downloadState.extract={error:false,name};showToast(BrowserKittyUI.text('downloadStarted',language)+': '+name,'success');}catch{downloadState.extract={error:true,name:''};}renderCommonUi();});
+      $('#outputFilename').addEventListener('input',()=>{outputNameEdited=true;});
       $('#outputFilename').addEventListener('blur',()=>{$('#outputFilename').value=sanitizeBase($('#outputFilename').value,'file-in-image');}); $('#recoveredFilename').addEventListener('blur',()=>{if(state.recovered)$('#recoveredFilename').value=sanitizeFullFilename($('#recoveredFilename').value,state.recovered.filename||'recovered-file.bin');});
       window.addEventListener('pagehide',()=>{terminateActiveImageTask('STALE');if(imageWorkerUrl){URL.revokeObjectURL(imageWorkerUrl);imageWorkerUrl='';}revokePreview('carrier');revokePreview('extract');blobUrls.forEach(url=>URL.revokeObjectURL(url));blobUrls.clear();});
 

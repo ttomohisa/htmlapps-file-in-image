@@ -236,3 +236,6 @@ Useful mount options include `initialPage`, `pageTopTarget`, `pageTopOffset`, `o
 ## WebRTC application-ready rule
 
 For `webrtc-qr-pairing.html`, PeerConnection `connected` alone is not application-ready. The designated readiness DataChannel must also be `open`. Custom channel layouts set `readyChannelLabel` to a reliable control channel.
+
+## Common UI v1
+Fixed ui-conventions.js/css embed through scripts/embed-ui-conventions.ps1. Executable controls explicitly opt in; mode/password choice styles stay app-owned. Existing generation/cancel logic owns work state; shared state styling does not create a new processing framework. Persistent domain errors/progress re-render from keys; delivery cleanup and captured names remain app-owned.

@@ -174,3 +174,6 @@ Bug reports and feature proposals are welcome through GitHub Issues. See [CONTRI
 Copyright © 2026 ttomohisa
 
 Licensed under the [MIT License](LICENSE).
+
+### Saving and retention
+Work stays in this tab only. Save PNG and Save file describe the verified single-result scope, use editable names and report “Download started.” Delivery failures remain visible with retry guidance and keep the completed result. Language changes preserve work and progress; only language preference may persist. Changing inputs or passwords invalidates prior output as indicated before processing.

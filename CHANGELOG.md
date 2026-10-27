@@ -143,3 +143,7 @@
 ## 0.1.0
 
 - Establish File in Image product specification and BKFI/BKFC development container.
+
+## Unreleased
+- Integrate fixed common UI v1, tab retention, real busy/disabled state, persistent translated delivery recovery and safe anchor cleanup.
+- Preserve filenames edited during carrier loading; reject stale recovery after extraction-password edits; prevent duplicate direct Embed/Extract jobs without changing formats or crypto parameters.
