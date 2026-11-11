@@ -76,7 +76,7 @@ Each password field has a show/hide button. Turning password protection off, or 
 
 ### Help and narrow screens
 
-Open Help with the question-mark button beside the language switcher. While it is open, the background page stays still; scroll inside Help to reach all the notes. Close it with the close button, Esc, or a click on the backdrop. At widths up to 420 px, the app name and version can wrap while the language and Help buttons keep their existing size.
+Open Help with the question-mark button beside the language switcher. The first screen shows short Embed/Extract instructions, privacy, and essential sharing warnings. Supported formats, encryption details, the MIT license/third-party notices, and build information are available through accessible disclosure sections. Reopening Help resets scrolling and disclosures. The background page stays still while Help scrolls internally; Close, Esc, and the backdrop dismiss it. At widths up to 420 px, the app name and version may wrap while the language and Help buttons keep their existing size.
 
 ## What “adaptive embedding” means
 
