@@ -229,6 +229,7 @@ Stable UI requirements include:
 - accept PNG extraction inputs whose File MIME type is unknown/empty, while rejecting explicitly non-PNG types
 - reject a declared BKFI body larger than available opaque-pixel capacity before allocating the extraction body
 - invalidate active extraction when its password changes, clear previous recovered bytes before each retry, and revoke obsolete extract previews
+- prefix Windows reserved device filenames and sanitize fallback download names before saving
 - password show/hide controls
 - accessible tabs with roving tabindex and Arrow/Home/End support
 - `aria-busy`, status, progress labels, and result focus
