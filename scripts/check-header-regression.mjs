@@ -96,6 +96,6 @@ for (const language of ['ja', 'en']) {
   });
 }
 test('header and release config use the requested one-step patch version', () => {
-  assert.equal(config.version, '1.0.3');
+  assert.equal(config.version, '1.0.4');
   assert.match(source, /id="versionBadge">v1\.0\.3<\/span>/);
 });
