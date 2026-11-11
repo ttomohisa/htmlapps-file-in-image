@@ -125,6 +125,10 @@ Run `node scripts/check-layout-regression.mjs` to check the Help-only document l
 └─ dist/                                # Generated release artifacts
 ```
 
+Native-browser verification runs separately from the source-level checks: `node scripts/real-file-flow.browser.test.cjs` requires Playwright 1.58.2 and its Chromium browser. The PR preview workflow executes this test on the readable, self-extracting, and repository-root HTML outputs, exercising actual PNG downloads, byte-exact recovery, encrypted and wrong-password handling, malformed images, cancellation, phone layout, and runtime requests. It does not simulate a physical iOS/Android browser.
+
+After a version-bumping PR is merged, the `main` Pages workflow rebuilds and reruns native-browser checks before creating the matching `vX.Y.Z` tag and GitHub Release. Each release contains two single HTML downloads and `SHA256SUMS.txt`. Existing releases are not overwritten; a pre-existing tag without a release requires manual review.
+
 Run the complete repository verification:
 
 ```powershell
