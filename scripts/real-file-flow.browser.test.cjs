@@ -60,7 +60,13 @@ async function putExtract(page, png, { mimeLess = false } = {}) {
       input.dispatchEvent(new Event('change', { bubbles: true }));
     }, png.toString('base64'));
   } else await selectFile(page, '#extractInput', 'embedded.png', 'image/png', png);
-  await waitReady(page, '#extractButton', 30_000);
+  await page.locator('#extractSummary').waitFor({ state: 'visible', timeout: 30_000 });
+  // A protected image intentionally keeps Extract disabled until a password is entered.
+  if (!(await page.locator('#extractPasswordBox').isVisible())) {
+    await waitReady(page, '#extractButton', 30_000);
+  } else {
+    assert.equal(await page.locator('#extractButton').isEnabled(), false);
+  }
 }
 async function tamperedPng(page, png, kind) {
   const array = await page.evaluate(async ({base64, kind}) => {
