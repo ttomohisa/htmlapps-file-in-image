@@ -7,6 +7,7 @@ const { readFileSync, mkdirSync, writeFileSync } = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
+const { randomBytes } = require('node:crypto');
 
 const root = path.resolve(__dirname, '..');
 const out = path.join(root, 'test-results', 'real-file-flow');
@@ -15,8 +16,8 @@ const artifacts = ['dist/index.html', 'dist/index.self-extract.html', 'file-in-i
 const payload = Buffer.from(Array.from({ length: 18_437 }, (_, i) => (i * 73 + (i >> 3) * 37 + (i >> 7) * 11) & 255));
 const password = 'Päßword-秘密-🔐';
 
-async function makeCarrier(page, { transparent = false, width = 768, height = 512 } = {}) {
-  const base64 = await page.evaluate(({transparent, width, height}) => {
+async function makeCarrier(page, { transparent = false, width = 768, height = 512, mimeType = 'image/png' } = {}) {
+  const base64 = await page.evaluate(({transparent, width, height, mimeType}) => {
     const canvas = document.createElement('canvas');
     canvas.width = width; canvas.height = height;
     const context = canvas.getContext('2d');
@@ -28,8 +29,8 @@ async function makeCarrier(page, { transparent = false, width = 768, height = 51
       pixels.data[off + 3] = transparent ? 0 : 255;
     }
     context.putImageData(pixels, 0, 0);
-    return canvas.toDataURL('image/png').split(',')[1];
-  }, { transparent, width, height });
+    return canvas.toDataURL(mimeType).split(',')[1];
+  }, { transparent, width, height, mimeType });
   return Buffer.from(base64, 'base64');
 }
 async function selectFile(page, selector, name, mimeType, buffer) {
@@ -92,7 +93,7 @@ async function tamperedPng(page, png, kind) {
   }, {base64: png.toString('base64'), kind});
   return Buffer.from(array);
 }
-async function realRoundTrip(browser, file, { encrypted = false, phone = false, mimeLess = false } = {}) {
+async function realRoundTrip(browser, file, { encrypted = false, phone = false, mimeLess = false, carrierMime = 'image/png', fileBytes = payload, compression = null } = {}) {
   const context = await browser.newContext({
     acceptDownloads: true, locale: 'ja-JP',
     viewport: phone ? { width: 360, height: 740 } : { width: 1280, height: 900 },
@@ -102,13 +103,16 @@ async function realRoundTrip(browser, file, { encrypted = false, phone = false, 
   const failures = [], requests = [];
   page.on('pageerror', e => failures.push(e.message));
   page.on('request', request => { if (/^https?:/i.test(request.url())) requests.push(request.url()); });
-  const label = [file, encrypted ? 'encrypted' : 'plain', phone ? 'phone' : 'desktop', mimeLess ? 'no-mime' : 'normal'].join(' ');
+  const label = [file, carrierMime, fileBytes.length + 'B', encrypted ? 'encrypted' : 'plain', phone ? 'phone' : 'desktop', mimeLess ? 'no-mime' : 'normal'].join(' ');
   try {
     await page.goto(pathToFileURL(path.join(root, file)).href);
-    const image = await makeCarrier(page);
-    await selectFile(page, '#carrierInput', '写真.png', 'image/png', image);
-    await selectFile(page, '#payloadInput', '日本語 データ.bin', 'application/octet-stream', payload);
+    const image = await makeCarrier(page, { mimeType: carrierMime });
+    const ext = carrierMime === 'image/jpeg' ? 'jpg' : carrierMime === 'image/webp' ? 'webp' : 'png';
+    await selectFile(page, '#carrierInput', '写真.' + ext, carrierMime, image);
+    await selectFile(page, '#payloadInput', '日本語 データ.bin', 'application/octet-stream', fileBytes);
     await waitReady(page, '#embedButton');
+    if (compression === 'gzip') assert.match(await page.locator('#payloadCompression').innerText(), /GZIP/i);
+    if (compression === 'none') assert.match(await page.locator('#payloadCompression').innerText(), /圧縮なし|no compression/i);
     if (phone) {
       assert.equal(await page.locator('.local-badge').isVisible(), false);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
@@ -138,12 +142,12 @@ async function realRoundTrip(browser, file, { encrypted = false, phone = false, 
     assert.equal(await page.locator('#recoveredOriginalName').innerText(), '日本語 データ.bin');
     const recovered = await save(page, '#saveRecoveredButton');
     assert.equal(recovered.name, '日本語 データ.bin');
-    assert.deepEqual(recovered.data, payload, 'native downloaded payload is byte-exact');
+    assert.deepEqual(recovered.data, fileBytes, 'native downloaded payload is byte-exact');
     if (encrypted) {
       await page.locator('#recoveredFilename').fill('CON.txt');
       const renamed = await save(page, '#saveRecoveredButton');
       assert.equal(renamed.name, 'file-CON.txt', 'reserved Windows basename must be prefixed');
-      assert.deepEqual(renamed.data, payload, 'renaming must not alter recovered bytes');
+      assert.deepEqual(renamed.data, fileBytes, 'renaming must not alter recovered bytes');
     }
     assert.deepEqual(failures, [], 'browser page errors');
     assert.deepEqual(requests, [], 'unexpected application network requests');
@@ -205,7 +209,10 @@ async function negativeCases(browser) {
   try {
     for(const artifact of artifacts) await realRoundTrip(browser,artifact,{mimeLess:artifact===artifacts[0]});
     await realRoundTrip(browser,artifacts[0],{encrypted:true,phone:true});
+    await realRoundTrip(browser,artifacts[0],{carrierMime:'image/jpeg',fileBytes:Buffer.alloc(8192,65),compression:'gzip'});
+    await realRoundTrip(browser,artifacts[0],{carrierMime:'image/webp',fileBytes:randomBytes(8192),compression:'none'});
+    await realRoundTrip(browser,artifacts[0],{fileBytes:Buffer.alloc(0)});
     await negativeCases(browser);
-    writeFileSync(path.join(out,'results.txt'),'PASS: three real PNG round trips, encrypted mobile recovery, wrong password, invalid inputs, cancellation, corrupted images, SHA-256, offline runtime.\n');
+    writeFileSync(path.join(out,'results.txt'),'PASS: three standalone variants, encrypted mobile recovery, JPEG/WebP carriers, gzip/incompressible/empty payloads, wrong password, invalid inputs, cancellation, corrupted images, byte equality and offline runtime.\n');
   } finally { await browser.close(); }
 })().catch(err=>{console.error(err);process.exitCode=1;});
