@@ -264,6 +264,14 @@ Selection regression runs the production application script with synthetic DOM, 
 
 GitHub validation and Pages deployment pin Node.js 24 before repository checks.
 
+### Real Chromium file-flow integration
+
+The PR preview and post-merge main-build workflows run `scripts/real-file-flow.browser.test.cjs` on actual browser-generated and downloaded PNGs. Checks cover all three HTML artifacts, byte-for-byte file recovery, password and wrong-password flows, missing PNG MIME, corrupted header/pixels, transparent and oversized inputs, cancellation, Japanese filenames, narrow layout, and absence of runtime HTTP requests. These are browser tests, unlike the synthetic selection/format harness. Real Safari/Firefox and physical mobile devices remain separate manual acceptance items.
+
+### Automated tag and GitHub Release
+
+A successful `main` deployment build is the release gate. On pushes to `main` (not manual workflow runs), if `app.config.json` contains numeric SemVer and `CHANGELOG.md` has the matching release heading, and the matching release/tag does not exist, create the `vX.Y.Z` Git tag at the verified commit and publish a GitHub Release. Attach the readable HTML, self-extracting HTML, and SHA-256 checksums. Duplicate releases are skipped; a tag without a release is a stop-and-review condition. Failed build/browser checks must not publish a release.
+
 ## 14. Release acceptance
 
 v1.0.4 release artifacts must satisfy:
