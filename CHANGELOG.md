@@ -10,7 +10,7 @@
 - Stop in-flight recovery when the extraction password changes, clear stale recovered results before retry, and release obsolete extracted-image previews.
 - Prevent Windows reserved device names (such as CON.txt) from remaining in recovered download filenames and sanitize the fallback filename.
 - Add source-level selection and responsive browser regressions for these cases; leave BKFI/BKFC format bytes and algorithms unchanged.
-- Add actual Chromium PNG/download/recovery integration checks for three standalone HTML artifacts and key negative cases.
+- Add actual Chromium PNG/download/recovery integration checks for three standalone HTML artifacts, JPEG/WebP carrier inputs, GZIP/incompressible/empty payloads, and key negative cases.
 - Gate automatic `v1.0.4` tag and GitHub Release creation on post-merge main build and native-browser checks, attaching both HTML variants and SHA-256 checksums.
 
 ## [1.0.3] - 2026-10-10
