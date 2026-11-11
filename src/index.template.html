@@ -532,7 +532,7 @@
       function revokePreview(kind) { const key=kind==='carrier'?'carrierPreviewUrl':'extractPreviewUrl'; const url=kind==='carrier'?carrierPreviewUrl:extractPreviewUrl; if (url) URL.revokeObjectURL(url); if (key==='carrierPreviewUrl') carrierPreviewUrl=''; else extractPreviewUrl=''; }
       function supportedImage(file) { return ['image/png','image/jpeg','image/webp'].includes(file.type); }
       function sanitizeBase(value,fallback) { let base=String(value||'').trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'-').replace(/\.+$/g,'').trim(); base=base.replace(/\.png$/i,''); if (!base) base=fallback; if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(base)) base += '-file'; return base.slice(0,120); }
-      function sanitizeFullFilename(value,fallback) { let name=String(value||'').trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'-').replace(/\.+$/g,'').trim(); if (!name) name=fallback; if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(name)) name=`${name}-file`; return name.slice(0,220); }
+      function sanitizeFullFilename(value,fallback) { const clean=input=>String(input||'').trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'-').replace(/\.+$/g,'').trim(); let name=clean(value)||clean(fallback)||'recovered-file.bin'; if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(name)) name=`file-${name}`; return name.slice(0,220); }
       function baseFromName(name) { return String(name||'file').replace(/\.[^.]+$/,'') || 'file'; }
       function mimeOrDefault(file) { return file.type || 'application/octet-stream'; }
       function writeAscii(bytes,offset,text) { for (let i=0;i<text.length;i+=1) bytes[offset+i]=text.charCodeAt(i); }
