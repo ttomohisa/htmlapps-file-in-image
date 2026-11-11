@@ -1,9 +1,14 @@
 # Changelog
 
-## Unreleased — mobile Help layout
+## [1.0.4] - 2026-11-11
 
 - Hide the informational footer at 520px and below and move existing build details to the end of Help, available at every width.
 - Preserve keyboard disclosure access without accidental backdrop dismissal; keep functional controls and existing local-processing wording unchanged.
+- Hide the existing local-processing badge at 520px and below, retaining the full desktop badge and Help privacy explanation.
+- Allow recovery when a PNG's browser-provided MIME type is empty; continue rejecting explicitly non-PNG MIME types.
+- Reject corrupted BKFI body lengths that exceed the decoded carrier's pixel capacity before extraction starts.
+- Stop in-flight recovery when the extraction password changes, clear stale recovered results before retry, and release obsolete extracted-image previews.
+- Add source-level selection and responsive browser regressions for these cases; leave BKFI/BKFC format bytes and algorithms unchanged.
 
 ## [1.0.3] - 2026-10-10
 
