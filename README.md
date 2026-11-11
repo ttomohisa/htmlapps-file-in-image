@@ -18,7 +18,7 @@ GitHub Pages delivers the initial HTML. After it loads, image decoding, GZIP, en
 
 ## Features
 
-The header language button shows its target (`EN` / `JA`) with a localized accessible name and tooltip. The version is displayed as `v1.0.3`, and the privacy badge reads “Fully local processing”.
+The header language button shows its target (`EN` / `JA`) with a localized accessible name and tooltip. The version is displayed as `v1.0.4`. The “Fully local processing” badge remains visible on larger screens and is hidden on phone-width screens (520 px and below); Help retains the privacy explanation.
 
 - **Hide one arbitrary file inside an image** — Use a PNG, JPEG, or WebP carrier and save the result as PNG.
 - **Clear either selected input** — Remove the image or payload while keeping the other input and password settings, even during loading.
