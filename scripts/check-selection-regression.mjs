@@ -91,7 +91,7 @@ function harness() {
   const factory=new Function('document','URL','Image','ImageData','Worker','crypto','window','localStorage','navigator','setTimeout','clearTimeout',script+`
     return {state,selectCarrier,selectPayload,runEmbed,selectExtractImage,runExtract,element:$,t,applyLanguage,
       clear:kind=>{const button=$('#clear'+(kind==='carrier'?'Carrier':'Payload')+'Button');button.click();},
-      generation:()=>generation};`);
+      generation:()=>generation,sanitizeFullFilename};`);
   const api=factory(document,URL,Image,ImageData,Worker,webcrypto,{addEventListener(){}},{getItem(){return null;},setItem(){}},{language:'en'},()=>0,()=>{});
   return {...api,controls,urls,revoked,downloads,workers,focus:()=>focus};
 }
@@ -225,4 +225,16 @@ test('editing the extraction password stops the old in-flight result',async()=>{
   a.element('#extractPassword').dispatch('input');
   await a.runExtract();
   assert.deepEqual(Array.from(a.state.recovered.fileBytes),[11,22,33]);
+});
+
+test('recovered filenames sanitize Windows device names and unsafe fallbacks',()=>{
+  const a=harness();
+  for(const name of ['CON','CON.txt','prn.csv','AUX','NUL.log','COM1.bin','LPT9.txt']){
+    const safe=a.sanitizeFullFilename(name,'fallback.bin');
+    assert.ok(safe.startsWith('file-'),name+' must not retain a Windows reserved basename');
+    assert.match(safe,/^[^\\/:*?"<>|]+$/);
+  }
+  assert.equal(a.sanitizeFullFilename('   ', 'CON.txt'), 'file-CON.txt');
+  assert.equal(a.sanitizeFullFilename('...', '...'), 'recovered-file.bin');
+  assert.equal(a.sanitizeFullFilename('../x.txt','fallback.bin'),'..-x.txt');
 });
