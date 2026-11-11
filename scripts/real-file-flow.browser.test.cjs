@@ -133,6 +133,12 @@ async function realRoundTrip(browser, file, { encrypted = false, phone = false, 
     const recovered = await save(page, '#saveRecoveredButton');
     assert.equal(recovered.name, '日本語 データ.bin');
     assert.deepEqual(recovered.data, payload, 'native downloaded payload is byte-exact');
+    if (encrypted) {
+      await page.locator('#recoveredFilename').fill('CON.txt');
+      const renamed = await save(page, '#saveRecoveredButton');
+      assert.equal(renamed.name, 'file-CON.txt', 'reserved Windows basename must be prefixed');
+      assert.deepEqual(renamed.data, payload, 'renaming must not alter recovered bytes');
+    }
     assert.deepEqual(failures, [], 'browser page errors');
     assert.deepEqual(requests, [], 'unexpected application network requests');
     console.log('PASS native round trip: ' + label);
