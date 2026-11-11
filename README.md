@@ -18,7 +18,7 @@ GitHub Pages delivers the initial HTML. After it loads, image decoding, GZIP, en
 
 ## Features
 
-The header language button shows its target (`EN` / `JA`) with a localized accessible name and tooltip. The version is displayed as `v1.0.3`, and the privacy badge reads “Fully local processing”.
+The header language button shows its target (`EN` / `JA`) with a localized accessible name and tooltip. The version is displayed as `v1.0.4`. The “Fully local processing” badge remains visible on larger screens and is hidden on phone-width screens (520 px and below); Help retains the privacy explanation.
 
 - **Hide one arbitrary file inside an image** — Use a PNG, JPEG, or WebP carrier and save the result as PNG.
 - **Clear either selected input** — Remove the image or payload while keeping the other input and password settings, even during loading.
@@ -76,7 +76,7 @@ Each password field has a show/hide button. Turning password protection off, or 
 
 ### Help and narrow screens
 
-Open Help with the question-mark button beside the language switcher. While it is open, the background page stays still; scroll inside Help to reach all the notes. Close it with the close button, Esc, or a click on the backdrop. At widths up to 420 px, the app name and version can wrap while the language and Help buttons keep their existing size.
+Open Help with the question-mark button beside the language switcher. The first screen shows short Embed/Extract instructions, privacy, and essential sharing warnings. Supported formats, encryption details, the MIT license/third-party notices, and build information are available through accessible disclosure sections. Reopening Help resets scrolling and disclosures. The background page stays still while Help scrolls internally; Close, Esc, and the backdrop dismiss it. At widths up to 420 px, the app name and version may wrap while the language and Help buttons keep their existing size.
 
 ## What “adaptive embedding” means
 
@@ -124,6 +124,10 @@ Run `node scripts/check-layout-regression.mjs` to check the Help-only document l
 ├─ build-standalone.ps1                 # Standalone/self-extract builder
 └─ dist/                                # Generated release artifacts
 ```
+
+Native-browser verification runs separately from the source-level checks: `node scripts/real-file-flow.browser.test.cjs` requires Playwright 1.58.2 and its Chromium browser. The PR preview workflow executes this test on the readable, self-extracting, and repository-root HTML outputs, exercising actual PNG downloads, byte-exact recovery, encrypted and wrong-password handling, malformed images, cancellation, phone layout, and runtime requests. It does not simulate a physical iOS/Android browser.
+
+After a version-bumping PR is merged, the `main` Pages workflow rebuilds and reruns native-browser checks before creating the matching `vX.Y.Z` tag and GitHub Release. Each release contains two single HTML downloads and `SHA256SUMS.txt`. Existing releases are not overwritten; a pre-existing tag without a release requires manual review.
 
 Run the complete repository verification:
 

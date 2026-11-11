@@ -91,7 +91,7 @@ function harness() {
   const factory=new Function('document','URL','Image','ImageData','Worker','crypto','window','localStorage','navigator','setTimeout','clearTimeout',script+`
     return {state,selectCarrier,selectPayload,runEmbed,selectExtractImage,runExtract,element:$,t,applyLanguage,
       clear:kind=>{const button=$('#clear'+(kind==='carrier'?'Carrier':'Payload')+'Button');button.click();},
-      generation:()=>generation};`);
+      generation:()=>generation,sanitizeFullFilename};`);
   const api=factory(document,URL,Image,ImageData,Worker,webcrypto,{addEventListener(){}},{getItem(){return null;},setItem(){}},{language:'en'},()=>0,()=>{});
   return {...api,controls,urls,revoked,downloads,workers,focus:()=>focus};
 }
@@ -156,4 +156,85 @@ for(const encrypted of [false,true])test(`${encrypted?'encrypted':'plain'} round
   const a=harness();await ready(a);a.clear('payload');await a.selectPayload(payload('message.bin'));a.element('#outputFilename').value='my custom name';if(encrypted){a.element('#passwordProtectToggle').checked=true;a.element('#embedPassword').value='test password';a.element('#embedPasswordConfirm').value='test password';}
   await a.runEmbed();assert.equal(a.state.encodedVerified,true);a.element('#savePngButton').click();assert.equal(a.downloads[0].filename,'my custom name.png');
   const blob=a.state.encodedBlob;blob.name='encoded.png';await a.selectExtractImage(blob);if(encrypted)a.element('#extractPassword').value='test password';await a.runExtract();assert.deepEqual(Array.from(a.state.recovered.fileBytes),[11,22,33]);assert.equal(a.state.recovered.filename,'message.bin');
+});
+
+
+test('PNG files with missing MIME information can still be recovered',async()=>{
+  const a=harness();await ready(a);await a.runEmbed();
+  const encoded=a.state.encodedBlob;
+  await a.selectExtractImage({name:'copy.png',type:'',size:encoded.size,imageData:structuredClone(encoded.imageData)});
+  assert(a.state.extractImage,'PNG with empty file.type must be accepted');
+  await a.runExtract();
+  assert.deepEqual(Array.from(a.state.recovered.fileBytes),[11,22,33]);
+});
+
+test('declared PNG body larger than image capacity is rejected before spawning a Worker',async()=>{
+  const a=harness();await ready(a);await a.runEmbed();
+  const imageData=structuredClone(a.state.encodedBlob.imageData);
+  const declaredBytes=8000;
+  // BKFI length at byte offsets 12..15, written into consecutive opaque RGB LSBs.
+  for(let b=0;b<32;b+=1){
+    const bitIndex=12*8+b,pixel=Math.floor(bitIndex/3),channel=bitIndex%3,offset=pixel*4+channel;
+    imageData.data[offset]=(imageData.data[offset]&0xfe)|((declaredBytes>>>(31-b))&1);
+  }
+  const workerCount=a.workers.length;
+  await a.selectExtractImage({name:'bad.png',type:'image/png',size:200,imageData});
+  assert.equal(a.state.extractImage,null);
+  assert.equal(a.element('#extractButton').disabled,true);
+  assert.equal(a.workers.length,workerCount);
+  assert.notEqual(a.element('#extractError').textContent,'');
+});
+
+test('replacing extracted image with invalid input releases the old preview',async()=>{
+  const a=harness();await ready(a);await a.runEmbed();
+  const encoded=a.state.encodedBlob;
+  await a.selectExtractImage({name:'good.png',type:'image/png',size:encoded.size,imageData:encoded.imageData});
+  const url=a.element('#extractThumb').src;
+  assert(a.urls.has(url));
+  await a.selectExtractImage({name:'invalid.txt',type:'text/plain',size:1});
+  assert.equal(a.state.extractImage,null);
+  assert.equal(a.element('#extractThumb').src,'');
+  assert(a.revoked.includes(url));
+  assert.equal(a.urls.has(url),false);
+});
+
+test('editing the extraction password stops the old in-flight result',async()=>{
+  const a=harness();await ready(a);
+  a.element('#passwordProtectToggle').checked=true;
+  a.element('#embedPassword').value='correct';
+  a.element('#embedPasswordConfirm').value='correct';
+  await a.runEmbed();
+  const encoded=a.state.encodedBlob;
+  await a.selectExtractImage({name:'locked.png',type:'image/png',size:encoded.size,imageData:encoded.imageData});
+  a.element('#extractPassword').value='correct';
+  const gate=deferred();a.controls.workerGate=gate;
+  const priorWorkers=a.workers.length;
+  const pending=a.runExtract();
+  await until(()=>a.workers.length>priorWorkers);
+  const oldWorker=a.workers.at(-1);
+  a.element('#extractPassword').value='changed';
+  a.element('#extractPassword').dispatch('input');
+  assert.equal(oldWorker.terminated,true);
+  assert.equal(a.element('#extractPanel').getAttribute('aria-busy'),'false');
+  assert.equal(a.state.recovered,null);
+  assert.equal(a.element('#extractResult').hidden,true);
+  gate.resolve();await pending;
+  assert.equal(a.state.recovered,null,'stale recovery must not reappear');
+  a.controls.workerGate=null;
+  a.element('#extractPassword').value='correct';
+  a.element('#extractPassword').dispatch('input');
+  await a.runExtract();
+  assert.deepEqual(Array.from(a.state.recovered.fileBytes),[11,22,33]);
+});
+
+test('recovered filenames sanitize Windows device names and unsafe fallbacks',()=>{
+  const a=harness();
+  for(const name of ['CON','CON.txt','prn.csv','AUX','NUL.log','COM1.bin','LPT9.txt']){
+    const safe=a.sanitizeFullFilename(name,'fallback.bin');
+    assert.ok(safe.startsWith('file-'),name+' must not retain a Windows reserved basename');
+    assert.match(safe,/^[^\\/:*?"<>|]+$/);
+  }
+  assert.equal(a.sanitizeFullFilename('   ', 'CON.txt'), 'file-CON.txt');
+  assert.equal(a.sanitizeFullFilename('...', '...'), 'recovered-file.bin');
+  assert.equal(a.sanitizeFullFilename('../x.txt','fallback.bin'),'..-x.txt');
 });

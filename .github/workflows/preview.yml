@@ -45,6 +45,22 @@ jobs:
         New-Item -ItemType Directory -Force -Path test-results/mobile-help | Out-Null
         node scripts/mobile-help.browser.test.cjs 2>&1 | Tee-Object -FilePath test-results/mobile-help/results.log
         if ($LASTEXITCODE -ne 0) { throw "Mobile Help browser regression failed." }
+    - name: Verify native file flows in Chromium
+      shell: pwsh
+      run: |
+        $testTools = Join-Path $env:RUNNER_TEMP "mobile-help-tests"
+        $env:NODE_PATH = Join-Path $testTools "node_modules"
+        New-Item -ItemType Directory -Force -Path test-results/real-file-flow | Out-Null
+        node scripts/real-file-flow.browser.test.cjs
+        if ($LASTEXITCODE -ne 0) { throw "Native file-flow browser regression failed." }
+    - name: Upload native file-flow browser evidence
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: real-file-flow-browser-evidence
+        path: test-results/real-file-flow/
+        if-no-files-found: ignore
+        retention-days: 7
     - name: Upload mobile Help browser evidence
       if: always()
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

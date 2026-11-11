@@ -26,14 +26,17 @@ async function main() {
             await page.goto(pathToFileURL(path.resolve(__dirname, '..', file)).href);
             await page.locator('#helpButton').waitFor();
             if (await page.locator('html').getAttribute('lang') !== language) await page.locator('#languageButton').click();
-            assert.equal(await page.locator('[data-i18n="localBadge"]').innerText(), language === 'en' ? 'Fully local processing' : '完全ローカル処理', label);
-            assert.ok(await page.locator('.local-badge').evaluate(el => {
-              const box = el.getBoundingClientRect();
-              const range = document.createRange();
-              range.selectNodeContents(el.querySelector('[data-i18n="localBadge"]'));
-              return box.left >= 0 && box.right <= innerWidth && el.scrollWidth <= el.clientWidth + 1
-                && [...range.getClientRects()].every(rect => rect.left >= box.left - 1 && rect.right <= box.right + 1 && rect.top >= box.top - 1 && rect.bottom <= box.bottom + 1);
-            }), label + ': badge text fits');
+            assert.equal(await page.locator('[data-i18n="localBadge"]').textContent(), language === 'en' ? 'Fully local processing' : '完全ローカル処理', label);
+            assert.equal(await page.locator('.local-badge').isVisible(), width > 520, label + ': phone privacy badge visibility');
+            if (width > 520) {
+              assert.ok(await page.locator('.local-badge').evaluate(el => {
+                const box = el.getBoundingClientRect();
+                const range = document.createRange();
+                range.selectNodeContents(el.querySelector('[data-i18n="localBadge"]'));
+                return box.left >= 0 && box.right <= innerWidth && el.scrollWidth <= el.clientWidth + 1
+                  && [...range.getClientRects()].every(rect => rect.left >= box.left - 1 && rect.right <= box.right + 1 && rect.top >= box.top - 1 && rect.bottom <= box.bottom + 1);
+              }), label + ': badge text fits');
+            }
             assert.equal(await page.locator('main').locator(buildSelector).count(), 0, label);
             assert.equal(await page.locator('footer').isVisible(), width > 520, label);
 
@@ -45,6 +48,32 @@ async function main() {
             assert.equal(await page.locator(buildSelector).count(), 1, label);
             assert.equal(await page.locator(buildSelector).isVisible(), true, label);
             for (const id of ['buildVersion', 'builtAt', 'dependencyCount']) assert.equal(await page.locator('#' + id).count(), 1, label);
+            const disclosures = page.locator('#helpDialog details.help-more');
+            assert.equal(await disclosures.count(), 3, label + ': format, encryption, license disclosures');
+            for (const key of ['helpEmbed1', 'helpExtract3', 'helpPrivacyBody', 'helpNoteImage', 'helpNoteShare', 'helpNotePassword']) {
+              assert.equal(await page.locator('#helpDialog [data-i18n="' + key + '"]').isVisible(), true, label + ': visible essential guidance ' + key);
+            }
+            for (const key of ['helpNoteCapacity', 'helpNoteEncryption', 'helpLicenseBody']) {
+              assert.equal(await page.locator('#helpDialog [data-i18n="' + key + '"]').isVisible(), false, label + ': optional details are initially closed ' + key);
+            }
+            const expectedHeadings = language === 'ja'
+              ? ['対応形式と詳しい注意', '暗号化について', 'ライセンス']
+              : ['Supported formats and details', 'Encryption details', 'License'];
+            for (let i = 0; i < expectedHeadings.length; i++) {
+              const summary = disclosures.nth(i).locator('summary');
+              assert.equal(await summary.innerText(), expectedHeadings[i], label + ': translated disclosure summary');
+              await summary.focus();
+              await page.keyboard.press('Enter');
+              assert.equal(await disclosures.nth(i).getAttribute('open'), '', label + ': keyboard disclosure opens');
+            }
+            assert.equal(await page.locator('#helpDialog [data-i18n="helpNoteFormat"]').isVisible(), true, label + ': legacy format detail retained');
+            assert.equal(await page.locator('#helpDialog [data-i18n="helpNoteEncryption"]').isVisible(), true, label + ': encryption algorithm retained');
+            assert.equal(await page.locator('#helpDialog [data-i18n="helpLicenseBody"]').isVisible(), true, label + ': MIT attribution retained');
+            assert.equal(await page.locator('#helpDialog .help-license-links a').count(), 2, label + ': full license and notices');
+            const hrefs = await page.locator('#helpDialog .help-license-links a').evaluateAll(links => links.map(link => link.href));
+            assert.ok(hrefs[0].endsWith('/LICENSE'), label + ': full license destination');
+            assert.ok(hrefs[1].endsWith('/THIRD_PARTY_NOTICES.md'), label + ': third-party notices destination');
+            assert.ok(await body.evaluate(el => el.scrollWidth <= el.clientWidth + 1), label + ': expanded Help width');
 
             {
               const summary = page.locator(buildSelector).locator('summary');
@@ -72,6 +101,10 @@ async function main() {
             await page.keyboard.press('Escape');
             assert.equal(await page.locator('#helpDialog').isVisible(), false, label + ': Escape');
             await page.locator('#helpButton').click();
+            assert.equal(await body.evaluate(el => el.scrollTop), 0, label + ': Help resets to top on reopen');
+            for (let i = 0; i < 3; i++) {
+              assert.equal(await disclosures.nth(i).getAttribute('open'), null, label + ': details reset on reopen');
+            }
             await page.locator('#closeHelpButton').click();
             assert.equal(await page.locator('#helpDialog').isVisible(), false, label + ': reopen and Close');
             await page.locator('#helpButton').click();

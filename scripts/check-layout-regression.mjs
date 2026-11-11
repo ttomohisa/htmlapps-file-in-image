@@ -104,6 +104,13 @@ test('local-only privacy badge keeps its shield/check artwork and network policy
   assert.match(html, /connect-src 'none'/);
 });
 
+test('local privacy badge is hidden only at the 520px phone breakpoint', () => {
+  const mobile = block('@media (max-width: 520px)');
+  assert.equal(rule('.local-badge', mobile).display, 'none');
+  assert.notEqual(rule('.local-badge').display, 'none');
+  assert.match(html, /data-i18n="localBadge"/);
+});
+
 test('page footer is hidden only at the existing 520px phone breakpoint', () => {
   assert.equal(rule('footer', block('@media (max-width: 520px)')).display, 'none');
   assert.notEqual(rule('footer').display, 'none');

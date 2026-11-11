@@ -38,6 +38,27 @@ jobs:
         shell: pwsh
         run: ./scripts/check-repository.ps1
 
+      - name: Verify native file flows in Chromium
+        shell: pwsh
+        run: |
+          $testTools = Join-Path $env:RUNNER_TEMP "real-file-flow-tests"
+          npm install --prefix $testTools --ignore-scripts --no-audit --no-fund --package-lock=false playwright@1.58.2
+          if ($LASTEXITCODE -ne 0) { throw "Playwright installation failed." }
+          $env:NODE_PATH = Join-Path $testTools "node_modules"
+          & (Join-Path $testTools "node_modules/.bin/playwright.cmd") install chromium
+          if ($LASTEXITCODE -ne 0) { throw "Chromium installation failed." }
+          node scripts/real-file-flow.browser.test.cjs
+          if ($LASTEXITCODE -ne 0) { throw "Native file-flow browser regression failed." }
+
+      - name: Upload native file-flow evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: main-real-file-flow-evidence
+          path: test-results/real-file-flow/
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Check whether GitHub Pages is enabled
         id: pages-status
         shell: pwsh
@@ -105,3 +126,60 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+  release:
+    name: Create tag and GitHub Release after verification
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Checkout verified main commit
+        uses: actions/checkout@v6
+
+      - name: Download verified standalone artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: standalone-html-${{ github.sha }}
+          path: release-artifacts
+
+      - name: Publish release only for a new version
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./app.config.json').version")"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release version must use numeric SemVer: $version" >&2
+            exit 1
+          fi
+          if ! grep -Fq "## [$version]" CHANGELOG.md; then
+            echo "CHANGELOG.md has no release entry for $version" >&2
+            exit 1
+          fi
+          tag="v$version"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "GitHub Release $tag already exists. Skipping (idempotent)."
+            exit 0
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists without a release. Refusing to reuse it automatically." >&2
+            exit 1
+          fi
+          test -s release-artifacts/dist/index.html
+          test -s release-artifacts/dist/index.self-extract.html
+          mkdir -p prepared-release
+          cp release-artifacts/dist/index.html prepared-release/file-in-image.html
+          cp release-artifacts/dist/index.self-extract.html prepared-release/file-in-image.self-extract.html
+          (cd prepared-release && sha256sum file-in-image.html file-in-image.self-extract.html > SHA256SUMS.txt)
+          gh release create "$tag" \
+            prepared-release/file-in-image.html \
+            prepared-release/file-in-image.self-extract.html \
+            prepared-release/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "File in Image $tag" \
+            --generate-notes

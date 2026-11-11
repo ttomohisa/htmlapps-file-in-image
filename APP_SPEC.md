@@ -5,7 +5,7 @@
 - **Name:** File in Image
 - **Japanese name:** 画像にファイルを埋め込む
 - **Slug:** `file-in-image`
-- **Current version:** v1.0.3
+- **Current version:** v1.0.4
 - **Repository:** `ttomohisa/htmlapps-file-in-image`
 - **Purpose:** Hide one arbitrary file inside image pixels and recover the original bytes later without uploading either file.
 - **Release artifacts:** `dist/index.html`, `dist/index.self-extract.html`, and generated repository-root `file-in-image.html`.
@@ -210,7 +210,8 @@ CPU-heavy adaptive image analysis, embedding, and extraction run in an embedded 
 
 ## 11. Mobile and accessibility
 
-- Hide only the informational page footer at the existing smartphone breakpoint (520px and below). Functional actions remain unchanged.
+- Hide the informational page footer and local-processing badge at the existing smartphone breakpoint (520px and below). The badge remains visible above that breakpoint; functional actions are unchanged.
+- Help first displays concise Embed/Extract instructions, local-processing privacy, and warnings that PNG conversion/editing may destroy the payload, an unencrypted payload can be recovered by a recipient, and the password is required again for recovery. Format/size and capacity, compression, placement, SHA-256 self-check, legacy compatibility, clear-selection behavior, AES-256-GCM, offline operation, and MIT/third-party attribution remain readable in native keyboard-accessible disclosure sections. Reopening Help resets its internal scroll and disclosure state.
 - Build information is the last item inside Help’s scrollable body and remains available at every width. Preserve its native details/summary, unique build-value IDs, and Japanese/English labels. Keyboard activation inside Help is not a backdrop click.
 - Keep the existing “Fully local processing” translation of 完全ローカル処理; unrelated privacy/footer wording is unchanged.
 
@@ -218,7 +219,7 @@ Stable UI requirements include:
 
 - no horizontal scrolling at narrow smartphone widths
 - The header language button shows the target language: `EN` in Japanese and `JA` in English. Its accessible name and matching tooltip are `英語に切り替え` / `Switch to Japanese`.
-- The header version is `v` followed by the numeric `app.config.json` version (`vx.x.x`). Preserve existing responsive visibility and the `完全ローカル処理` / `Fully local processing` badge.
+- The header version is `v` followed by the numeric `app.config.json` version (`vx.x.x`). Preserve responsive header visibility and the `完全ローカル処理` / `Fully local processing` badge wording (desktop/tablet visible; phone-width hidden).
 - At widths up to 420 px, the app name and version may wrap without clipping. The existing language and Help controls must not shrink; wider-screen header styling is retained.
 - Only a native-modal Help dialog locks both document scrolling elements; a non-modal dialog does not activate the lock. Its existing flex shell keeps the header separate from the internally scrolling body, including short viewports and bottom safe areas. Close, Esc, and backdrop dismissal restore normal page scrolling through the dialog state.
 - approximately 44 px primary touch targets
@@ -226,6 +227,10 @@ Stable UI requirements include:
 - 16 px mobile password/filename inputs
 - long filename handling
 - compact selected-file drop zones with replacement Drag & Drop
+- accept PNG extraction inputs whose File MIME type is unknown/empty, while rejecting explicitly non-PNG types
+- reject a declared BKFI body larger than available opaque-pixel capacity before allocating the extraction body
+- invalidate active extraction when its password changes, clear previous recovered bytes before each retry, and revoke obsolete extract previews
+- prefix Windows reserved device filenames and sanitize fallback download names before saving
 - password show/hide controls
 - accessible tabs with roving tabindex and Arrow/Home/End support
 - `aria-busy`, status, progress labels, and result focus
@@ -261,9 +266,17 @@ Selection regression runs the production application script with synthetic DOM, 
 
 GitHub validation and Pages deployment pin Node.js 24 before repository checks.
 
+### Real Chromium file-flow integration
+
+The PR preview and post-merge main-build workflows run `scripts/real-file-flow.browser.test.cjs` on actual browser-generated and downloaded PNGs. Checks cover all three HTML artifacts, PNG/JPEG/WebP carrier inputs, GZIP/incompressible/empty payload cases, byte-for-byte file recovery, password and wrong-password flows, missing PNG MIME, corrupted header/pixels, transparent and oversized inputs, cancellation, Japanese filenames, narrow layout, and absence of runtime HTTP requests. These are browser tests, unlike the synthetic selection/format harness. Real Safari/Firefox and physical mobile devices remain separate manual acceptance items.
+
+### Automated tag and GitHub Release
+
+A successful `main` deployment build is the release gate. On pushes to `main` (not manual workflow runs), if `app.config.json` contains numeric SemVer and `CHANGELOG.md` has the matching release heading, and the matching release/tag does not exist, create the `vX.Y.Z` Git tag at the verified commit and publish a GitHub Release. Attach the readable HTML, self-extracting HTML, and SHA-256 checksums. Duplicate releases are skipped; a tag without a release is a stop-and-review condition. Failed build/browser checks must not publish a release.
+
 ## 14. Release acceptance
 
-v1.0.3 release artifacts must satisfy:
+v1.0.4 release artifacts must satisfy:
 
 - repository check passes
 - format, selection, header, and layout regressions pass

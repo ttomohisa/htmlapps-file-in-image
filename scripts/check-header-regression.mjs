@@ -70,11 +70,14 @@ function checkHeader(app, language) {
   const badge = app.attributed.find(el => el.dataset.i18n === 'localBadge');
   assert.ok(badge, 'local-processing badge exists');
   assert.equal(badge.textContent, language === 'ja' ? '完全ローカル処理' : 'Fully local processing');
-  const help = app.attributed.find(el => el.dataset.i18n === 'helpReading');
-  assert.ok(help, 'Help explains how to close it');
-  assert.equal(help.textContent, language === 'ja'
-    ? '閉じるボタン、Escキー、または背景のクリックで閉じます。'
-    : 'Close it with the close button, Esc, or a click on the backdrop.');
+  const expected = language === 'ja'
+    ? {helpEmbedTitle: '埋め込む', helpExtractTitle: '取り出す', helpNotesTitle: '保存前の注意', helpMoreTitle: '対応形式と詳しい注意', helpLicenseTitle: 'ライセンス'}
+    : {helpEmbedTitle: 'Embed a file', helpExtractTitle: 'Recover a file', helpNotesTitle: 'Before you save or share', helpMoreTitle: 'Supported formats and details', helpLicenseTitle: 'License'};
+  for (const [key, text] of Object.entries(expected)) {
+    const item = app.attributed.find(el => el.dataset.i18n === key);
+    assert.ok(item, 'Help has the ' + key + ' section');
+    assert.equal(item.textContent, text);
+  }
 }
 for (const language of ['ja', 'en']) {
   test(`${language} fresh load, repeated real clicks, and saved-language reload`, () => {
@@ -96,6 +99,6 @@ for (const language of ['ja', 'en']) {
   });
 }
 test('header and release config use the requested one-step patch version', () => {
-  assert.equal(config.version, '1.0.3');
-  assert.match(source, /id="versionBadge">v1\.0\.3<\/span>/);
+  assert.equal(config.version, '1.0.4');
+  assert.match(source, /id="versionBadge">v1\.0\.4<\/span>/);
 });
