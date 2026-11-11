@@ -9,6 +9,8 @@
 - Reject corrupted BKFI body lengths that exceed the decoded carrier's pixel capacity before extraction starts.
 - Stop in-flight recovery when the extraction password changes, clear stale recovered results before retry, and release obsolete extracted-image previews.
 - Add source-level selection and responsive browser regressions for these cases; leave BKFI/BKFC format bytes and algorithms unchanged.
+- Add actual Chromium PNG/download/recovery integration checks for three standalone HTML artifacts and key negative cases.
+- Gate automatic `v1.0.4` tag and GitHub Release creation on post-merge main build and native-browser checks, attaching both HTML variants and SHA-256 checksums.
 
 ## [1.0.3] - 2026-10-10
 
