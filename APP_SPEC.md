@@ -211,6 +211,7 @@ CPU-heavy adaptive image analysis, embedding, and extraction run in an embedded 
 ## 11. Mobile and accessibility
 
 - Hide the informational page footer and local-processing badge at the existing smartphone breakpoint (520px and below). The badge remains visible above that breakpoint; functional actions are unchanged.
+- Help first displays concise Embed/Extract instructions, local-processing privacy, and warnings that PNG conversion/editing may destroy the payload, an unencrypted payload can be recovered by a recipient, and the password is required again for recovery. Format/size and capacity, compression, placement, SHA-256 self-check, legacy compatibility, clear-selection behavior, AES-256-GCM, offline operation, and MIT/third-party attribution remain readable in native keyboard-accessible disclosure sections. Reopening Help resets its internal scroll and disclosure state.
 - Build information is the last item inside Help’s scrollable body and remains available at every width. Preserve its native details/summary, unique build-value IDs, and Japanese/English labels. Keyboard activation inside Help is not a backdrop click.
 - Keep the existing “Fully local processing” translation of 完全ローカル処理; unrelated privacy/footer wording is unchanged.
 
