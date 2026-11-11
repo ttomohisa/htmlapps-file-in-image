@@ -203,6 +203,7 @@
     }
     @media (max-width: 520px) {
       footer { display: none; }
+      .local-badge { display: none; }
       :root { --header-height: 58px; }
       .header-inner { padding-block: 8px; }
       .brand-mark { width: 34px; height: 34px; border-radius: 10px; }
@@ -246,7 +247,7 @@
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"><img id="appBrandIcon" src="__APP_ICON_DATA_URI__" alt=""></div>
         <div class="brand-copy">
-          <p class="brand-name"><span id="brandName">File in Image</span><span class="version-badge" id="versionBadge">v1.0.3</span></p>
+          <p class="brand-name"><span id="brandName">File in Image</span><span class="version-badge" id="versionBadge">v1.0.4</span></p>
           <p class="brand-meta" data-i18n="brandMeta">画像にファイルを埋めて、あとから取り出す</p>
         </div>
       </div>
@@ -1230,12 +1231,14 @@
 
       async function selectExtractImage(file) {
         const token=nextGeneration(); setOperationBusy('extract',false); clearOperationProgress('extract'); setError('#extractError'); state.extractImage=null; state.recovered=null; $('#extractDropZone').classList.remove('has-file'); $('#extractEmpty').hidden=false; $('#extractSummary').hidden=true; $('#extractResult').hidden=true; $('#extractButton').disabled=true; $('#extractPasswordBox').hidden=true; $('#extractPassword').value=''; resetPasswordVisibility('extractPassword');
+        revokePreview('extract'); $('#extractThumb').removeAttribute('src'); $('#extractThumb').alt='';
         try {
-          if (!file || file.type!=='image/png') throw new Error('IMAGE_TYPE');
+          if (!file || (file.type && file.type!=='image/png')) throw new Error('IMAGE_TYPE');
           $('#extractStatus').textContent=t('readingImage');
           const decoded=await decodeImage(file); if (!isCurrent(token)) return;
           const opaqueCount=countOpaque(decoded.imageData); if (opaqueCount<HEADER_PIXELS) throw new Error('NOT_BKFI');
           const outer=extractOuterHeader(decoded.imageData);
+          if (outer.bodyLength>bodyCapacityBytes(opaqueCount)) throw new Error('CORRUPT');
           state.extractImage={file,...decoded,opaqueCount,outer};
           revokePreview('extract'); extractPreviewUrl=URL.createObjectURL(file); $('#extractThumb').src=extractPreviewUrl;
           $('#extractEmpty').hidden=true; $('#extractSummary').hidden=false; $('#extractImageName').textContent=file.name; $('#extractImageName').title=file.name; $('#extractThumb').alt=file.name; $('#extractDropZone').classList.add('has-file'); $('#extractImageMeta').textContent=`${formatBytes(file.size)} · ${formatNumber(decoded.width)} × ${formatNumber(decoded.height)}`;
@@ -1248,7 +1251,7 @@
 
       async function runExtract() {
         if (!state.extractImage) return;
-        const token=generation; setError('#extractError'); $('#extractResult').hidden=true; setOperationBusy('extract',true); setOperationProgress('extract','extracting',2);
+        const token=generation; state.recovered=null; setError('#extractError'); $('#extractResult').hidden=true; setOperationBusy('extract',true); setOperationProgress('extract','extracting',2);
         let cryptoMaterial=null;
         try {
           const outer=state.extractImage.outer;
@@ -1336,7 +1339,7 @@
       $('#passwordProtectToggle').addEventListener('change',()=>{ if (!$('#passwordProtectToggle').checked) { $('#embedPassword').value=''; $('#embedPasswordConfirm').value=''; resetPasswordVisibility('embedPassword','embedPasswordConfirm'); } invalidateEncodedResult({cancelActive:true}); refreshProtectionUi(); });
       $('#embedPassword').addEventListener('input',()=>{ invalidateEncodedResult({cancelActive:true}); refreshProtectionUi(); });
       $('#embedPasswordConfirm').addEventListener('input',()=>{ invalidateEncodedResult({cancelActive:true}); refreshProtectionUi(); });
-      $('#extractPassword').addEventListener('input',()=>{ state.recovered=null; $('#extractResult').hidden=true; setError('#extractError'); refreshExtractReady(); });
+      $('#extractPassword').addEventListener('input',()=>{ if (operationBusy.extract) { generation+=1; terminateActiveImageTask('STALE'); setOperationBusy('extract',false); clearOperationProgress('extract'); } state.recovered=null; $('#extractResult').hidden=true; setError('#extractError'); refreshExtractReady(); });
       $('#cancelEmbedButton').addEventListener('click',()=>cancelOperation('embed')); $('#cancelExtractButton').addEventListener('click',()=>cancelOperation('extract'));
       $('#embedButton').addEventListener('click',runEmbed); $('#extractButton').addEventListener('click',runExtract);
       $('#savePngButton').addEventListener('click',()=>{ if (!state.encodedBlob || !state.encodedVerified) return; const base=sanitizeBase($('#outputFilename').value,'file-in-image'); $('#outputFilename').value=base; downloadBlob(state.encodedBlob,`${base}.png`); showToast(t('pngSaved'),'success'); });
