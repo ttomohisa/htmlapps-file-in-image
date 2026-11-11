@@ -12,6 +12,7 @@
 - Add source-level selection and responsive browser regressions for these cases; leave BKFI/BKFC format bytes and algorithms unchanged.
 - Add actual Chromium PNG/download/recovery integration checks for three standalone HTML artifacts, JPEG/WebP carrier inputs, GZIP/incompressible/empty payloads, and key negative cases.
 - Gate automatic `v1.0.4` tag and GitHub Release creation on post-merge main build and native-browser checks, attaching both HTML variants and SHA-256 checksums.
+- Reorganize bilingual Help around short embed/recover steps and essential sharing warnings, with optional format, encryption, license, and build details; preserve accessible keyboard summaries, scrolling, and MIT attribution.
 
 ## [1.0.3] - 2026-10-10
 
