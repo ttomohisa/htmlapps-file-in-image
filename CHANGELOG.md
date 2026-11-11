@@ -8,6 +8,7 @@
 - Allow recovery when a PNG's browser-provided MIME type is empty; continue rejecting explicitly non-PNG MIME types.
 - Reject corrupted BKFI body lengths that exceed the decoded carrier's pixel capacity before extraction starts.
 - Stop in-flight recovery when the extraction password changes, clear stale recovered results before retry, and release obsolete extracted-image previews.
+- Prevent Windows reserved device names (such as CON.txt) from remaining in recovered download filenames and sanitize the fallback filename.
 - Add source-level selection and responsive browser regressions for these cases; leave BKFI/BKFC format bytes and algorithms unchanged.
 - Add actual Chromium PNG/download/recovery integration checks for three standalone HTML artifacts and key negative cases.
 - Gate automatic `v1.0.4` tag and GitHub Release creation on post-merge main build and native-browser checks, attaching both HTML variants and SHA-256 checksums.
