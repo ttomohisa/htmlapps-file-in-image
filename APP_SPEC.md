@@ -267,7 +267,7 @@ GitHub validation and Pages deployment pin Node.js 24 before repository checks.
 
 ### Real Chromium file-flow integration
 
-The PR preview and post-merge main-build workflows run `scripts/real-file-flow.browser.test.cjs` on actual browser-generated and downloaded PNGs. Checks cover all three HTML artifacts, byte-for-byte file recovery, password and wrong-password flows, missing PNG MIME, corrupted header/pixels, transparent and oversized inputs, cancellation, Japanese filenames, narrow layout, and absence of runtime HTTP requests. These are browser tests, unlike the synthetic selection/format harness. Real Safari/Firefox and physical mobile devices remain separate manual acceptance items.
+The PR preview and post-merge main-build workflows run `scripts/real-file-flow.browser.test.cjs` on actual browser-generated and downloaded PNGs. Checks cover all three HTML artifacts, PNG/JPEG/WebP carrier inputs, GZIP/incompressible/empty payload cases, byte-for-byte file recovery, password and wrong-password flows, missing PNG MIME, corrupted header/pixels, transparent and oversized inputs, cancellation, Japanese filenames, narrow layout, and absence of runtime HTTP requests. These are browser tests, unlike the synthetic selection/format harness. Real Safari/Firefox and physical mobile devices remain separate manual acceptance items.
 
 ### Automated tag and GitHub Release
 
