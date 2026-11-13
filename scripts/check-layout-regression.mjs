@@ -92,7 +92,7 @@ test('existing 44px language, Help, and close targets are preserved', () => {
   assert.equal(rule('.icon-button').height, '44px');
   assert.equal(rule('.header-icon-button').width, '44px');
   assert.equal(rule('.header-icon-button').height, '44px');
-  assert.match(html, /class="icon-button" id="closeHelpButton"/);
+  assert.match(html, /class="dialog-close" id="closeHelpButton"/);
 });
 
 test('local-only privacy badge keeps its shield/check artwork and network policy', () => {
